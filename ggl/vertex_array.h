@@ -106,65 +106,13 @@ struct client_state<vertex_texcoord<VertexType, VertexSize, TexCoordType, TexCoo
 } // detail
 
 template <typename VertexType>
-class vertex_array_base
-{
-public:
-	vertex_array_base() = default;
-
-	void clear()
-	{ verts_.clear(); }
-
-	void add_vertex(const VertexType& v)
-	{ verts_.push_back(v); }
-
-	size_t get_num_verts() const
-	{ return verts_.size(); }
-
-protected:
-	std::vector<VertexType> verts_;
-};
-
-template <typename IndexType, typename VertexType>
-class indexed_vertex_array_base : public vertex_array_base<VertexType>
-{
-public:
-	using base_type = vertex_array_base<VertexType>;
-
-	void clear()
-	{
-		base_type::clear();
-		indices_.clear();
-	}
-
-	void add_index(const IndexType& index)
-	{ indices_.push_back(index); }
-
-	size_t get_num_indices() const
-	{ return indices_.size(); }
-
-protected:
-	std::vector<IndexType> indices_;
-};
-
-template <typename VertexType>
-class vertex_array : public vertex_array_base<VertexType>
+class vertex_array : public std::vector<VertexType>
 {
 public:
 	void draw(GLenum mode) const
 	{
-		detail::client_state<VertexType> state(&this->verts_[0]);
-		glDrawArrays(mode, 0, this->verts_.size());
-	}
-};
-
-template <typename IndexType, typename VertexType>
-class indexed_vertex_array : public indexed_vertex_array_base<IndexType, VertexType>
-{
-public:
-	void draw(GLenum mode) const
-	{
-		detail::client_state<VertexType> state(&this->verts_[0]);
-		glDrawElements(mode, this->indices_.size(), detail::gltype_to_glenum<IndexType>::type, &this->indices_[0]);
+		detail::client_state<VertexType> state(&this->front());
+		glDrawArrays(mode, 0, this->size());
 	}
 };
 

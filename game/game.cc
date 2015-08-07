@@ -334,10 +334,10 @@ game::draw_background() const
 					auto us = s*du;
 					auto ue = e*du;
 
-					va.add_vertex({ xs, y, us, v });
-					va.add_vertex({ xe, y, ue, v });
-					va.add_vertex({ xe, y + cell_size, ue, v + dv });
-					va.add_vertex({ xs, y + cell_size, us, v + dv });
+					va.push_back({ xs, y, us, v });
+					va.push_back({ xe, y, ue, v });
+					va.push_back({ xe, y + cell_size, ue, v + dv });
+					va.push_back({ xs, y + cell_size, us, v + dv });
 
 					span_start = span_end;
 				}
@@ -404,34 +404,34 @@ game::draw_border() const
 
 				// top
 				if (i == GRID_ROWS - 1 || p[GRID_COLS]) {
-					va.add_vertex({ x0, y2 });
-					va.add_vertex({ x3, y2 });
-					va.add_vertex({ x3, y3 });
-					va.add_vertex({ x0, y3 });
+					va.push_back({ x0, y2 });
+					va.push_back({ x3, y2 });
+					va.push_back({ x3, y3 });
+					va.push_back({ x0, y3 });
 				}
 
 				// down
 				if (i == 0 || p[-GRID_COLS]) {
-					va.add_vertex({ x0, y0 });
-					va.add_vertex({ x3, y0 });
-					va.add_vertex({ x3, y1 });
-					va.add_vertex({ x0, y1 });
+					va.push_back({ x0, y0 });
+					va.push_back({ x3, y0 });
+					va.push_back({ x3, y1 });
+					va.push_back({ x0, y1 });
 				}
 
 				// left
 				if (j == 0 || p[-1]) {
-					va.add_vertex({ x0, y0 });
-					va.add_vertex({ x0, y3 });
-					va.add_vertex({ x1, y3 });
-					va.add_vertex({ x1, y0 });
+					va.push_back({ x0, y0 });
+					va.push_back({ x0, y3 });
+					va.push_back({ x1, y3 });
+					va.push_back({ x1, y0 });
 				}
 
 				// right
 				if (j == GRID_COLS - 1 || p[1]) {
-					va.add_vertex({ x2, y0 });
-					va.add_vertex({ x2, y3 });
-					va.add_vertex({ x3, y3 });
-					va.add_vertex({ x3, y0 });
+					va.push_back({ x2, y0 });
+					va.push_back({ x2, y3 });
+					va.push_back({ x3, y3 });
+					va.push_back({ x3, y0 });
 				}
 			}
 
