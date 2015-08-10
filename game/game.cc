@@ -309,7 +309,7 @@ game::draw_background() const
 	const float du = static_cast<float>(tex->orig_width)/tex->width/GRID_COLS;
 	const float dv = static_cast<float>(tex->orig_height)/tex->height/GRID_ROWS;
 
-	static ggl::vertex_array<ggl::vertex_texcoord<GLint, 2, GLfloat, 2>> va;
+	static ggl::vertex_array_texcoord<GLint, 2, GLfloat, 2> va;
 
 	auto fill_spans = [&](bool b)
 		{
@@ -377,7 +377,7 @@ game::draw_border() const
 
 	glColor4f(1, 1, 0, 1);
 
-	static ggl::vertex_array<ggl::vertex_flat<GLint, 2>> va;
+	static ggl::vertex_array_flat<GLint, 2> va;
 
 	va.clear();
 

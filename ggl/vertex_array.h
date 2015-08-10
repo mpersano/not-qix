@@ -116,4 +116,10 @@ public:
 	}
 };
 
+template <typename VertexType, int VertexSize>
+using vertex_array_flat = vertex_array<vertex_flat<VertexType, VertexSize>>;
+
+template <typename VertexType, int VertexSize, typename TexCoordType, int TexCoordSize>
+using vertex_array_texcoord = vertex_array<vertex_texcoord<VertexType, VertexSize, TexCoordType, TexCoordSize>>;
+
 } // ggl
