@@ -2,8 +2,8 @@
 #include <algorithm>
 #include <map>
 
-#include "panic.h"
-#include "texture.h"
+#include <ggl/panic.h>
+#include <ggl/texture.h>
 
 namespace ggl {
 
@@ -82,8 +82,8 @@ texture::texture(const image& im)
 		GL_UNSIGNED_BYTE,
 		&data[0]);
 
-	set_wrap_s(GL_CLAMP);
-	set_wrap_t(GL_CLAMP);
+	set_wrap_s(GL_REPEAT);
+	set_wrap_t(GL_REPEAT);
 
 	set_mag_filter(GL_LINEAR);
 	set_min_filter(GL_LINEAR);

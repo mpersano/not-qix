@@ -1,8 +1,8 @@
 #pragma once
 
-#include <GL/glew.h>
-
 #include <vector>
+
+#include <ggl/gl.h>
 
 namespace ggl {
 
@@ -46,18 +46,6 @@ template <>
 struct gltype_to_glenum<GLushort>
 {
 	static const GLenum type = GL_UNSIGNED_SHORT;
-};
-
-template <>
-struct gltype_to_glenum<GLint>
-{
-	static const GLenum type = GL_INT;
-};
-
-template <>
-struct gltype_to_glenum<GLuint>
-{
-	static const GLenum type = GL_UNSIGNED_INT;
 };
 
 template <>

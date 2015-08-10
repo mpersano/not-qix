@@ -274,7 +274,7 @@ game::game(int width, int height)
 , base_x_ { (width - cell_size*GRID_COLS)/2 }
 , base_y_ { (height - cell_size*GRID_ROWS)/2 }
 , player_ { *this }
-, font_ { ggl::res::get_font("data/fonts/tiny") }
+, font_ { ggl::res::get_font("fonts/tiny") }
 { }
 
 void

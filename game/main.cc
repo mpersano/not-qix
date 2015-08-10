@@ -1,17 +1,24 @@
 #include <GL/glew.h>
 
-#include <ggl/window.h>
 #include <ggl/resources.h>
 
 #include "level.h"
 #include "game.h"
 
-class game_window : public ggl::window
+#if defined(ANDROID)
+#include <ggl/android/window.h>
+using abstract_window = ggl::android::window;
+#else
+#include <ggl/sdl/window.h>
+using abstract_window = ggl::sdl::window;
+#endif
+
+class game_window : public abstract_window
 {
 public:
 	game_window(int width, int height);
 
-	void draw(float dt) override;
+	void update_and_render(float dt) override;
 
 private:
 	static const int MARGIN = 8;
@@ -21,15 +28,15 @@ private:
 };
 
 game_window::game_window(int width, int height)
-: ggl::window { width, height, "game", }
+: abstract_window { width, height, "game", }
 , game_ { width - 2*MARGIN, height - 2*MARGIN }
-, level_ { "data/images/girl.png", "data/images/girl-mask.png" }
+, level_ { "images/girl.png", "images/girl-mask.png" }
 {
 	game_.reset(&level_);
 }
 
 void
-game_window::draw(float dt)
+game_window::update_and_render(float dt)
 {
 	glViewport(0, 0, width_, height_);
 	glClearColor(0, 0, 0, 0);

@@ -1,7 +1,7 @@
 #include <unistd.h>
 
-#include "panic.h"
-#include "file.h"
+#include <ggl/panic.h>
+#include <ggl/file.h>
 
 namespace ggl {
 

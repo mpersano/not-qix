@@ -2,13 +2,13 @@
 #include <cerrno>
 #include <stdarg.h>
 
-#include "panic.h"
-#include "file.h"
-#include "xwchar.h"
-#include "texture.h"
-#include "resources.h"
-#include "vertex_array.h"
-#include "font.h"
+#include <ggl/panic.h>
+#include <ggl/file.h>
+#include <ggl/xwchar.h>
+#include <ggl/texture.h>
+#include <ggl/resources.h>
+#include <ggl/vertex_array.h>
+#include <ggl/font.h>
 
 namespace ggl {
 
@@ -85,8 +85,8 @@ font::get_string_width(const wchar_t *str, size_t len) const
 void
 font::render(const wchar_t *str) const
 {
-	vertex_array_texcoord<GLint, 2, GLfloat, 2> va;
-	va.reserve(4*xwcslen(str));
+	vertex_array_texcoord<GLshort, 2, GLfloat, 2> va;
+	va.reserve(6*xwcslen(str));
 
 	const int y = 0;
 	int x = 0;
@@ -94,10 +94,10 @@ font::render(const wchar_t *str) const
 	for (const wchar_t *p = str; *p; p++) {
 		auto *g = find_glyph(*p);
 
-		int x0 = x + g->left;
-		int x1 = x0 + g->width;
-		int y0 = y + g->top;
-		int y1 = y0 - g->height;
+		short x0 = x + g->left;
+		short x1 = x0 + g->width;
+		short y0 = y + g->top;
+		short y1 = y0 - g->height;
 
 		auto& t0 = g->texuv[0];
 		auto& t1 = g->texuv[1];
@@ -107,7 +107,10 @@ font::render(const wchar_t *str) const
 		va.push_back({ x0, y0, t0.x, t0.y });
 		va.push_back({ x1, y0, t1.x, t1.y });
 		va.push_back({ x1, y1, t2.x, t2.y });
+
+		va.push_back({ x1, y1, t2.x, t2.y });
 		va.push_back({ x0, y1, t3.x, t3.y });
+		va.push_back({ x0, y0, t0.x, t0.y });
 
 		x += g->advance_x;
 	}
@@ -115,7 +118,7 @@ font::render(const wchar_t *str) const
 	glEnable(GL_TEXTURE_2D);
 	texture_->bind();
 
-	va.draw(GL_QUADS);
+	va.draw(GL_TRIANGLES);
 }
 
 }

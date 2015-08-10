@@ -1,9 +1,8 @@
 #pragma once
 
-#include <GL/glew.h>
-
-#include "noncopyable.h"
-#include "image.h"
+#include <ggl/gl.h>
+#include <ggl/noncopyable.h>
+#include <ggl/image.h>
 
 namespace ggl {
 

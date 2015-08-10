@@ -1,7 +1,7 @@
 #include <cstdio>
 #include <stdarg.h>
 
-#include "xwchar.h"
+#include <ggl/xwchar.h>
 
 static wchar_t *
 format_string(wchar_t *dest, const wchar_t *str, bool zero_pad, int width)

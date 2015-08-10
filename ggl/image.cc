@@ -4,9 +4,9 @@
 
 #include <png.h>
 
-#include "panic.h"
-#include "file.h"
-#include "image.h"
+#include <ggl/panic.h>
+#include <ggl/file.h>
+#include <ggl/image.h>
 
 namespace ggl {
 

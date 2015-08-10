@@ -3,12 +3,13 @@
 
 #include <stdarg.h>
 
-#include "panic.h"
+#include <ggl/log.h>
+#include <ggl/panic.h>
 
 void
 panic(const char *fmt, ...)
 {
-	char buf[512];
+	char buf[2048];
 
 	va_list ap;
 
@@ -16,7 +17,7 @@ panic(const char *fmt, ...)
 	vsprintf(buf, fmt, ap);
 	va_end(ap);
 
-	fprintf(stderr, "FATAL: %s\n", buf);
+	log_error("%s", buf);
 
 	exit(1);
 }

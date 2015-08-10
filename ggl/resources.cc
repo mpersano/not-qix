@@ -2,10 +2,10 @@
 #include <memory>
 #include <unordered_map>
 
-#include "noncopyable.h"
-#include "texture.h"
-#include "font.h"
-#include "resources.h"
+#include <ggl/noncopyable.h>
+#include <ggl/texture.h>
+#include <ggl/font.h>
+#include <ggl/resources.h>
 
 namespace ggl { namespace res {
 

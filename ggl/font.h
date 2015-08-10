@@ -5,9 +5,8 @@
 
 #include <string>
 
-#include <GL/glew.h>
-
-#include "vec2.h"
+#include <ggl/gl.h>
+#include <ggl/vec2.h>
 
 namespace ggl {
 

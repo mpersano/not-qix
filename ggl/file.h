@@ -4,7 +4,7 @@
 #include <cstdint>
 #include <string>
 
-#include "noncopyable.h"
+#include <ggl/noncopyable.h>
 
 namespace ggl {
 
