@@ -62,12 +62,12 @@ image::image(unsigned width, unsigned height, pixel_type type)
 
 image::image(const std::string& path)
 {
-	fprintf(stderr, "loading %s...\n", path.c_str());
-
-	file in_file(path.c_str(), "rb");
+	file in_file(path);
 	if (!in_file) {
 		panic("failed to open %s: %s", path.c_str(), strerror(errno));
 	}
+
+	fprintf(stderr, "loading %s...\n", path.c_str());
 
 	png_structp png_ptr;
 

@@ -51,3 +51,6 @@ length(const vec2<T>& v)
 {
 	return sqrtf(v.x*v.x + v.y*v.y);
 }
+
+using vec2f = vec2<float>;
+using vec2i = vec2<int>;

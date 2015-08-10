@@ -1,12 +1,13 @@
 #include <cassert>
 #include <algorithm>
 
-#include "resources.h"
+#include <ggl/resources.h>
+
 #include "level.h"
 
 level::level(const char *background, const char *mask)
-: background_texture { gp::res::get_texture(background) }
-, mask_texture { gp::res::get_texture(mask) }
+: background_texture { ggl::res::get_texture(background) }
+, mask_texture { ggl::res::get_texture(mask) }
 {
 	assert(background_texture->orig_width == mask_texture->orig_width);
 	assert(background_texture->orig_height == mask_texture->orig_height);

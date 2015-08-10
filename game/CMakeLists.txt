@@ -12,7 +12,6 @@ include_directories(
 link_directories(${CMAKE_BINARY_DIR}/ggl)
 
 set(INTRO_SOURCES
-	resources.cc
 	level.cc
 	game.cc
 	main.cc)

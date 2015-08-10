@@ -7,9 +7,13 @@ find_package(PNG REQUIRED)
 include_directories(${SDL_INCLUDE_DIR} ${GLEW_INCLUDE_DIR} ${PNG_INCLUDE_DIRS})
 
 set(GGL_SOURCES
+	xwchar.cc
 	window.cc
 	panic.cc
 	texture.cc
-	image.cc)
+	font.cc
+	image.cc
+	file.cc
+	resources.cc)
 
 add_library(ggl ${GGL_SOURCES})

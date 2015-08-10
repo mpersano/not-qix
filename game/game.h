@@ -3,8 +3,14 @@
 #include <vector>
 #include <memory>
 
+#include <ggl/vec2.h>
+#include <ggl/vertex_array.h>
+
 #include "common.h"
-#include "vec2.h"
+
+namespace ggl {
+class font;
+}
 
 enum class direction { UP, DOWN, LEFT, RIGHT };
 
@@ -27,12 +33,12 @@ private:
 
 	enum class state { IDLE, SLIDING, EXTENDING_IDLE, EXTENDING };
 
-	const vec2<int> get_position() const;
+	const vec2i get_position() const;
 	void set_state(state next_state);
 
 	game& game_;
-	vec2<int> pos_, next_pos_;
-	std::vector<vec2<int>> extend_trail_;
+	vec2i pos_, next_pos_;
+	std::vector<vec2i> extend_trail_;
 	state state_;
 	float state_t_;
 };
@@ -59,7 +65,7 @@ public:
 	void move(direction dir, bool button_pressed);
 	void update(float dt);
 	void draw() const;
-	void fill_grid(const std::vector<vec2<int>>& contour);
+	void fill_grid(const std::vector<vec2i>& contour);
 
 	bool grid[GRID_ROWS*GRID_COLS];
 	int cell_size;
@@ -68,9 +74,18 @@ private:
 	void draw_background() const;
 	void draw_border() const;
 
+	void initialize_vas();
+	void initialize_background_vas();
+	void initialize_border_va();
+
 	int base_x_, base_y_;
 	player player_;
 	std::vector<std::unique_ptr<foe>> foes_;
 	const level *cur_level_;
 	float elapsed_t_;
+
+	ggl::vertex_array_texcoord<GLint, 2, GLfloat, 2> background_filled_va_;
+	ggl::vertex_array_texcoord<GLint, 2, GLfloat, 2> background_unfilled_va_;
+	ggl::vertex_array_flat<GLint, 2> border_va_;
+	const ggl::font *font_;
 };

@@ -3,7 +3,9 @@
 
 #include <GL/glew.h>
 
+#include <ggl/font.h>
 #include <ggl/vertex_array.h>
+#include <ggl/resources.h>
 
 #include "level.h"
 #include "game.h"
@@ -21,7 +23,7 @@ player::player(game& g)
 void
 player::reset()
 {
-	pos_ = vec2<int> { 0, 0 };
+	pos_ = vec2i { 0, 0 };
 	set_state(state::IDLE);
 }
 
@@ -48,7 +50,7 @@ player::move_extend(direction dir)
 {
 	auto *p = &game_.grid[pos_.y*GRID_COLS + pos_.x];
 
-	auto slide_to = [&](const vec2<int>& where)
+	auto slide_to = [&](const vec2i& where)
 		{
 			auto it = std::find(std::begin(extend_trail_), std::end(extend_trail_), where);
 
@@ -67,7 +69,7 @@ player::move_extend(direction dir)
 		case direction::UP:
 			if (pos_.y < GRID_ROWS) {
 				if (pos_.x > 0 && pos_.x < GRID_COLS && !p[0] && !p[-1]) {
-					slide_to(pos_ + vec2<int> { 0, 1 });
+					slide_to(pos_ + vec2i { 0, 1 });
 				}
 			}
 			break;
@@ -75,7 +77,7 @@ player::move_extend(direction dir)
 		case direction::DOWN:
 			if (pos_.y > 0) {
 				if (pos_.x > 0 && pos_.x < GRID_COLS && !p[-GRID_COLS] && !p[-GRID_COLS - 1]) {
-					slide_to(pos_ + vec2<int> { 0, -1 });
+					slide_to(pos_ + vec2i { 0, -1 });
 				}
 			}
 			break;
@@ -83,7 +85,7 @@ player::move_extend(direction dir)
 		case direction::LEFT:
 			if (pos_.x > 0) {
 				if (pos_.y > 0 && pos_.y < GRID_ROWS && !p[-GRID_COLS - 1] && !p[-1]) {
-					slide_to(pos_ + vec2<int> { -1, 0 });
+					slide_to(pos_ + vec2i { -1, 0 });
 				}
 			}
 			break;
@@ -91,7 +93,7 @@ player::move_extend(direction dir)
 		case direction::RIGHT:
 			if (pos_.x < GRID_COLS) {
 				if (pos_.y > 0 && pos_.y < GRID_ROWS && !p[-GRID_COLS] && !p[0]) {
-					slide_to(pos_ + vec2<int> { 1, 0 });
+					slide_to(pos_ + vec2i { 1, 0 });
 				}
 			}
 			break;
@@ -107,7 +109,7 @@ player::move_slide(direction dir)
 		case direction::UP:
 			if (pos_.y < GRID_ROWS) {
 				if ((pos_.x == 0 || p[-1]) != (pos_.x == GRID_COLS || p[0])) {
-					next_pos_ = pos_ + vec2<int> { 0, 1 };
+					next_pos_ = pos_ + vec2i { 0, 1 };
 					set_state(state::SLIDING);
 				}
 			}
@@ -116,7 +118,7 @@ player::move_slide(direction dir)
 		case direction::DOWN:
 			if (pos_.y > 0) {
 				if ((pos_.x == 0 || p[-GRID_COLS - 1]) != (pos_.x == GRID_COLS || p[-GRID_COLS])) {
-					next_pos_ = pos_ + vec2<int> { 0, -1 };
+					next_pos_ = pos_ + vec2i { 0, -1 };
 					set_state(state::SLIDING);
 				}
 			}
@@ -125,7 +127,7 @@ player::move_slide(direction dir)
 		case direction::LEFT:
 			if (pos_.x > 0) {
 				if ((pos_.y == 0 || p[-GRID_COLS - 1]) != (pos_.y == GRID_ROWS || p[-1])) {
-					next_pos_ = pos_ + vec2<int> { -1, 0 };
+					next_pos_ = pos_ + vec2i { -1, 0 };
 					set_state(state::SLIDING);
 				}
 			}
@@ -134,7 +136,7 @@ player::move_slide(direction dir)
 		case direction::RIGHT:
 			if (pos_.x < GRID_COLS) {
 				if ((pos_.y == 0 || p[-GRID_COLS]) != (pos_.y == GRID_ROWS || p[0])) {
-					next_pos_ = pos_ + vec2<int> { 1, 0 };
+					next_pos_ = pos_ + vec2i { 1, 0 };
 					set_state(state::SLIDING);
 				}
 			}
@@ -216,7 +218,7 @@ player::draw() const
 	if (state_ == state::EXTENDING || state_ == state::EXTENDING_IDLE) {
 		static const int TRAIL_RADIUS = 2;
 
-		static auto draw_segment = [](const vec2<int>& u, const vec2<int>& v)
+		static auto draw_segment = [](const vec2i& u, const vec2i& v)
 			{
 				const int x0 = std::min(u.x - TRAIL_RADIUS, v.x - TRAIL_RADIUS);
 				const int x1 = std::max(u.x + TRAIL_RADIUS, v.x + TRAIL_RADIUS);
@@ -245,7 +247,7 @@ player::draw() const
 	}
 }
 
-const vec2<int>
+const vec2i
 player::get_position() const
 {
 	switch (state_) {
@@ -256,9 +258,8 @@ player::get_position() const
 		case state::SLIDING:
 		case state::EXTENDING:
 			{
-			float t = state_t_/SLIDE_T;
-			vec2<float> p{vec2<float>{pos_} + (vec2<float>{next_pos_} - vec2<float>{pos_})*t};
-			return vec2<int>{p*game_.cell_size};
+			int d = game_.cell_size*state_t_/SLIDE_T;
+			return pos_*game_.cell_size + (next_pos_ - pos_)*d;
 			}
 	}
 }
@@ -273,6 +274,7 @@ game::game(int width, int height)
 , base_x_ { (width - cell_size*GRID_COLS)/2 }
 , base_y_ { (height - cell_size*GRID_ROWS)/2 }
 , player_ { *this }
+, font_ { ggl::res::get_font("data/fonts/tiny") }
 { }
 
 void
@@ -281,6 +283,7 @@ game::reset(const level *l)
 	cur_level_ = l;
 
 	std::fill(std::begin(grid), std::end(grid), false);
+	initialize_vas();
 
 	player_.reset();
 
@@ -298,21 +301,40 @@ game::draw() const
 
 	player_.draw();
 
+	glColor4f(1, 1, 1, 1);
+
+	glPushMatrix();
+	glTranslatef(50, 50, 0);
+
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
+	font_->render(L"hello, world");
+	glDisable(GL_BLEND);
+
+	glPopMatrix();
+
 	glPopMatrix();
 }
 
 void
-game::draw_background() const
+game::initialize_vas()
+{
+	initialize_background_vas();
+	initialize_border_va();
+}
+
+void
+game::initialize_background_vas()
 {
 	auto& tex = cur_level_->background_texture;
 
 	const float du = static_cast<float>(tex->orig_width)/tex->width/GRID_COLS;
 	const float dv = static_cast<float>(tex->orig_height)/tex->height/GRID_ROWS;
 
-	static ggl::vertex_array_texcoord<GLint, 2, GLfloat, 2> va;
-
-	auto fill_spans = [&](bool b)
+	auto fill_spans = [&](ggl::vertex_array_texcoord<GLint, 2, GLfloat, 2>& va, bool b)
 		{
+			va.clear();
+
 			int y = 0;
 			float v = 0;
 
@@ -347,39 +369,16 @@ game::draw_background() const
 			}
 		};
 
-	glColor4f(1, 1, 1, 1);
-
-	glEnable(GL_TEXTURE_2D);
-
-	{
-	cur_level_->background_texture->bind();
-
-	va.clear();
-	fill_spans(true);
-	va.draw(GL_QUADS);
-	}
-
-	{
-	cur_level_->mask_texture->bind();
-
-	va.clear();
-	fill_spans(false);
-	va.draw(GL_QUADS);
-	}
-
-	glDisable(GL_TEXTURE_2D);
+	fill_spans(background_filled_va_, true);
+	fill_spans(background_unfilled_va_, false);
 }
 
 void
-game::draw_border() const
+game::initialize_border_va()
 {
+	border_va_.clear();
+
 	static const int BORDER_RADIUS = 1;
-
-	glColor4f(1, 1, 0, 1);
-
-	static ggl::vertex_array_flat<GLint, 2> va;
-
-	va.clear();
 
 	int y = 0;
 
@@ -404,34 +403,34 @@ game::draw_border() const
 
 				// top
 				if (i == GRID_ROWS - 1 || p[GRID_COLS]) {
-					va.push_back({ x0, y2 });
-					va.push_back({ x3, y2 });
-					va.push_back({ x3, y3 });
-					va.push_back({ x0, y3 });
+					border_va_.push_back({ x0, y2 });
+					border_va_.push_back({ x3, y2 });
+					border_va_.push_back({ x3, y3 });
+					border_va_.push_back({ x0, y3 });
 				}
 
 				// down
 				if (i == 0 || p[-GRID_COLS]) {
-					va.push_back({ x0, y0 });
-					va.push_back({ x3, y0 });
-					va.push_back({ x3, y1 });
-					va.push_back({ x0, y1 });
+					border_va_.push_back({ x0, y0 });
+					border_va_.push_back({ x3, y0 });
+					border_va_.push_back({ x3, y1 });
+					border_va_.push_back({ x0, y1 });
 				}
 
 				// left
 				if (j == 0 || p[-1]) {
-					va.push_back({ x0, y0 });
-					va.push_back({ x0, y3 });
-					va.push_back({ x1, y3 });
-					va.push_back({ x1, y0 });
+					border_va_.push_back({ x0, y0 });
+					border_va_.push_back({ x0, y3 });
+					border_va_.push_back({ x1, y3 });
+					border_va_.push_back({ x1, y0 });
 				}
 
 				// right
 				if (j == GRID_COLS - 1 || p[1]) {
-					va.push_back({ x2, y0 });
-					va.push_back({ x2, y3 });
-					va.push_back({ x3, y3 });
-					va.push_back({ x3, y0 });
+					border_va_.push_back({ x2, y0 });
+					border_va_.push_back({ x2, y3 });
+					border_va_.push_back({ x3, y3 });
+					border_va_.push_back({ x3, y0 });
 				}
 			}
 
@@ -440,8 +439,30 @@ game::draw_border() const
 
 		y += cell_size;
 	}
+}
 
-	va.draw(GL_QUADS);
+void
+game::draw_background() const
+{
+	glColor4f(1, 1, 1, 1);
+
+	glEnable(GL_TEXTURE_2D);
+
+	cur_level_->background_texture->bind();
+	background_filled_va_.draw(GL_QUADS);
+
+	cur_level_->mask_texture->bind();
+	background_unfilled_va_.draw(GL_QUADS);
+
+	glDisable(GL_TEXTURE_2D);
+}
+
+void
+game::draw_border() const
+{
+	glColor4f(1, 1, 0, 1);
+
+	border_va_.draw(GL_QUADS);
 }
 
 void
@@ -459,36 +480,38 @@ game::update(float dt)
 }
 
 void
-game::fill_grid(const std::vector<vec2<int>>& contour)
+game::fill_grid(const std::vector<vec2i>& contour)
 {
+	// flood fill
+
 	// forbidden transitions
-	std::vector<std::pair<vec2<int>, vec2<int>>> transitions;
+	std::vector<std::pair<vec2i, vec2i>> transitions;
 
 	for (size_t i = 0; i < contour.size() - 1; i++) {
 		auto& u = contour[i];
 		auto& v = contour[i + 1];
 
-		vec2<int> p0, p1;
+		vec2i p0, p1;
 
 		if (v.y > u.y) {
 			// up
-			transitions.push_back(std::make_pair(u, u + vec2<int> { -1, 0 }));
+			transitions.push_back(std::make_pair(u, u + vec2i { -1, 0 }));
 		} else if (v.y < u.y) {
 			// down
-			transitions.push_back(std::make_pair(u + vec2<int> { -1, -1 }, u + vec2<int> { 0, -1 }));
+			transitions.push_back(std::make_pair(u + vec2i { -1, -1 }, u + vec2i { 0, -1 }));
 		} else if (v.x < u.x) {
 			// left
-			transitions.push_back(std::make_pair(u + vec2<int> { -1, 0 }, u + vec2<int> { -1, -1 }));
+			transitions.push_back(std::make_pair(u + vec2i { -1, 0 }, u + vec2i { -1, -1 }));
 		} else {
 			// right
-			transitions.push_back(std::make_pair(u, u + vec2<int> { 0, -1 }));
+			transitions.push_back(std::make_pair(u, u + vec2i { 0, -1 }));
 		}
 	}
 
 	auto fill = [&](bool *grid, int coord)
 		{
-			std::queue<vec2<int>> queue;
-			queue.push(vec2<int> { coord%GRID_COLS, coord/GRID_COLS });
+			std::queue<vec2i> queue;
+			queue.push(vec2i { coord%GRID_COLS, coord/GRID_COLS });
 
 			grid[coord] = true;
 
@@ -496,7 +519,7 @@ game::fill_grid(const std::vector<vec2<int>>& contour)
 				auto pos = queue.front();
 				queue.pop();
 
-				static const vec2<int> dirs[4] { { -1, 0 }, { 1, 0 }, { 0, -1 }, { 0, 1 } };
+				static const vec2i dirs[4] { { -1, 0 }, { 1, 0 }, { 0, -1 }, { 0, 1 } };
 
 				for (auto& d : dirs) {
 					auto next_pos = pos + d;
@@ -549,6 +572,12 @@ game::fill_grid(const std::vector<vec2<int>>& contour)
 	} else {
 		std::copy(std::begin(next_grid_1), std::end(next_grid_1), grid);
 	}
+
+	// vertex arrays
+
+	initialize_vas();
+
+	// update cover percentage
 
 	int cover = 0;
 

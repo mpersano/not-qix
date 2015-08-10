@@ -1,8 +1,8 @@
 #include <GL/glew.h>
 
 #include <ggl/window.h>
+#include <ggl/resources.h>
 
-#include "resources.h"
 #include "level.h"
 #include "game.h"
 
@@ -65,7 +65,7 @@ game_window::draw(float dt)
 int
 main(int argc, char *argv[])
 {
-	gp::res::init();
+	ggl::res::init();
 
 	game_window g(320, 480);
 	g.run();
