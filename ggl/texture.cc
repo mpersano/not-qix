@@ -10,19 +10,19 @@ namespace ggl {
 namespace {
 
 GLint
-color_type_to_pixel_format(image::pixel_type type)
+color_type_to_pixel_format(pixel_type type)
 {
 	switch (type) {
-		case image::pixel_type::GRAY:
+		case pixel_type::GRAY:
 			return GL_LUMINANCE;
 
-		case image::pixel_type::GRAY_ALPHA:
+		case pixel_type::GRAY_ALPHA:
 			return GL_LUMINANCE_ALPHA;
 
-		case image::pixel_type::RGB:
+		case pixel_type::RGB:
 			return GL_RGB;
 
-		case image::pixel_type::RGB_ALPHA:
+		case pixel_type::RGB_ALPHA:
 			return GL_RGBA;
 
 		default:
@@ -48,25 +48,25 @@ next_power_of_2(T n)
 texture::texture(const image& im)
 : orig_width { im.width }, width { next_power_of_2(orig_width) }
 , orig_height { im.height }, height { next_power_of_2(orig_height) }
-, pixel_type { im.type }
-, data(height*width*im.get_pixel_size())
+, type { im.type }
+, data(height*width*pixel_size())
 , id_ { 0 }
 {
 	glGenTextures(1, &id_);
 
-	const uint8_t *src = &im.data[(im.height - 1)*im.get_row_stride()];
+	const uint8_t *src = &im.data[(im.height - 1)*im.row_stride()];
 	uint8_t *dest = &data[0];
 
-	const size_t dest_stride = width*im.get_pixel_size();
-	const size_t src_stride = im.get_row_stride();
+	const unsigned dest_stride = row_stride();
+	const unsigned src_stride = im.row_stride();
 
-	for (size_t i = 0; i < im.height; i++) {
+	for (unsigned i = 0; i < im.height; i++) {
 		std::copy(src, src + src_stride, dest);
 		src -= src_stride;
 		dest += dest_stride;
 	}
 
-	const GLint format = color_type_to_pixel_format(pixel_type);
+	const GLint format = color_type_to_pixel_format(type);
 
 	bind();
 

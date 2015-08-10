@@ -10,7 +10,6 @@ set(GGL_SOURCES
 	window.cc
 	panic.cc
 	texture.cc
-	texture_manager.cc
 	image.cc)
 
 add_library(ggl ${GGL_SOURCES})

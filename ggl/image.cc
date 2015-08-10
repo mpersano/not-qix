@@ -10,23 +10,41 @@
 
 namespace ggl {
 
+unsigned
+get_pixel_size(pixel_type type)
+{
+	switch (type) {
+		case pixel_type::GRAY:
+			return 1;
+
+		case pixel_type::GRAY_ALPHA:
+			return 2;
+
+		case pixel_type::RGB:
+			return 3;
+
+		case pixel_type::RGB_ALPHA:
+			return 4;
+	}
+}
+
 namespace {
 
-image::pixel_type
+pixel_type
 to_pixel_type(png_byte png_color_type)
 {
 	switch (png_color_type) {
 		case PNG_COLOR_TYPE_GRAY:
-			return image::pixel_type::GRAY;
+			return pixel_type::GRAY;
 
 		case PNG_COLOR_TYPE_GRAY_ALPHA:
-			return image::pixel_type::GRAY_ALPHA;
+			return pixel_type::GRAY_ALPHA;
 
 		case PNG_COLOR_TYPE_RGB:
-			return image::pixel_type::RGB;
+			return pixel_type::RGB;
 
 		case PNG_COLOR_TYPE_RGBA:
-			return image::pixel_type::RGB_ALPHA;
+			return pixel_type::RGB_ALPHA;
 
 		default:
 			panic("invalid PNG color type: %x", png_color_type);
@@ -39,40 +57,16 @@ image::image(unsigned width, unsigned height, pixel_type type)
 : width(width)
 , height(height)
 , type(type)
-, data(width*height*get_pixel_size())
+, data(width*height*pixel_size())
 { }
 
-unsigned
-image::get_pixel_size() const
+image::image(const std::string& path)
 {
-	switch (type) {
-		case image::pixel_type::GRAY:
-			return 1;
+	fprintf(stderr, "loading %s...\n", path.c_str());
 
-		case image::pixel_type::GRAY_ALPHA:
-			return 2;
-
-		case image::pixel_type::RGB:
-			return 3;
-
-		case image::pixel_type::RGB_ALPHA:
-			return 4;
-	}
-}
-
-unsigned
-image::get_row_stride() const
-{
-	return get_pixel_size()*width;
-}
-
-image::image(const char *path)
-{
-	fprintf(stderr, "loading %s...\n", path);
-
-	file in_file(path, "rb");
+	file in_file(path.c_str(), "rb");
 	if (!in_file) {
-		panic("failed to open %s: %s", path, strerror(errno));
+		panic("failed to open %s: %s", path.c_str(), strerror(errno));
 	}
 
 	png_structp png_ptr;
@@ -102,12 +96,13 @@ image::image(const char *path)
 	width = png_get_image_width(png_ptr, info_ptr);
 	height = png_get_image_height(png_ptr, info_ptr);
 	type = to_pixel_type(png_get_color_type(png_ptr, info_ptr));
-	data.resize(width*height*get_pixel_size());
+
+	data.resize(width*height*pixel_size());
 
 	auto rows = png_get_rows(png_ptr, info_ptr);
 
 	uint8_t *dest = &data[0];
-	const unsigned stride = get_row_stride();
+	const unsigned stride = row_stride();
 
 	for (unsigned i = 0; i < height; i++) {
 		std::copy(rows[i], rows[i] + stride, dest);

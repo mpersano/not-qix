@@ -1,31 +1,24 @@
 #include <cassert>
 #include <algorithm>
 
+#include "resources.h"
 #include "level.h"
 
 level::level(const char *background, const char *mask)
+: background_texture { gp::res::get_texture(background) }
+, mask_texture { gp::res::get_texture(mask) }
 {
-	ggl::image background_pm(background);
-	ggl::image mask_pm(mask);
+	assert(background_texture->orig_width == mask_texture->orig_width);
+	assert(background_texture->orig_height == mask_texture->orig_height);
+	assert(mask_texture->orig_height%GRID_ROWS == 0);
+	assert(mask_texture->orig_height%GRID_COLS == 0);
 
-	assert(background_pm.width == mask_pm.width);
-	assert(background_pm.height == mask_pm.height);
-	assert(mask_pm.height%GRID_ROWS == 0);
-	assert(mask_pm.width%GRID_COLS == 0);
+	const unsigned row_stride = mask_texture->row_stride();
+	const unsigned pixel_size = mask_texture->pixel_size();
+	const uint8_t *mask_pixels = &mask_texture->data[0];
 
-	// textures
-
-	background_texture.reset(new ggl::texture { background_pm });
-	mask_texture.reset(new ggl::texture { mask_pm });
-
-	// silhouette
-
-	const size_t row_stride = mask_pm.get_row_stride();
-	const size_t pixel_size = mask_pm.get_pixel_size();
-	const uint8_t *mask_pixels = &mask_pm.data[0];
-
-	int block_height = mask_pm.height/GRID_ROWS;
-	int block_width = mask_pm.width/GRID_COLS;
+	unsigned block_height = mask_texture->orig_height/GRID_ROWS;
+	unsigned block_width = mask_texture->orig_width/GRID_COLS;
 
 	for (int r = 0; r < GRID_ROWS; r++) {
 		for (int c = 0; c < GRID_COLS; c++) {
@@ -42,7 +35,7 @@ level::level(const char *background, const char *mask)
 				p += row_stride - block_width*pixel_size;
 			}
 
-			silhouette[(GRID_ROWS - 1 - r)*GRID_COLS + c] = s; // flipped...
+			silhouette[r*GRID_COLS + c] = s;
 		}
 	}
 

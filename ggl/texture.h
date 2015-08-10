@@ -39,9 +39,15 @@ public:
 	static void set_env_mode(GLint mode)
 	{ glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, mode); }
 
-	size_t orig_width, width;
-	size_t orig_height, height;
-	image::pixel_type pixel_type;
+	unsigned row_stride() const
+	{ return width*pixel_size(); }
+
+	unsigned pixel_size() const
+	{ return get_pixel_size(type); }
+
+	unsigned orig_width, width;
+	unsigned orig_height, height;
+	pixel_type type;
 	std::vector<uint8_t> data;
 
 private:

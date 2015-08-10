@@ -5,15 +5,21 @@
 
 namespace ggl {
 
+enum class pixel_type { GRAY, GRAY_ALPHA, RGB, RGB_ALPHA };
+
+unsigned
+get_pixel_size(pixel_type type);
+
 struct image
 {
-	enum class pixel_type { GRAY, GRAY_ALPHA, RGB, RGB_ALPHA };
-
-	image(const char *path);
+	image(const std::string& path);
 	image(unsigned width, unsigned height, pixel_type type);
 
-	size_t get_pixel_size() const;
-	size_t get_row_stride() const;
+	unsigned row_stride() const
+	{ return width*pixel_size(); }
+
+	unsigned pixel_size() const
+	{ return get_pixel_size(type); }
 
 	unsigned width;
 	unsigned height;
