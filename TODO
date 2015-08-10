@@ -1,0 +1,13 @@
+* android port
+* background scrolling
+* text rendering
+* gui elements
+  * percentage
+  * time
+* foes
+  * first iteration: bouncing sphere
+  * sphere vs. grid collision
+  * sphere vs. line collision
+* assets
+  * player sprite
+  * explosion sprite
