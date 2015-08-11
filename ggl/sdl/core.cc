@@ -1,4 +1,4 @@
-#include <ggl/sdl/window.h>
+#include <ggl/sdl/core.h>
 #include <ggl/panic.h>
 
 #include <cstdio>
@@ -9,18 +9,16 @@
 
 namespace {
 
-float
-now()
-{
-	return 1e-3f*SDL_GetTicks();
-}
 
 }
 
 namespace ggl { namespace sdl {
 
-window::window(int width, int height, const char *caption, bool fullscreen)
-: ggl::window { width, height }
+core::core(app& a, int width, int height, const char *caption, bool fullscreen)
+: ggl::core { a }
+, width_ { width }
+, height_ { height }
+, dpad_state_ { 0 }
 {
 	if (SDL_Init(SDL_INIT_VIDEO) < 0)
 		panic("SDL_Init: %s", SDL_GetError());
@@ -39,19 +37,21 @@ window::window(int width, int height, const char *caption, bool fullscreen)
 		panic("glewInit: %s", glewGetErrorString(rv));
 }
 
-window::~window()
+core::~core()
 {
 	SDL_Quit();
 }
 
 void
-window::run()
+core::run()
 {
+	app_.init(width_, height_);
+
 	float last_update = now();
 
 	for (;;) {
 		float t = now();
-		update_and_render(t - last_update);
+		app_.update_and_render(t - last_update);
 		last_update = t;
 
 		SDL_GL_SwapBuffers();
@@ -62,7 +62,7 @@ window::run()
 }
 
 bool
-window::poll_events()
+core::poll_events()
 {
 	SDL_Event event;
 
@@ -87,7 +87,7 @@ window::poll_events()
 }
 
 void
-window::on_key_down(int keysym)
+core::on_key_down(int keysym)
 {
 	switch (keysym) {
 		case SDLK_UP:
@@ -117,7 +117,7 @@ window::on_key_down(int keysym)
 }
 
 void
-window::on_key_up(int keysym)
+core::on_key_up(int keysym)
 {
 	switch (keysym) {
 		case SDLK_UP:
@@ -144,6 +144,12 @@ window::on_key_up(int keysym)
 			dpad_state_ &= ~DPAD_BUTTON2;
 			break;
 	}
+}
+
+float
+core::now() const
+{
+	return 1e-3f*SDL_GetTicks();
 }
 
 } }
