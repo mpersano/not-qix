@@ -18,11 +18,16 @@ if (ANDROID)
 	include_directories(
 		"${ANDROID_NDK}/sources/android/native_app_glue")
 
+	find_library(LOG_LIBRARY NAMES log PATHS /usr/lib)
+	find_library(ANDROID_LIBRARY NAMES android PATHS /usr/lib)
+	find_library(GLES_LIBRARY NAMES GLESv1_CM PATHS /usr/lib)
+	find_library(EGL_LIBRARY NAMES EGL PATHS /usr/lib)
+
 	list(APPEND GAME_LIBRARIES
-		log
-		android
-		GLESv1_CM
-		EGL)
+		${LOG_LIBRARY}
+		${ANDROID_LIBRARY}
+		${GLES_LIBRARY}
+		${EGL_LIBRARY})
 else()
 	find_package(SDL REQUIRED)
 	find_package(GLEW REQUIRED)
