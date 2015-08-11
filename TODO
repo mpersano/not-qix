@@ -1,13 +1,26 @@
-* android port
-* background scrolling
+v android port
 * text rendering
+  v add font loader from kasui
+  * add font packer to build script
+* gesture detection
+  * tap
+  * swipe
+* gesture controls
+* background scrolling
 * gui elements
   * percentage
   * time
+* game states
+  * level intro
+  * in-game
+  * level outro
+  * game over
 * foes
   * first iteration: bouncing sphere
   * sphere vs. grid collision
   * sphere vs. line collision
 * assets
   * player sprite
+    * extending
+    * sliding
   * explosion sprite
