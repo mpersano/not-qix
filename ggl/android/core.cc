@@ -1,42 +1,31 @@
 #include <sys/time.h>
 
-#include <ggl/android/window.h>
 #include <ggl/log.h>
 #include <ggl/gl.h>
-
-namespace {
-
-float
-now()
-{
-	struct timeval tv;
-	gettimeofday(&tv, nullptr);
-	return tv.tv_sec + 1e-6f*tv.tv_usec;
-}
-
-}
+#include <ggl/android/asset.h>
+#include <ggl/android/core.h>
 
 namespace ggl { namespace android {
 
-window::window(android_app *app)
-: ggl::window { 0, 0 }
-, app_ { app }
+core::core(app& a, android_app *state)
+: ggl::core { a }
+, state_ { state }
 , display_ { EGL_NO_DISPLAY }
 , surface_ { EGL_NO_SURFACE }
 , context_ { EGL_NO_CONTEXT }
 {
-	app->userData = this;
-	app->onAppCmd = handle_cmd;
-	app->onInputEvent = handle_input;
+	state->userData = this;
+	state->onAppCmd = handle_cmd;
+	state->onInputEvent = handle_input;
 }
 
-window::~window()
+core::~core()
 {
 	term_display();
 }
 
 bool
-window::init_display()
+core::init_display()
 {
 	//
 	//   initialize surface
@@ -46,7 +35,7 @@ window::init_display()
 	eglInitialize(display_, 0, 0);
 
 	const EGLint attribs[] = {
-		EGL_RENDERABLE_TYPE, EGL_OPENGL_ES2_BIT, // request ES2.0
+		// EGL_RENDERABLE_TYPE, EGL_OPENGL_ES2_BIT, // request ES2.0
 		EGL_SURFACE_TYPE, EGL_WINDOW_BIT,
 		EGL_BLUE_SIZE, 8,
 		EGL_GREEN_SIZE, 8,
@@ -66,16 +55,16 @@ window::init_display()
 
 	EGLint format;
 	eglGetConfigAttrib(display_, config, EGL_NATIVE_VISUAL_ID, &format);
-	ANativeWindow_setBuffersGeometry(app_->window, 0, 0, format);
+	ANativeWindow_setBuffersGeometry(state_->window, 0, 0, format);
 
-	surface_ = eglCreateWindowSurface(display_, config, app_->window, NULL);
+	surface_ = eglCreateWindowSurface(display_, config, state_->window, nullptr);
 
 	//
 	//   initialize context
 	//
 
 	const EGLint context_attribs[] = {
-			EGL_CONTEXT_CLIENT_VERSION, 2, // request ES2.0
+			// EGL_CONTEXT_CLIENT_VERSION, 2, // request ES2.0
 			EGL_NONE };
 	context_ = eglCreateContext(display_, config, NULL, context_attribs);
 
@@ -95,7 +84,7 @@ window::init_display()
 }
 
 void
-window::term_display()
+core::term_display()
 {
 	if (display_ != EGL_NO_DISPLAY) {
 		eglMakeCurrent(display_, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT);
@@ -115,13 +104,13 @@ window::term_display()
 }
 
 int32_t
-window::handle_input(struct android_app *app, AInputEvent *event)
+core::handle_input(struct android_app *app, AInputEvent *event)
 {
-	return static_cast<window *>(app->userData)->handle_input(event);
+	return static_cast<core *>(app->userData)->handle_input(event);
 }
 
 int32_t
-window::handle_input(AInputEvent *event)
+core::handle_input(AInputEvent *event)
 {
 	switch (AInputEvent_getType(event)) {
 		case AINPUT_EVENT_TYPE_MOTION:
@@ -167,13 +156,13 @@ window::handle_input(AInputEvent *event)
 }
 
 void
-window::handle_cmd(struct android_app* app, int32_t cmd)
+core::handle_cmd(struct android_app* app, int32_t cmd)
 {
-	static_cast<window *>(app->userData)->handle_cmd(cmd);
+	static_cast<core *>(app->userData)->handle_cmd(cmd);
 }
 
 void
-window::handle_cmd(int32_t cmd)
+core::handle_cmd(int32_t cmd)
 {
 	switch (cmd) {
 		case APP_CMD_SAVE_STATE:
@@ -182,16 +171,17 @@ window::handle_cmd(int32_t cmd)
 			break;
 
 		case APP_CMD_INIT_WINDOW:
-			// The window is being shown, get it ready.
+			// The core is being shown, get it ready.
 			log_info("APP_CMD_INIT_WINDOW");
-			if (app_->window != NULL) {
+			if (state_->window != NULL) {
 				init_display();
+				app_.init(width_, height_);
 			}
 			break;
 
 		case APP_CMD_TERM_WINDOW:
 			log_info("APP_CMD_TERM_WINDOW");
-			// The window is being hidden or closed, clean it up.
+			// The core is being hidden or closed, clean it up.
 			term_display();
 			break;
 
@@ -207,7 +197,7 @@ window::handle_cmd(int32_t cmd)
 }
 
 void
-window::run()
+core::run()
 {
 	float last_update = 0;
 
@@ -220,9 +210,9 @@ window::run()
 
 		while ((ident = ALooper_pollAll(0, NULL, &events, reinterpret_cast<void **>(&source))) >= 0) {
 			if (source)
-				source->process(app_, source);
+				source->process(state_, source);
 
-			if (app_->destroyRequested) {
+			if (state_->destroyRequested) {
 				log_info("destroy requested");
 				running = false;
 				break;
@@ -236,7 +226,7 @@ window::run()
 			float t = now();
 			if (last_update == 0)
 				last_update = t;
-			update_and_render(t - last_update);
+			app_.update_and_render(t - last_update);
 			last_update = t;
 
 			eglSwapBuffers(display_, surface_);
@@ -246,14 +236,18 @@ window::run()
 	term_display();
 }
 
-#if 0
-void
-android_main(struct android_app *state)
+std::unique_ptr<ggl::asset>
+core::get_asset(const std::string& path) const
 {
-	app_dummy();
-
-	window(state).run();
+	return std::unique_ptr<ggl::asset>(new asset(state_->activity->assetManager, path));
 }
-#endif
+
+float
+core::now() const
+{
+	struct timeval tv;
+	gettimeofday(&tv, nullptr);
+	return tv.tv_sec + 1e-6f*tv.tv_usec;
+}
 
 } }

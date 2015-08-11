@@ -73,27 +73,3 @@ game_app::update_and_render(float dt)
 }
 
 GGL_MAIN(game_app)
-
-#if 0
-#if defined(ANDROID)
-void
-android_main(android_app *state)
-{
-	app_dummy();
-
-	ggl::res::init();
-
-	game_app(state).run();
-}
-#else
-int
-main(int argc, char *argv[])
-{
-	chdir("data");
-
-	ggl::res::init();
-
-	game_app(320, 480).run();
-}
-#endif
-#endif

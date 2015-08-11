@@ -1,21 +1,21 @@
-#include <cstdio>
-
 #include <string>
 
 #include <ggl/asset.h>
 
-namespace ggl { namespace sdl {
+#include <android/asset_manager.h>
+
+namespace ggl { namespace android {
 
 class asset : public ggl::asset
 {
 public:
-	asset(const std::string& path);
+	asset(AAssetManager *asset_manager, const std::string& path);
 	~asset();
 
 	size_t read(void *buf, size_t size) override;
 
 private:
-	FILE *stream_;
+	AAsset *asset_;
 };
 
 } }

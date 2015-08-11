@@ -1,3 +1,8 @@
+find_package(ZLIB REQUIRED)
+
+include_directories(
+	${ZLIB_INCLUDE_DIR})
+
 if (ANDROID)
 	include_directories(
 		"${ANDROID_NDK}/sources/android/native_app_glue")
@@ -27,6 +32,7 @@ set(GGL_SOURCES
 if (ANDROID)
 	list(APPEND GGL_SOURCES
 		"${ANDROID_NDK}/sources/android/native_app_glue/android_native_app_glue.c"
+		android/asset.cc
 		android/core.cc)
 else()
 	list(APPEND GGL_SOURCES
