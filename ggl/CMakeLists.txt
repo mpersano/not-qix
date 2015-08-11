@@ -21,7 +21,6 @@ set(GGL_SOURCES
 	texture.cc
 	font.cc
 	image.cc
-	file.cc
 	resources.cc)
 
 if (ANDROID)

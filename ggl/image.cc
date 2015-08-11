@@ -5,7 +5,8 @@
 #include <png.h>
 
 #include <ggl/panic.h>
-#include <ggl/file.h>
+#include <ggl/asset.h>
+#include <ggl/core.h>
 #include <ggl/image.h>
 
 namespace ggl {
@@ -51,6 +52,13 @@ to_pixel_type(png_byte png_color_type)
 	}
 }
 
+void
+png_read_fn(png_structp png_ptr, png_bytep data, png_size_t length)
+{
+	if (reinterpret_cast<ggl::asset *>(png_get_io_ptr(png_ptr))->read(data, length) != length)
+		png_error(png_ptr, "read error");
+}
+
 } // namespace
 
 image::image(unsigned width, unsigned height, pixel_type type)
@@ -62,10 +70,7 @@ image::image(unsigned width, unsigned height, pixel_type type)
 
 image::image(const std::string& path)
 {
-	file in_file(path);
-	if (!in_file) {
-		panic("failed to open %s: %s", path.c_str(), strerror(errno));
-	}
+	auto asset = g_core->get_asset(path);
 
 	fprintf(stderr, "loading %s...\n", path.c_str());
 
@@ -85,7 +90,7 @@ image::image(const std::string& path)
 		panic("png error?");
 	}
 
-	png_init_io(png_ptr, in_file.fp);
+	png_set_read_fn(png_ptr, asset.get(), png_read_fn);
 
 	png_read_png(png_ptr, info_ptr, PNG_TRANSFORM_IDENTITY, 0);
 

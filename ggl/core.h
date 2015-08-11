@@ -1,8 +1,12 @@
 #pragma once
 
+#include <memory>
+
 #include <ggl/app.h>
 
 namespace ggl {
+
+class asset;
 
 enum {
 	DPAD_UP = 1,
@@ -23,7 +27,11 @@ public:
 
 	virtual int get_viewport_width() const = 0;
 	virtual int get_viewport_height() const = 0;
+
 	virtual unsigned get_dpad_state() const = 0;
+
+	virtual std::unique_ptr<asset> get_asset(const std::string& path) const = 0;
+
 	virtual float now() const = 0;
 
 protected:

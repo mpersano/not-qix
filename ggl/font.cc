@@ -3,7 +3,8 @@
 #include <stdarg.h>
 
 #include <ggl/panic.h>
-#include <ggl/file.h>
+#include <ggl/core.h>
+#include <ggl/asset.h>
 #include <ggl/xwchar.h>
 #include <ggl/texture.h>
 #include <ggl/resources.h>
@@ -16,26 +17,23 @@ font::font(const std::string& path_base)
 {
 	std::fill(std::begin(glyph_info_map_), std::end(glyph_info_map_), nullptr);
 
-	file font_file(path_base + ".spr");
-	if (!font_file) {
-		panic("failed to open %s: %s", (path_base + ".spr").c_str(), strerror(errno));
-	}
+	auto font_asset = g_core->get_asset(path_base + ".spr");
 
-	unsigned num_glyphs = font_file.read_uint16();
+	unsigned num_glyphs = font_asset->read_uint16();
 
 	texture_ = res::get_texture(path_base + ".png");
 
 	for (unsigned i = 0; i < num_glyphs; i++) {
-		wchar_t code = font_file.read_uint16();
+		wchar_t code = font_asset->read_uint16();
 
-		int left = static_cast<int8_t>(font_file.read_uint8());
-		int top = static_cast<int8_t>(font_file.read_uint8());
-		int advance_x = static_cast<int8_t>(font_file.read_uint8());
+		int left = static_cast<int8_t>(font_asset->read_uint8());
+		int top = static_cast<int8_t>(font_asset->read_uint8());
+		int advance_x = static_cast<int8_t>(font_asset->read_uint8());
 
-		const int u = font_file.read_uint16();
-		const int v = font_file.read_uint16();
-		const int w = font_file.read_uint16();
-		const int h = font_file.read_uint16();
+		const int u = font_asset->read_uint16();
+		const int v = font_asset->read_uint16();
+		const int w = font_asset->read_uint16();
+		const int h = font_asset->read_uint16();
 
 		glyph_info *g = new glyph_info;
 		g->width = w;

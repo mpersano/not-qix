@@ -8,18 +8,20 @@ public:
 	core(app& a, int width, int height, const char *caption, bool fullscreen);
 	virtual ~core();
 
-	void run();
+	void run() override;
 
-	int get_viewport_width() const
+	int get_viewport_width() const override
 	{ return width_; }
 
-	int get_viewport_height() const
+	int get_viewport_height() const override
 	{ return height_; }
 
-	unsigned get_dpad_state() const
+	unsigned get_dpad_state() const override
 	{ return dpad_state_; }
 
-	float now() const;
+	std::unique_ptr<asset> get_asset(const std::string& path) const override;
+
+	float now() const override;
 
 private:
 	bool poll_events();
