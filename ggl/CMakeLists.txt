@@ -17,6 +17,7 @@ include_directories(
 set(GGL_SOURCES
 	panic.cc
 	core.cc
+	asset.cc
 	xwchar.cc
 	texture.cc
 	font.cc
@@ -29,6 +30,7 @@ if (ANDROID)
 		android/core.cc)
 else()
 	list(APPEND GGL_SOURCES
+		sdl/asset.cc
 		sdl/core.cc)
 endif()
 

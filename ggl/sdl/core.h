@@ -19,7 +19,7 @@ public:
 	unsigned get_dpad_state() const override
 	{ return dpad_state_; }
 
-	std::unique_ptr<asset> get_asset(const std::string& path) const override;
+	std::unique_ptr<ggl::asset> get_asset(const std::string& path) const override;
 
 	float now() const override;
 

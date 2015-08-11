@@ -1,6 +1,7 @@
 #include <ggl/asset.h>
 #include <ggl/panic.h>
 
+#include <ggl/sdl/asset.h>
 #include <ggl/sdl/core.h>
 
 #include <cstdio>
@@ -12,64 +13,6 @@
 #include <GL/glew.h>
 
 namespace ggl { namespace sdl {
-
-class asset : public ggl::asset
-{
-public:
-	asset(const std::string& path)
-	: stream_(fopen(path.c_str(), "rb"))
-	{
-		if (!stream_)
-			panic("failed to open `%s': %s", path.c_str(), strerror(errno));
-	}
-
-	~asset()
-	{
-		fclose(stream_);
-	}
-
-	size_t read(void *buf, size_t size) override;
-	uint8_t read_uint8() override;
-	uint16_t read_uint16() override;
-	uint32_t read_uint32() override;
-
-private:
-	FILE *stream_;
-};
-
-uint8_t
-asset::read_uint8()
-{
-	uint8_t v;
-
-	if (read(&v, 1) != 1) {
-		panic("read failed: %s", strerror(errno));
-	}
-
-	return v;
-}
-
-uint16_t
-asset::read_uint16()
-{
-	uint16_t lo = static_cast<uint16_t>(read_uint8());
-	uint16_t hi = static_cast<uint16_t>(read_uint8());
-	return lo | (hi << 8);
-}
-
-uint32_t
-asset::read_uint32()
-{
-	uint32_t lo = static_cast<uint32_t>(read_uint16());
-	uint32_t hi = static_cast<uint32_t>(read_uint16());
-	return lo | (hi << 16);
-}
-
-size_t
-asset::read(void *buf, size_t size)
-{
-	return ::fread(buf, 1, size, stream_);
-}
 
 core::core(app& a, int width, int height, const char *caption, bool fullscreen)
 : ggl::core { a }
