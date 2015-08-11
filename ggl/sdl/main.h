@@ -1,5 +1,4 @@
 #define GGL_MAIN(APP_CLASS) \
-namespace ggl { ggl::core *g_core; } \
 int main(int argc, char *argv[]) \
 { \
 	APP_CLASS app; \

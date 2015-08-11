@@ -16,7 +16,7 @@ include_directories(
 
 set(GGL_SOURCES
 	panic.cc
-	window.cc
+	core.cc
 	xwchar.cc
 	texture.cc
 	font.cc
