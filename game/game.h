@@ -84,8 +84,8 @@ private:
 	const level *cur_level_;
 	float elapsed_t_;
 
-	ggl::vertex_array_texcoord<GLint, 2, GLfloat, 2> background_filled_va_;
-	ggl::vertex_array_texcoord<GLint, 2, GLfloat, 2> background_unfilled_va_;
-	ggl::vertex_array_flat<GLint, 2> border_va_;
+	ggl::vertex_array_texcoord<GLshort, 2, GLfloat, 2> background_filled_va_;
+	ggl::vertex_array_texcoord<GLshort, 2, GLfloat, 2> background_unfilled_va_;
+	ggl::vertex_array_flat<GLshort, 2> border_va_;
 	const ggl::font *font_;
 };

@@ -1,4 +1,4 @@
-#include <ggl/window.h>
+#include <ggl/sdl/window.h>
 #include <ggl/panic.h>
 
 #include <cstdio>

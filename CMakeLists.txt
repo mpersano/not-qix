@@ -9,4 +9,4 @@ include_directories(${CMAKE_SOURCE_DIR})
 
 add_subdirectory(libpng)
 add_subdirectory(ggl)
-# add_subdirectory(game)
+add_subdirectory(game)

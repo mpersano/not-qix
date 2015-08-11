@@ -1,5 +1,6 @@
-#include <GL/glew.h>
+#include <unistd.h>
 
+#include <ggl/gl.h>
 #include <ggl/resources.h>
 
 #include "level.h"
@@ -72,6 +73,8 @@ game_window::update_and_render(float dt)
 int
 main(int argc, char *argv[])
 {
+	chdir("data");
+
 	ggl::res::init();
 
 	game_window g(320, 480);

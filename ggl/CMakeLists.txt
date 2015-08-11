@@ -19,10 +19,9 @@ set(GGL_SOURCES
 	resources.cc)
 
 if (ANDROID)
-	# set(GGL_SOURCES android/window.cc)
+	# XXX: stuff here
 else()
-	set(GGL_SOURCES sdl/window.cc)
-
+	list(APPEND GGL_SOURCES sdl/window.cc)
 endif()
 
 add_library(ggl ${GGL_SOURCES})

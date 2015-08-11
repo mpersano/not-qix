@@ -1,3 +1,8 @@
+if (NOT ANDROID)
+	find_package(ZLIB REQUIRED)
+	include_directories(${ZLIB_INCLUDE_DIRS})
+endif()
+
 set(PNG_SOURCES
 	png.c
 	pngerror.c

@@ -1,8 +1,7 @@
 #include <queue>
 #include <algorithm>
 
-#include <GL/glew.h>
-
+#include <ggl/gl.h>
 #include <ggl/font.h>
 #include <ggl/vertex_array.h>
 #include <ggl/resources.h>
@@ -204,34 +203,33 @@ player::set_state(state next_state)
 void
 player::draw() const
 {
-	glColor4f(0, 1, 0, 1);
+	static const int PLAYER_RADIUS = 5;
 
 	auto pos = get_position();
 
-	glBegin(GL_QUADS);
-	glVertex2i(pos.x - 5, pos.y - 5);
-	glVertex2i(pos.x + 5, pos.y - 5);
-	glVertex2i(pos.x + 5, pos.y + 5);
-	glVertex2i(pos.x - 5, pos.y + 5);
-	glEnd();
+	const short x0 = pos.x - PLAYER_RADIUS;
+	const short x1 = pos.x + PLAYER_RADIUS;
+	const short y0 = pos.y - PLAYER_RADIUS;
+	const short y1 = pos.y + PLAYER_RADIUS;
+
+	glColor4f(0, 1, 0, 1);
+
+	ggl::vertex_array_flat<GLshort, 2> va { { x0, y0 }, { x1, y0 }, { x0, y1 }, { x1, y1 } };
+	va.draw(GL_TRIANGLE_STRIP);
 
 	if (state_ == state::EXTENDING || state_ == state::EXTENDING_IDLE) {
 		static const int TRAIL_RADIUS = 2;
 
 		static auto draw_segment = [](const vec2i& u, const vec2i& v)
 			{
-				const int x0 = std::min(u.x - TRAIL_RADIUS, v.x - TRAIL_RADIUS);
-				const int x1 = std::max(u.x + TRAIL_RADIUS, v.x + TRAIL_RADIUS);
-				const int y0 = std::min(u.y - TRAIL_RADIUS, v.y - TRAIL_RADIUS);
-				const int y1 = std::max(u.y + TRAIL_RADIUS, v.y + TRAIL_RADIUS);
+				const short x0 = std::min(u.x - TRAIL_RADIUS, v.x - TRAIL_RADIUS);
+				const short x1 = std::max(u.x + TRAIL_RADIUS, v.x + TRAIL_RADIUS);
+				const short y0 = std::min(u.y - TRAIL_RADIUS, v.y - TRAIL_RADIUS);
+				const short y1 = std::max(u.y + TRAIL_RADIUS, v.y + TRAIL_RADIUS);
 
-				glVertex2i(x0, y0);
-				glVertex2i(x1, y0);
-				glVertex2i(x1, y1);
-				glVertex2i(x0, y1);
+				ggl::vertex_array_flat<GLshort, 2> va { { x0, y0 }, { x1, y0 }, { x0, y1 }, { x1, y1 } };
+				va.draw(GL_TRIANGLE_STRIP);
 			};
-
-		glBegin(GL_QUADS);
 
 		for (size_t i = 0; i < extend_trail_.size() - 1; i++) {
 			auto& u = extend_trail_[i]*game_.cell_size;
@@ -242,8 +240,6 @@ player::draw() const
 
 		auto& v = extend_trail_.back()*game_.cell_size;
 		draw_segment(v, pos);
-
-		glEnd();
 	}
 }
 
@@ -331,12 +327,13 @@ game::initialize_background_vas()
 	const float du = static_cast<float>(tex->orig_width)/tex->width/GRID_COLS;
 	const float dv = static_cast<float>(tex->orig_height)/tex->height/GRID_ROWS;
 
-	auto fill_spans = [&](ggl::vertex_array_texcoord<GLint, 2, GLfloat, 2>& va, bool b)
+	auto fill_spans = [&](ggl::vertex_array_texcoord<GLshort, 2, GLfloat, 2>& va, bool b)
 		{
 			va.clear();
 
-			int y = 0;
 			float v = 0;
+
+			short y = 0;
 
 			for (int i = 0; i < GRID_ROWS; i++) {
 				auto *row = &grid[i*GRID_COLS];
@@ -350,16 +347,16 @@ game::initialize_background_vas()
 					auto s = std::distance(row, span_start);
 					auto e = std::distance(row, span_end);
 
-					auto xs = static_cast<int>(s*cell_size);
-					auto xe = static_cast<int>(e*cell_size);
+					short xs = s*cell_size;
+					short xe = e*cell_size;
 
 					auto us = s*du;
 					auto ue = e*du;
 
 					va.push_back({ xs, y, us, v });
 					va.push_back({ xe, y, ue, v });
-					va.push_back({ xe, y + cell_size, ue, v + dv });
-					va.push_back({ xs, y + cell_size, us, v + dv });
+					va.push_back({ xe, static_cast<short>(y + cell_size), ue, v + dv });
+					va.push_back({ xs, static_cast<short>(y + cell_size), us, v + dv });
 
 					span_start = span_end;
 				}
@@ -389,17 +386,17 @@ game::initialize_border_va()
 			auto *p = &grid[i*GRID_COLS + j];
 
 			if (!*p) {
-				const int x0 = x - BORDER_RADIUS;
-				const int x1 = x + BORDER_RADIUS;
+				const short x0 = x - BORDER_RADIUS;
+				const short x1 = x + BORDER_RADIUS;
 
-				const int x2 = x + cell_size - BORDER_RADIUS;
-				const int x3 = x + cell_size + BORDER_RADIUS;
+				const short x2 = x + cell_size - BORDER_RADIUS;
+				const short x3 = x + cell_size + BORDER_RADIUS;
 
-				const int y0 = y - BORDER_RADIUS;
-				const int y1 = y + BORDER_RADIUS;
+				const short y0 = y - BORDER_RADIUS;
+				const short y1 = y + BORDER_RADIUS;
 
-				const int y2 = y + cell_size - BORDER_RADIUS;
-				const int y3 = y + cell_size + BORDER_RADIUS;
+				const short y2 = y + cell_size - BORDER_RADIUS;
+				const short y3 = y + cell_size + BORDER_RADIUS;
 
 				// top
 				if (i == GRID_ROWS - 1 || p[GRID_COLS]) {

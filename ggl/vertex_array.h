@@ -97,6 +97,13 @@ template <typename VertexType>
 class vertex_array : public std::vector<VertexType>
 {
 public:
+	vertex_array()
+	{ }
+
+	vertex_array(std::initializer_list<VertexType> l)
+	: std::vector<VertexType>(l)
+	{ }
+
 	void draw(GLenum mode) const
 	{
 		detail::client_state<VertexType> state(&this->front());
