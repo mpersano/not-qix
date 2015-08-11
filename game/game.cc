@@ -2,6 +2,7 @@
 #include <algorithm>
 
 #include <ggl/gl.h>
+#include <ggl/texture.h>
 #include <ggl/font.h>
 #include <ggl/vertex_array.h>
 #include <ggl/resources.h>

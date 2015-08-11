@@ -1,6 +1,7 @@
 #include <cassert>
 #include <algorithm>
 
+#include <ggl/texture.h>
 #include <ggl/resources.h>
 
 #include "level.h"

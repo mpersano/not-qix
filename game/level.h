@@ -1,8 +1,10 @@
 #pragma once
 
-#include <ggl/texture.h>
-
 #include "common.h"
+
+namespace ggl {
+class texture;
+}
 
 class level
 {
