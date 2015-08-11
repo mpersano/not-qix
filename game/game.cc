@@ -341,6 +341,8 @@ game::initialize_background_vas()
 
 				auto *span_start = row;
 
+				const short yt = y + cell_size;
+
 				while ((span_start = std::find(span_start, row_end, b)) != row_end) {
 					auto *span_end = std::find(span_start, row_end, !b);
 
@@ -355,8 +357,11 @@ game::initialize_background_vas()
 
 					va.push_back({ xs, y, us, v });
 					va.push_back({ xe, y, ue, v });
-					va.push_back({ xe, static_cast<short>(y + cell_size), ue, v + dv });
-					va.push_back({ xs, static_cast<short>(y + cell_size), us, v + dv });
+					va.push_back({ xe, yt, ue, v + dv });
+
+					va.push_back({ xe, yt, ue, v + dv });
+					va.push_back({ xs, yt, us, v + dv });
+					va.push_back({ xs, y, us, v });
 
 					span_start = span_end;
 				}
@@ -403,7 +408,10 @@ game::initialize_border_va()
 					border_va_.push_back({ x0, y2 });
 					border_va_.push_back({ x3, y2 });
 					border_va_.push_back({ x3, y3 });
+
+					border_va_.push_back({ x3, y3 });
 					border_va_.push_back({ x0, y3 });
+					border_va_.push_back({ x0, y2 });
 				}
 
 				// down
@@ -411,7 +419,10 @@ game::initialize_border_va()
 					border_va_.push_back({ x0, y0 });
 					border_va_.push_back({ x3, y0 });
 					border_va_.push_back({ x3, y1 });
+
+					border_va_.push_back({ x3, y1 });
 					border_va_.push_back({ x0, y1 });
+					border_va_.push_back({ x0, y0 });
 				}
 
 				// left
@@ -419,7 +430,10 @@ game::initialize_border_va()
 					border_va_.push_back({ x0, y0 });
 					border_va_.push_back({ x0, y3 });
 					border_va_.push_back({ x1, y3 });
+
+					border_va_.push_back({ x1, y3 });
 					border_va_.push_back({ x1, y0 });
+					border_va_.push_back({ x0, y0 });
 				}
 
 				// right
@@ -427,7 +441,10 @@ game::initialize_border_va()
 					border_va_.push_back({ x2, y0 });
 					border_va_.push_back({ x2, y3 });
 					border_va_.push_back({ x3, y3 });
+
+					border_va_.push_back({ x3, y3 });
 					border_va_.push_back({ x3, y0 });
+					border_va_.push_back({ x2, y0 });
 				}
 			}
 
@@ -446,10 +463,10 @@ game::draw_background() const
 	glEnable(GL_TEXTURE_2D);
 
 	cur_level_->background_texture->bind();
-	background_filled_va_.draw(GL_QUADS);
+	background_filled_va_.draw(GL_TRIANGLES);
 
 	cur_level_->mask_texture->bind();
-	background_unfilled_va_.draw(GL_QUADS);
+	background_unfilled_va_.draw(GL_TRIANGLES);
 
 	glDisable(GL_TEXTURE_2D);
 }
@@ -459,7 +476,7 @@ game::draw_border() const
 {
 	glColor4f(1, 1, 0, 1);
 
-	border_va_.draw(GL_QUADS);
+	border_va_.draw(GL_TRIANGLES);
 }
 
 void

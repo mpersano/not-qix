@@ -12,7 +12,7 @@ namespace {
 float
 now()
 {
-	return .001*SDL_GetTicks();
+	return 1e-3f*SDL_GetTicks();
 }
 
 }

@@ -1,7 +1,5 @@
-if (NOT ANDROID)
-	find_package(ZLIB REQUIRED)
-	include_directories(${ZLIB_INCLUDE_DIRS})
-endif()
+find_package(ZLIB REQUIRED)
+include_directories(${ZLIB_INCLUDE_DIRS})
 
 set(PNG_SOURCES
 	png.c
