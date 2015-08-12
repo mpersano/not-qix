@@ -229,18 +229,18 @@ player::draw() const
 				auto& v1 = extend_trail_[i];
 				auto& v2 = extend_trail_[i + 1];
 
-				vec2f d0 = vec2f(v1 - v0);
-				vec2f n0 { -d0.y, d0.x };
+				vec2f ds = vec2f(v1 - v0);
+				vec2f ns { -ds.y, ds.x };
 
-				vec2f d1 = vec2f(v2 - v1);
-				vec2f n2 { -d1.y, d1.x };
+				vec2f de = vec2f(v2 - v1);
+				vec2f ne { -de.y, de.x };
 
-				vec2f n1 = vec2f(n0 + n2);
+				vec2f nm = vec2f(ns + ne);
 
-				float t = dot(n0, n0)/dot(n0, n1);
+				float t = TRAIL_RADIUS/dot(ns, nm);
 
-				vec2f p0 = vec2f(v1)*game_.cell_size + n1*t*TRAIL_RADIUS;
-				vec2f p1 = vec2f(v1)*game_.cell_size - n1*t*TRAIL_RADIUS;
+				vec2f p0 = vec2f(v1)*game_.cell_size + nm*t;
+				vec2f p1 = vec2f(v1)*game_.cell_size - nm*t;
 
 				va.push_back({ p0.x, p0.y });
 				va.push_back({ p1.x, p1.y });
