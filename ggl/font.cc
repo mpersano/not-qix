@@ -46,7 +46,7 @@ font::font(const std::string& path_base)
 		const int texture_height = texture_->height;
 
 		const float u0 = static_cast<float>(u)/texture_width;
-		const float v0 = static_cast<float>(texture_height - 1 - v)/texture_height;
+		const float v0 = static_cast<float>(texture_height - v)/texture_height;
 
 		const float du = static_cast<float>(w)/texture_width;
 		const float dv = static_cast<float>(h)/texture_height;
