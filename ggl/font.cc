@@ -1,11 +1,11 @@
 #include <cstring>
 #include <cerrno>
+#include <algorithm>
 #include <stdarg.h>
 
 #include <ggl/panic.h>
 #include <ggl/core.h>
 #include <ggl/asset.h>
-#include <ggl/xwchar.h>
 #include <ggl/texture.h>
 #include <ggl/resources.h>
 #include <ggl/vertex_array.h>
@@ -64,33 +64,29 @@ font::~font()
 { }
 
 unsigned
-font::get_string_width(const wchar_t *str) const
+font::get_string_width(const std::basic_string<wchar_t>& str) const
 {
-	return get_string_width(str, xwcslen(str));
-}
-
-unsigned
-font::get_string_width(const wchar_t *str, size_t len) const
-{
-	unsigned width = 0;
-
-	for (const wchar_t *p = str; p != &str[len]; p++)
-		width += find_glyph(*p)->advance_x;
-
-	return width;
+	return std::accumulate(
+		std::begin(str),
+		std::end(str),
+		0,
+		[this](int width, wchar_t ch)
+			{
+				return width + find_glyph(ch)->advance_x;
+			});
 }
 
 void
-font::render(const wchar_t *str) const
+font::render(const std::basic_string<wchar_t>& str) const
 {
 	vertex_array_texcoord<GLshort, 2, GLfloat, 2> va;
-	va.reserve(6*xwcslen(str));
+	va.reserve(6*str.size());
 
 	const int y = 0;
 	int x = 0;
 
-	for (const wchar_t *p = str; *p; p++) {
-		auto *g = find_glyph(*p);
+	for (wchar_t ch : str) {
+		auto *g = find_glyph(ch);
 
 		short x0 = x + g->left;
 		short x1 = x0 + g->width;

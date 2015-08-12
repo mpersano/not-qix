@@ -23,7 +23,6 @@ set(GGL_SOURCES
 	panic.cc
 	core.cc
 	asset.cc
-	xwchar.cc
 	texture.cc
 	font.cc
 	image.cc

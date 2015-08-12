@@ -29,13 +29,12 @@ public:
 	const glyph_info *find_glyph(wchar_t ch) const
 	{ return glyph_info_map_[ch]; }
 
-	unsigned get_string_width(const wchar_t *str, size_t len) const;
-	unsigned get_string_width(const wchar_t *str) const;
+	unsigned get_string_width(const std::basic_string<wchar_t>& str) const;
 
 	const texture *get_texture() const
 	{ return texture_; }
 
-	void render(const wchar_t *str) const;
+	void render(const std::basic_string<wchar_t>& str) const;
 
 private:
 	glyph_info *glyph_info_map_[1<<16];
