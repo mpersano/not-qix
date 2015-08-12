@@ -24,6 +24,13 @@ operator-(const vec2<T>& u, const vec2<T>& v)
 	return { u.x - v.x, u.y - v.y };
 }
 
+template <typename T>
+inline const vec2<T>
+operator-(const vec2<T>& v)
+{
+	return { -v.x, -v.y };
+}
+
 template <typename T, typename S>
 inline const vec2<T>
 operator*(const vec2<T>& v, S s)
@@ -50,6 +57,20 @@ inline float
 length(const vec2<T>& v)
 {
 	return sqrtf(v.x*v.x + v.y*v.y);
+}
+
+template <typename T>
+inline T
+dot(const vec2<T>& u, const vec2<T>& v)
+{
+	return u.x*v.x + u.y*v.y;
+}
+
+template <typename T>
+vec2<T>
+normalized(const vec2<T>& v)
+{
+	return v*(1.f/length(v));
 }
 
 using vec2f = vec2<float>;

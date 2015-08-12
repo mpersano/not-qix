@@ -219,28 +219,35 @@ player::draw() const
 	va.draw(GL_TRIANGLE_STRIP);
 
 	if (state_ == state::EXTENDING || state_ == state::EXTENDING_IDLE) {
-		static const int TRAIL_RADIUS = 2;
+		static const int TRAIL_RADIUS = 4;
 
-		static auto draw_segment = [](const vec2i& u, const vec2i& v)
-			{
-				const short x0 = std::min(u.x - TRAIL_RADIUS, v.x - TRAIL_RADIUS);
-				const short x1 = std::max(u.x + TRAIL_RADIUS, v.x + TRAIL_RADIUS);
-				const short y0 = std::min(u.y - TRAIL_RADIUS, v.y - TRAIL_RADIUS);
-				const short y1 = std::max(u.y + TRAIL_RADIUS, v.y + TRAIL_RADIUS);
+		if (extend_trail_.size() > 2) {
+			ggl::vertex_array_flat<GLfloat, 2> va;
 
-				ggl::vertex_array_flat<GLshort, 2> va { { x0, y0 }, { x1, y0 }, { x0, y1 }, { x1, y1 } };
-				va.draw(GL_TRIANGLE_STRIP);
-			};
+			for (size_t i = 1; i < extend_trail_.size() - 1; i++) {
+				auto& v0 = extend_trail_[i - 1];
+				auto& v1 = extend_trail_[i];
+				auto& v2 = extend_trail_[i + 1];
 
-		for (size_t i = 0; i < extend_trail_.size() - 1; i++) {
-			auto& u = extend_trail_[i]*game_.cell_size;
-			auto& v = extend_trail_[i + 1]*game_.cell_size;
+				vec2f d0 = vec2f(v1 - v0);
+				vec2f n0 { -d0.y, d0.x };
 
-			draw_segment(u, v);
+				vec2f d1 = vec2f(v2 - v1);
+				vec2f n2 { -d1.y, d1.x };
+
+				vec2f n1 = normalized(vec2f(n0 + n2));
+
+				float t = dot(n0, n0)/dot(n0, n1);
+
+				vec2f p0 = vec2f(v1)*game_.cell_size + n1*t*TRAIL_RADIUS;
+				vec2f p1 = vec2f(v1)*game_.cell_size - n1*t*TRAIL_RADIUS;
+
+				va.push_back({ p0.x, p0.y });
+				va.push_back({ p1.x, p1.y });
+			}
+
+			va.draw(GL_TRIANGLE_STRIP);
 		}
-
-		auto& v = extend_trail_.back()*game_.cell_size;
-		draw_segment(v, pos);
 	}
 }
 
