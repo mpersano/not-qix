@@ -73,5 +73,6 @@ normalized(const vec2<T>& v)
 	return v*(1.f/length(v));
 }
 
-using vec2f = vec2<float>;
+using vec2s = vec2<short>;
 using vec2i = vec2<int>;
+using vec2f = vec2<float>;

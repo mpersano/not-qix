@@ -204,51 +204,87 @@ player::set_state(state next_state)
 void
 player::draw() const
 {
-	static const int PLAYER_RADIUS = 5;
+	glDisable(GL_TEXTURE_2D);
+
+	// trail
+
+	if (state_ == state::EXTENDING || state_ == state::EXTENDING_IDLE) {
+		static const int TRAIL_RADIUS = 4;
+
+		ggl::vertex_array_flat<GLshort, 2> va;
+
+		// first
+		{
+		auto& v0 = extend_trail_[0];
+		auto& v1 = extend_trail_.size() > 1 ? extend_trail_[1] : pos_;
+
+		vec2s d = v1 - v0;
+		vec2s n { -d.y, d.x };
+
+		vec2s p0 = vec2s(v0)*game_.cell_size + n*TRAIL_RADIUS;
+		vec2s p1 = vec2s(v0)*game_.cell_size - n*TRAIL_RADIUS;
+
+		va.push_back({ p0.x, p0.y });
+		va.push_back({ p1.x, p1.y });
+		}
+
+		// middle
+		for (size_t i = 1; i < extend_trail_.size(); i++) {
+			auto& v0 = extend_trail_[i - 1];
+			auto& v1 = extend_trail_[i];
+			auto& v2 = i < extend_trail_.size() - 1 ? extend_trail_[i + 1] : pos_;
+
+			vec2s ds = v1 - v0;
+			vec2s ns { -ds.y, ds.x };
+
+			vec2s de = v2 - v1;
+			vec2s ne { -de.y, de.x };
+
+			vec2s nm = ns + ne;
+
+			short d = static_cast<float>(TRAIL_RADIUS)/dot(ns, nm);
+
+			vec2s p0 = vec2s(v1)*game_.cell_size + nm*d;
+			vec2s p1 = vec2s(v1)*game_.cell_size - nm*d;
+
+			va.push_back({ p0.x, p0.y });
+			va.push_back({ p1.x, p1.y });
+		}
+
+		// last
+		{
+		auto& v0 = pos_;
+		auto& v1 = extend_trail_.back();
+
+		vec2s d = v0 - v1;
+		vec2s n { -d.y, d.x };
+
+		vec2s p0 = vec2s(v0)*game_.cell_size + n*TRAIL_RADIUS;
+		vec2s p1 = vec2s(v0)*game_.cell_size - n*TRAIL_RADIUS;
+
+		va.push_back({ p0.x, p0.y });
+		va.push_back({ p1.x, p1.y });
+		}
+
+		glColor4f(1, 0, 0, 1);
+		va.draw(GL_TRIANGLE_STRIP);
+	}
+
+	// head
 
 	auto pos = get_position();
+
+	static const int PLAYER_RADIUS = 5;
 
 	const short x0 = pos.x - PLAYER_RADIUS;
 	const short x1 = pos.x + PLAYER_RADIUS;
 	const short y0 = pos.y - PLAYER_RADIUS;
 	const short y1 = pos.y + PLAYER_RADIUS;
 
-	glColor4f(0, 1, 0, 1);
-
 	ggl::vertex_array_flat<GLshort, 2> va { { x0, y0 }, { x1, y0 }, { x0, y1 }, { x1, y1 } };
+
+	glColor4f(0, 1, 0, 1);
 	va.draw(GL_TRIANGLE_STRIP);
-
-	if (state_ == state::EXTENDING || state_ == state::EXTENDING_IDLE) {
-		static const int TRAIL_RADIUS = 4;
-
-		if (extend_trail_.size() > 2) {
-			ggl::vertex_array_flat<GLfloat, 2> va;
-
-			for (size_t i = 1; i < extend_trail_.size() - 1; i++) {
-				auto& v0 = extend_trail_[i - 1];
-				auto& v1 = extend_trail_[i];
-				auto& v2 = extend_trail_[i + 1];
-
-				vec2f ds = vec2f(v1 - v0);
-				vec2f ns { -ds.y, ds.x };
-
-				vec2f de = vec2f(v2 - v1);
-				vec2f ne { -de.y, de.x };
-
-				vec2f nm = vec2f(ns + ne);
-
-				float t = TRAIL_RADIUS/dot(ns, nm);
-
-				vec2f p0 = vec2f(v1)*game_.cell_size + nm*t;
-				vec2f p1 = vec2f(v1)*game_.cell_size - nm*t;
-
-				va.push_back({ p0.x, p0.y });
-				va.push_back({ p1.x, p1.y });
-			}
-
-			va.draw(GL_TRIANGLE_STRIP);
-		}
-	}
 }
 
 const vec2i
