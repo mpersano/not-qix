@@ -69,8 +69,8 @@ font::get_string_width(const std::basic_string<wchar_t>& str) const
 	return std::accumulate(
 		std::begin(str),
 		std::end(str),
-		0,
-		[this](int width, wchar_t ch)
+		0u,
+		[this](unsigned width, wchar_t ch)
 			{
 				return width + find_glyph(ch)->advance_x;
 			});

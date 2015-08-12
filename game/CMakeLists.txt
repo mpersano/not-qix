@@ -59,7 +59,9 @@ endif()
 target_link_libraries(game ${GAME_LIBRARIES})
 
 if (NOT ANDROID)
-	set(DATA_DIR ${CMAKE_CURRENT_BINARY_DIR}/data)
+	set(DATA_DIR "${CMAKE_CURRENT_BINARY_DIR}/data")
+	set(FONT_DIR "${DATA_DIR}/fonts")
+	set(PACKFONT_COMMAND "${CMAKE_BINARY_DIR}/tools/packsprites/packfont")
 	
 	add_custom_command(TARGET game POST_BUILD
 		COMMAND mkdir -p ${DATA_DIR})
@@ -68,5 +70,10 @@ if (NOT ANDROID)
 		COMMAND cp -r ${CMAKE_SOURCE_DIR}/assets/images ${DATA_DIR})
 
 	add_custom_command(TARGET game POST_BUILD
-		COMMAND cp -r ${CMAKE_SOURCE_DIR}/assets/fonts ${DATA_DIR})
+		COMMAND mkdir -p ${FONT_DIR})
+
+	add_custom_command(TARGET game POST_BUILD
+		COMMAND ${PACKFONT_COMMAND} -w 256 -h 256 -s 20 -g 2 -1 ${CMAKE_SOURCE_DIR}/assets/fonts/font.ttf tiny x20-x7e
+		WORKING_DIRECTORY ${FONT_DIR}
+		DEPENDS ${PACKFONT_COMMAND})
 endif()
