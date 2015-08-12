@@ -235,7 +235,7 @@ player::draw() const
 				vec2f d1 = vec2f(v2 - v1);
 				vec2f n2 { -d1.y, d1.x };
 
-				vec2f n1 = normalized(vec2f(n0 + n2));
+				vec2f n1 = vec2f(n0 + n2);
 
 				float t = dot(n0, n0)/dot(n0, n1);
 
