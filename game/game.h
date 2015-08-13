@@ -65,6 +65,7 @@ private:
 	void draw_border() const;
 
 	void initialize_vas();
+	void initialize_border();
 	void initialize_background_vas();
 	void initialize_border_va();
 
@@ -75,8 +76,11 @@ private:
 	bool scrolling_;
 	float scroll_t_;
 
+	std::vector<vec2i> border_;
+
 	ggl::vertex_array_texcoord<GLshort, 2, GLfloat, 2> background_filled_va_;
 	ggl::vertex_array_texcoord<GLshort, 2, GLfloat, 2> background_unfilled_va_;
 	ggl::vertex_array_flat<GLshort, 2> border_va_;
+
 	const ggl::font *font_;
 };

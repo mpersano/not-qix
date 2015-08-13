@@ -1,5 +1,6 @@
 #include <queue>
 #include <algorithm>
+#include <cassert>
 
 #include <ggl/gl.h>
 #include <ggl/texture.h>
@@ -375,6 +376,7 @@ game::draw() const
 
 	glColor4f(1, 1, 1, 1);
 
+#if 0
 	glPushMatrix();
 	glTranslatef(50, 50, 0);
 
@@ -384,6 +386,7 @@ game::draw() const
 	glDisable(GL_BLEND);
 
 	glPopMatrix();
+#endif
 }
 
 vec2f
@@ -399,6 +402,7 @@ game::get_offset() const
 void
 game::initialize_vas()
 {
+	initialize_border();
 	initialize_background_vas();
 	initialize_border_va();
 }
@@ -457,6 +461,88 @@ game::initialize_background_vas()
 
 	fill_spans(background_filled_va_, true);
 	fill_spans(background_unfilled_va_, false);
+}
+
+void
+game::initialize_border()
+{
+	border_.clear();
+
+	int coord = std::distance(std::begin(grid), std::find(std::begin(grid), std::end(grid), 0));
+	assert(coord < grid_rows*grid_cols);
+
+	vec2i start_pos { coord%grid_cols, coord/grid_cols };
+
+	vec2i pos = start_pos;
+
+	auto move_up = [&]()
+		{
+			auto *p = &grid[pos.y*grid_cols + pos.x];
+
+			if (pos.y < grid_rows && (pos.x == 0 || p[-1]) != (pos.x == grid_cols || p[0])) {
+				auto next = pos + vec2i { 0, 1 };
+				if (border_.empty() || border_.back() != next) {
+					border_.push_back(pos);
+					pos = next;
+					return true;
+				}
+			}
+
+			return false;
+		};
+
+	auto move_right = [&]()
+		{
+			auto *p = &grid[pos.y*grid_cols + pos.x];
+
+			if (pos.x < grid_cols && (pos.y == 0 || p[-grid_cols]) != (pos.y == grid_rows || p[0])) {
+				auto next = pos + vec2i { 1, 0 };
+				if (border_.empty() || border_.back() != next) {
+					border_.push_back(pos);
+					pos = next;
+					return true;
+				}
+			}
+
+			return false;
+		};
+
+	auto move_down = [&]()
+		{
+			auto *p = &grid[pos.y*grid_cols + pos.x];
+
+			if (pos.y > 0 && (pos.x == 0 || p[-grid_cols - 1]) != (pos.x == grid_cols || p[-grid_cols])) {
+				auto next = pos + vec2i { 0, -1 };
+				if (border_.empty() || border_.back() != next) {
+					border_.push_back(pos);
+					pos = next;
+					return true;
+				}
+			}
+
+			return false;
+		};
+
+	auto move_left = [&]()
+		{
+			auto *p = &grid[pos.y*grid_cols + pos.x];
+
+			if (pos.x > 0 && (pos.y == 0 || p[-grid_cols - 1]) != (pos.y == grid_rows || p[-1])) {
+				auto next = pos + vec2i { -1, 0 };
+				if (border_.empty() || border_.back() != next) {
+					border_.push_back(pos);
+					pos = next;
+					return true;
+				}
+			}
+
+			return false;
+		};
+
+	do {
+		// tee-hee.
+		move_up() || move_left() || move_down() || move_right() || (assert(0), false);
+	} while (pos != start_pos);
 }
 
 void
@@ -546,11 +632,13 @@ game::draw_background() const
 
 	glEnable(GL_TEXTURE_2D);
 
+#if 0
 	cur_level_->fg_texture->bind();
 	background_filled_va_.draw(GL_TRIANGLES);
 
 	cur_level_->bg_texture->bind();
 	background_unfilled_va_.draw(GL_TRIANGLES);
+#endif
 
 	glDisable(GL_TEXTURE_2D);
 }
@@ -560,7 +648,14 @@ game::draw_border() const
 {
 	glColor4f(1, 1, 0, 1);
 
+#if 0
 	border_va_.draw(GL_TRIANGLES);
+#else
+	glBegin(GL_LINE_LOOP);
+	for (auto& v : border_)
+		glVertex2i(v.x*CELL_SIZE, v.y*CELL_SIZE);
+	glEnd();
+#endif
 }
 
 void
