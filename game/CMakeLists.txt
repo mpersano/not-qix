@@ -46,9 +46,10 @@ else()
 endif()
 
 set(GAME_SOURCES
+	main.cc
 	level.cc
 	game.cc
-	main.cc)
+	in_game_state.cc)
 
 if (ANDROID)
 	list(APPEND GAME_SOURCES

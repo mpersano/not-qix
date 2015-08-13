@@ -365,8 +365,6 @@ game::reset(const level *l)
 void
 game::draw() const
 {
-	glPushMatrix();
-
 	auto offs = get_offset();
 	glTranslatef(offs.x, offs.y, 0);
 
@@ -375,7 +373,6 @@ game::draw() const
 
 	player_.draw();
 
-#if 0
 	glColor4f(1, 1, 1, 1);
 
 	glPushMatrix();
@@ -385,9 +382,6 @@ game::draw() const
 	glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
 	font_->render(L"hello, world");
 	glDisable(GL_BLEND);
-
-	glPopMatrix();
-#endif
 
 	glPopMatrix();
 }
