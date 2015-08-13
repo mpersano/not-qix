@@ -98,12 +98,10 @@ init_levels()
 	TiXmlDocument doc;
 	doc.Parse(&xml[0]);
 
-	if (doc.Error()) {
+	if (doc.Error())
 		panic("error parsing `%s': %s", LEVELS_XML_PATH, doc.ErrorDesc());
-	}
 
-	TiXmlElement *levels = doc.RootElement()->FirstChildElement("levels");
-	if (levels) {
+	if (TiXmlElement *levels = doc.RootElement()->FirstChildElement("levels")) {
 		for (TiXmlNode *node = levels->FirstChild(); node; node = node->NextSibling())
 			g_levels.push_back(level_from_xml_node(node));
 	}
