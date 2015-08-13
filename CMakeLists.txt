@@ -14,4 +14,3 @@ add_subdirectory(external/tinyxml)
 
 add_subdirectory(ggl)
 add_subdirectory(game)
-add_subdirectory(testxml)
