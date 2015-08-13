@@ -1,7 +1,9 @@
 find_package(ZLIB REQUIRED)
 
 include_directories(
-	${ZLIB_INCLUDE_DIR})
+	${ZLIB_INCLUDE_DIR}
+	${PNG_INCLUDE_DIR}
+	${CMAKE_SOURCE_DIR})
 
 if (ANDROID)
 	include_directories(
@@ -14,10 +16,6 @@ else()
 		${SDL_INCLUDE_DIR}
 		${GLEW_INCLUDE_DIR})
 endif()
-
-include_directories(
-	${CMAKE_SOURCE_DIR}
-	${CMAKE_SOURCE_DIR}/libpng)
 
 set(GGL_SOURCES
 	panic.cc

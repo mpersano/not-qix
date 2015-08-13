@@ -8,6 +8,8 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
 if (NOT ANDROID)
 	add_subdirectory(tools)
 endif()
-add_subdirectory(libpng)
+
+add_subdirectory(external/libpng)
+
 add_subdirectory(ggl)
 add_subdirectory(game)

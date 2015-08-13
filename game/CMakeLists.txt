@@ -2,17 +2,17 @@ find_package(ZLIB REQUIRED)
 
 include_directories(
 	${ZLIB_INCLUDE_DIR}
-	${CMAKE_SOURCE_DIR}
-	${CMAKE_SOURCE_DIR}/libpng)
+	${PNG_INCLUDE_DIR}
+	${CMAKE_SOURCE_DIR})
 
 link_directories(
 	${CMAKE_BINARY_DIR}/ggl
 	${CMAKE_BINARY_DIR}/png)
 
 set(GAME_LIBRARIES
-	${ZLIB_LIBRARIES}
 	ggl
-	png)
+	${PNG_LIBRARY}
+	${ZLIB_LIBRARIES})
 
 if (ANDROID)
 	include_directories(
