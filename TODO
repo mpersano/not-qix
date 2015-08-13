@@ -1,12 +1,12 @@
-v android port
-* text rendering
-  v add font loader from kasui
-  * add font packer to build script
+TODO
+----
+* android port: handle pause/resume
+* shader wrappers
 * gesture detection
   * tap
   * swipe
 * gesture controls
-* background scrolling
+* scrolling: better easing function
 * gui elements
   * percentage
   * time
@@ -19,8 +19,21 @@ v android port
   * first iteration: bouncing sphere
   * sphere vs. grid collision
   * sphere vs. line collision
+* power ups
 * assets
   * player sprite
     * extending
     * sliding
   * explosion sprite
+
+BUGS
+----
+* glitch returning along player trail
+
+DONE
+----
+v basic android port
+v text rendering
+  v add font loader from kasui
+  v add font packer to build script
+v background scrolling
