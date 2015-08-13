@@ -3,7 +3,8 @@ find_package(ZLIB REQUIRED)
 include_directories(
 	${ZLIB_INCLUDE_DIR}
 	${PNG_INCLUDE_DIR}
-	${CMAKE_SOURCE_DIR})
+	${CMAKE_SOURCE_DIR}
+	${TINYXML_INCLUDE_DIR})
 
 link_directories(
 	${CMAKE_BINARY_DIR}/ggl
@@ -12,7 +13,8 @@ link_directories(
 set(GAME_LIBRARIES
 	ggl
 	${PNG_LIBRARY}
-	${ZLIB_LIBRARIES})
+	${ZLIB_LIBRARIES}
+	${TINYXML_LIBRARY})
 
 if (ANDROID)
 	include_directories(
@@ -68,6 +70,9 @@ if (NOT ANDROID)
 	
 	add_custom_command(TARGET game POST_BUILD
 		COMMAND cp -r ${CMAKE_SOURCE_DIR}/assets/images ${DATA_DIR})
+
+	add_custom_command(TARGET game POST_BUILD
+		COMMAND cp -r ${CMAKE_SOURCE_DIR}/assets/data ${DATA_DIR})
 
 	add_custom_command(TARGET game POST_BUILD
 		COMMAND mkdir -p ${FONT_DIR})

@@ -1,0 +1,8 @@
+<game>
+	<levels>
+		<level>
+			<foreground path="images/girl.png" />
+			<mask path="images/girl-mask.png" />
+		</level>
+	</levels>
+</game>

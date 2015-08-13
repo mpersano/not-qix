@@ -20,7 +20,6 @@ private:
 	static const int MARGIN = 8;
 
 	std::unique_ptr<game> game_;
-	std::unique_ptr<level> level_;
 	int width_, height_;
 };
 
@@ -30,10 +29,10 @@ game_app::init(int width, int height)
 	width_ = width;
 	height_ = height;
 
-	level_.reset(new level { "images/girl.png", "images/girl-mask.png" });
 	game_.reset(new game { width_ - 2*MARGIN, height_ - 2*MARGIN });
 
-	game_->reset(level_.get());
+	init_levels();
+	game_->reset(g_levels[0].get());
 }
 
 void
