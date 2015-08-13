@@ -7,6 +7,7 @@
 #include <ggl/vertex_array.h>
 #include <ggl/resources.h>
 
+#include "tween.h"
 #include "level.h"
 #include "game.h"
 
@@ -48,7 +49,10 @@ player::move(direction dir, bool button_pressed)
 void
 player::move_extend(direction dir)
 {
-	auto *p = &game_.grid[pos_.y*GRID_COLS + pos_.x];
+	const int grid_cols = game_.grid_cols;
+	const int grid_rows = game_.grid_rows;
+
+	auto *p = &game_.grid[pos_.y*grid_cols + pos_.x];
 
 	auto slide_to = [&](const vec2i& where)
 		{
@@ -67,8 +71,8 @@ player::move_extend(direction dir)
 
 	switch (dir) {
 		case direction::UP:
-			if (pos_.y < GRID_ROWS) {
-				if (pos_.x > 0 && pos_.x < GRID_COLS && !p[0] && !p[-1]) {
+			if (pos_.y < grid_rows) {
+				if (pos_.x > 0 && pos_.x < grid_cols && !p[0] && !p[-1]) {
 					slide_to(pos_ + vec2i { 0, 1 });
 				}
 			}
@@ -76,7 +80,7 @@ player::move_extend(direction dir)
 
 		case direction::DOWN:
 			if (pos_.y > 0) {
-				if (pos_.x > 0 && pos_.x < GRID_COLS && !p[-GRID_COLS] && !p[-GRID_COLS - 1]) {
+				if (pos_.x > 0 && pos_.x < grid_cols && !p[-grid_cols] && !p[-grid_cols - 1]) {
 					slide_to(pos_ + vec2i { 0, -1 });
 				}
 			}
@@ -84,15 +88,15 @@ player::move_extend(direction dir)
 
 		case direction::LEFT:
 			if (pos_.x > 0) {
-				if (pos_.y > 0 && pos_.y < GRID_ROWS && !p[-GRID_COLS - 1] && !p[-1]) {
+				if (pos_.y > 0 && pos_.y < grid_rows && !p[-grid_cols - 1] && !p[-1]) {
 					slide_to(pos_ + vec2i { -1, 0 });
 				}
 			}
 			break;
 
 		case direction::RIGHT:
-			if (pos_.x < GRID_COLS) {
-				if (pos_.y > 0 && pos_.y < GRID_ROWS && !p[-GRID_COLS] && !p[0]) {
+			if (pos_.x < grid_cols) {
+				if (pos_.y > 0 && pos_.y < grid_rows && !p[-grid_cols] && !p[0]) {
 					slide_to(pos_ + vec2i { 1, 0 });
 				}
 			}
@@ -103,12 +107,15 @@ player::move_extend(direction dir)
 void
 player::move_slide(direction dir)
 {
-	auto *p = &game_.grid[pos_.y*GRID_COLS + pos_.x];
+	const int grid_cols = game_.grid_cols;
+	const int grid_rows = game_.grid_rows;
+
+	auto *p = &game_.grid[pos_.y*grid_cols + pos_.x];
 
 	switch (dir) {
 		case direction::UP:
-			if (pos_.y < GRID_ROWS) {
-				if ((pos_.x == 0 || p[-1]) != (pos_.x == GRID_COLS || p[0])) {
+			if (pos_.y < grid_rows) {
+				if ((pos_.x == 0 || p[-1]) != (pos_.x == grid_cols || p[0])) {
 					next_pos_ = pos_ + vec2i { 0, 1 };
 					set_state(state::SLIDING);
 				}
@@ -117,7 +124,7 @@ player::move_slide(direction dir)
 
 		case direction::DOWN:
 			if (pos_.y > 0) {
-				if ((pos_.x == 0 || p[-GRID_COLS - 1]) != (pos_.x == GRID_COLS || p[-GRID_COLS])) {
+				if ((pos_.x == 0 || p[-grid_cols - 1]) != (pos_.x == grid_cols || p[-grid_cols])) {
 					next_pos_ = pos_ + vec2i { 0, -1 };
 					set_state(state::SLIDING);
 				}
@@ -126,7 +133,7 @@ player::move_slide(direction dir)
 
 		case direction::LEFT:
 			if (pos_.x > 0) {
-				if ((pos_.y == 0 || p[-GRID_COLS - 1]) != (pos_.y == GRID_ROWS || p[-1])) {
+				if ((pos_.y == 0 || p[-grid_cols - 1]) != (pos_.y == grid_rows || p[-1])) {
 					next_pos_ = pos_ + vec2i { -1, 0 };
 					set_state(state::SLIDING);
 				}
@@ -134,8 +141,8 @@ player::move_slide(direction dir)
 			break;
 
 		case direction::RIGHT:
-			if (pos_.x < GRID_COLS) {
-				if ((pos_.y == 0 || p[-GRID_COLS]) != (pos_.y == GRID_ROWS || p[0])) {
+			if (pos_.x < grid_cols) {
+				if ((pos_.y == 0 || p[-grid_cols]) != (pos_.y == grid_rows || p[0])) {
 					next_pos_ = pos_ + vec2i { 1, 0 };
 					set_state(state::SLIDING);
 				}
@@ -147,6 +154,9 @@ player::move_slide(direction dir)
 void
 player::update(float dt)
 {
+	const int grid_cols = game_.grid_cols;
+	const int grid_rows = game_.grid_rows;
+
 	switch (state_) {
 		case state::IDLE:
 		case state::EXTENDING_IDLE:
@@ -170,16 +180,16 @@ player::update(float dt)
 				if (extend_trail_.empty()) {
 					state_ = state::IDLE;
 				} else {
-					auto *p = &game_.grid[pos_.y*GRID_COLS + pos_.x];
+					auto *p = &game_.grid[pos_.y*grid_cols + pos_.x];
 
 					if (pos_.x == 0 ||
-					    pos_.x == GRID_COLS ||
+					    pos_.x == grid_cols ||
 					    pos_.y == 0 ||
-					    pos_.y == GRID_ROWS ||
+					    pos_.y == grid_rows ||
 					    p[0] ||
 					    p[-1] ||
-					    p[-GRID_COLS] ||
-					    p[-GRID_COLS - 1]) {
+					    p[-grid_cols] ||
+					    p[-grid_cols - 1]) {
 						extend_trail_.push_back(pos_);
 						game_.fill_grid(extend_trail_);
 
@@ -221,8 +231,8 @@ player::draw() const
 		vec2s d = v1 - v0;
 		vec2s n { -d.y, d.x };
 
-		vec2s p0 = vec2s(v0)*game_.cell_size + n*TRAIL_RADIUS;
-		vec2s p1 = vec2s(v0)*game_.cell_size - n*TRAIL_RADIUS;
+		vec2s p0 = vec2s(v0)*CELL_SIZE + n*TRAIL_RADIUS;
+		vec2s p1 = vec2s(v0)*CELL_SIZE - n*TRAIL_RADIUS;
 
 		va.push_back({ p0.x, p0.y });
 		va.push_back({ p1.x, p1.y });
@@ -244,8 +254,8 @@ player::draw() const
 
 			short d = static_cast<float>(TRAIL_RADIUS)/dot(ns, nm);
 
-			vec2s p0 = vec2s(v1)*game_.cell_size + nm*d;
-			vec2s p1 = vec2s(v1)*game_.cell_size - nm*d;
+			vec2s p0 = vec2s(v1)*CELL_SIZE + nm*d;
+			vec2s p1 = vec2s(v1)*CELL_SIZE - nm*d;
 
 			va.push_back({ p0.x, p0.y });
 			va.push_back({ p1.x, p1.y });
@@ -259,8 +269,8 @@ player::draw() const
 		vec2s d = v0 - v1;
 		vec2s n { -d.y, d.x };
 
-		vec2s p0 = vec2s(v0)*game_.cell_size + n*TRAIL_RADIUS;
-		vec2s p1 = vec2s(v0)*game_.cell_size - n*TRAIL_RADIUS;
+		vec2s p0 = vec2s(v0)*CELL_SIZE + n*TRAIL_RADIUS;
+		vec2s p1 = vec2s(v0)*CELL_SIZE - n*TRAIL_RADIUS;
 
 		va.push_back({ p0.x, p0.y });
 		va.push_back({ p1.x, p1.y });
@@ -270,7 +280,7 @@ player::draw() const
 		va.draw(GL_TRIANGLE_STRIP);
 
 		if (state_ == state::EXTENDING) {
-			vec2s v0 = pos_*game_.cell_size;
+			vec2s v0 = pos_*CELL_SIZE;
 			vec2s v1 = get_position();
 
 			short x0 = std::min(v0.x - TRAIL_RADIUS, v1.x - TRAIL_RADIUS);
@@ -307,13 +317,13 @@ player::get_position() const
 	switch (state_) {
 		case state::IDLE:
 		case state::EXTENDING_IDLE:
-			return pos_*game_.cell_size;
+			return pos_*CELL_SIZE;
 
 		case state::SLIDING:
 		case state::EXTENDING:
 			{
-			int d = game_.cell_size*state_t_/SLIDE_T;
-			return pos_*game_.cell_size + (next_pos_ - pos_)*d;
+			int d = CELL_SIZE*state_t_/SLIDE_T;
+			return pos_*CELL_SIZE + (next_pos_ - pos_)*d;
 			}
 	}
 }
@@ -323,10 +333,11 @@ player::get_position() const
 //  g a m e
 //
 
+static const float SCROLL_T = .2f;
+
 game::game(int width, int height)
-: cell_size { std::min(width/GRID_COLS, height/GRID_ROWS) }
-, base_x_ { (width - cell_size*GRID_COLS)/2 }
-, base_y_ { (height - cell_size*GRID_ROWS)/2 }
+: viewport_width_ { width }
+, viewport_height_ { height }
 , player_ { *this }
 , font_ { ggl::res::get_font("fonts/tiny") }
 { }
@@ -336,25 +347,35 @@ game::reset(const level *l)
 {
 	cur_level_ = l;
 
-	std::fill(std::begin(grid), std::end(grid), false);
+	grid_rows = cur_level_->grid_rows;
+	grid_cols = cur_level_->grid_cols;
+
+	grid.resize(grid_rows*grid_cols);
+	std::fill(std::begin(grid), std::end(grid), 0);
+
 	initialize_vas();
 
 	player_.reset();
 
-	elapsed_t_ = 0;
+	offset_ = vec2i { 0, 0 };
+
+	scrolling_ = false;
 }
 
 void
 game::draw() const
 {
 	glPushMatrix();
-	glTranslatef(base_x_, base_y_, 0);
+
+	auto offs = get_offset();
+	glTranslatef(offs.x, offs.y, 0);
 
 	draw_background();
 	draw_border();
 
 	player_.draw();
 
+#if 0
 	glColor4f(1, 1, 1, 1);
 
 	glPushMatrix();
@@ -366,8 +387,19 @@ game::draw() const
 	glDisable(GL_BLEND);
 
 	glPopMatrix();
+#endif
 
 	glPopMatrix();
+}
+
+vec2f
+game::get_offset() const
+{
+	if (!scrolling_) {
+		return offset_;
+	} else {
+		return quadratic_tween<vec2f>()(vec2f(offset_), vec2f(next_offset_), scroll_t_/SCROLL_T);
+	}
 }
 
 void
@@ -382,8 +414,8 @@ game::initialize_background_vas()
 {
 	auto& tex = cur_level_->background_texture;
 
-	const float du = static_cast<float>(tex->orig_width)/tex->width/GRID_COLS;
-	const float dv = static_cast<float>(tex->orig_height)/tex->height/GRID_ROWS;
+	const float du = static_cast<float>(tex->orig_width)/tex->width/grid_cols;
+	const float dv = static_cast<float>(tex->orig_height)/tex->height/grid_rows;
 
 	auto fill_spans = [&](ggl::vertex_array_texcoord<GLshort, 2, GLfloat, 2>& va, bool b)
 		{
@@ -393,13 +425,13 @@ game::initialize_background_vas()
 
 			short y = 0;
 
-			for (int i = 0; i < GRID_ROWS; i++) {
-				auto *row = &grid[i*GRID_COLS];
-				auto *row_end = row + GRID_COLS;
+			for (int i = 0; i < grid_rows; i++) {
+				auto *row = &grid[i*grid_cols];
+				auto *row_end = row + grid_cols;
 
 				auto *span_start = row;
 
-				const short yt = y + cell_size;
+				const short yt = y + CELL_SIZE;
 
 				while ((span_start = std::find(span_start, row_end, b)) != row_end) {
 					auto *span_end = std::find(span_start, row_end, !b);
@@ -407,8 +439,8 @@ game::initialize_background_vas()
 					auto s = std::distance(row, span_start);
 					auto e = std::distance(row, span_end);
 
-					short xs = s*cell_size;
-					short xe = e*cell_size;
+					short xs = s*CELL_SIZE;
+					short xe = e*CELL_SIZE;
 
 					auto us = s*du;
 					auto ue = e*du;
@@ -424,7 +456,7 @@ game::initialize_background_vas()
 					span_start = span_end;
 				}
 
-				y += cell_size;
+				y += CELL_SIZE;
 				v += dv;
 			}
 		};
@@ -442,27 +474,27 @@ game::initialize_border_va()
 
 	int y = 0;
 
-	for (int i = 0; i < GRID_ROWS; i++) {
+	for (int i = 0; i < grid_rows; i++) {
 		int x = 0;
 
-		for (int j = 0; j < GRID_COLS; j++) {
-			auto *p = &grid[i*GRID_COLS + j];
+		for (int j = 0; j < grid_cols; j++) {
+			auto *p = &grid[i*grid_cols + j];
 
 			if (!*p) {
 				const short x0 = x - BORDER_RADIUS;
 				const short x1 = x + BORDER_RADIUS;
 
-				const short x2 = x + cell_size - BORDER_RADIUS;
-				const short x3 = x + cell_size + BORDER_RADIUS;
+				const short x2 = x + CELL_SIZE - BORDER_RADIUS;
+				const short x3 = x + CELL_SIZE + BORDER_RADIUS;
 
 				const short y0 = y - BORDER_RADIUS;
 				const short y1 = y + BORDER_RADIUS;
 
-				const short y2 = y + cell_size - BORDER_RADIUS;
-				const short y3 = y + cell_size + BORDER_RADIUS;
+				const short y2 = y + CELL_SIZE - BORDER_RADIUS;
+				const short y3 = y + CELL_SIZE + BORDER_RADIUS;
 
 				// top
-				if (i == GRID_ROWS - 1 || p[GRID_COLS]) {
+				if (i == grid_rows - 1 || p[grid_cols]) {
 					border_va_.push_back({ x0, y2 });
 					border_va_.push_back({ x3, y2 });
 					border_va_.push_back({ x3, y3 });
@@ -473,7 +505,7 @@ game::initialize_border_va()
 				}
 
 				// down
-				if (i == 0 || p[-GRID_COLS]) {
+				if (i == 0 || p[-grid_cols]) {
 					border_va_.push_back({ x0, y0 });
 					border_va_.push_back({ x3, y0 });
 					border_va_.push_back({ x3, y1 });
@@ -495,7 +527,7 @@ game::initialize_border_va()
 				}
 
 				// right
-				if (j == GRID_COLS - 1 || p[1]) {
+				if (j == grid_cols - 1 || p[1]) {
 					border_va_.push_back({ x2, y0 });
 					border_va_.push_back({ x2, y3 });
 					border_va_.push_back({ x3, y3 });
@@ -506,10 +538,10 @@ game::initialize_border_va()
 				}
 			}
 
-			x += cell_size;
+			x += CELL_SIZE;
 		}
 
-		y += cell_size;
+		y += CELL_SIZE;
 	}
 }
 
@@ -546,9 +578,54 @@ game::move(direction dir, bool button_pressed)
 void
 game::update(float dt)
 {
-	elapsed_t_ += dt;
-
 	player_.update(dt);
+
+	if (scrolling_) {
+		if ((scroll_t_ += dt) >= SCROLL_T) {
+			offset_ = next_offset_;
+			scrolling_ = false;
+		}
+	} else {
+		static const int SCROLL_DIST = 100;
+
+		vec2i pos = player_.get_position() + offset_;
+
+		if (pos.x < .2*viewport_width_) {
+			if (offset_.x < 0) {
+				next_offset_.x = std::min(0, offset_.x + SCROLL_DIST);
+				next_offset_.y = offset_.y;
+
+				scroll_t_ = 0;
+				scrolling_ = true;
+			}
+		} else if (pos.x > .8*viewport_width_) {
+			if (offset_.x + grid_cols*CELL_SIZE > viewport_width_) {
+				next_offset_.x = std::max(viewport_width_ - grid_cols*CELL_SIZE, offset_.x - SCROLL_DIST);
+				next_offset_.y = offset_.y;
+
+				scroll_t_ = 0;
+				scrolling_ = true;
+			}
+		}
+
+		if (pos.y < .2*viewport_height_) {
+			if (offset_.y < 0) {
+				next_offset_.x = offset_.x;
+				next_offset_.y = std::min(0, offset_.y + SCROLL_DIST);
+
+				scroll_t_ = 0;
+				scrolling_ = true;
+			}
+		} else if (pos.y > .8*viewport_height_) {
+			if (offset_.y + grid_rows*CELL_SIZE > viewport_height_) {
+				next_offset_.x = offset_.x;
+				next_offset_.y = std::max(viewport_height_ - grid_rows*CELL_SIZE, offset_.y - SCROLL_DIST);
+
+				scroll_t_ = 0;
+				scrolling_ = true;
+			}
+		}
+	}
 }
 
 void
@@ -580,12 +657,12 @@ game::fill_grid(const std::vector<vec2i>& contour)
 		}
 	}
 
-	auto fill = [&](bool *grid, int coord)
+	auto fill = [&](std::vector<int>& grid, int coord)
 		{
 			std::queue<vec2i> queue;
-			queue.push(vec2i { coord%GRID_COLS, coord/GRID_COLS });
+			queue.push(vec2i { coord%grid_cols, coord/grid_cols });
 
-			grid[coord] = true;
+			grid[coord] = 1;
 
 			while (!queue.empty()) {
 				auto pos = queue.front();
@@ -596,11 +673,11 @@ game::fill_grid(const std::vector<vec2i>& contour)
 				for (auto& d : dirs) {
 					auto next_pos = pos + d;
 
-					if (next_pos.x < 0 || next_pos.x >= GRID_COLS || next_pos.y < 0 || next_pos.y >= GRID_ROWS) {
+					if (next_pos.x < 0 || next_pos.x >= grid_cols || next_pos.y < 0 || next_pos.y >= grid_rows) {
 						continue;
 					}
 
-					if (grid[next_pos.y*GRID_COLS + next_pos.x]) {
+					if (grid[next_pos.y*grid_cols + next_pos.x]) {
 						continue;
 					}
 
@@ -613,26 +690,24 @@ game::fill_grid(const std::vector<vec2i>& contour)
 					}
 
 					if (allow) {
-						grid[next_pos.y*GRID_COLS + next_pos.x] = true;
+						grid[next_pos.y*grid_cols + next_pos.x] = 1;
 						queue.push(next_pos);
 					}
 				}
 			}
 		};
 
-	static bool next_grid_0[GRID_ROWS*GRID_COLS];
-	std::copy(std::begin(grid), std::end(grid), next_grid_0);
+	auto next_grid_0 = grid;
 
 	{
-	int coord = std::distance(std::begin(grid), std::find(std::begin(grid), std::end(grid), false));
+	int coord = std::distance(std::begin(grid), std::find(std::begin(grid), std::end(grid), 0));
 	fill(next_grid_0, coord);
 	}
 
-	static bool next_grid_1[GRID_ROWS*GRID_COLS];
-	std::copy(std::begin(grid), std::end(grid), next_grid_1);
+	auto next_grid_1 = grid;
 
 	{
-	int coord = std::distance(std::begin(next_grid_0), std::find(std::begin(next_grid_0), std::end(next_grid_0), false));
+	int coord = std::distance(std::begin(next_grid_0), std::find(std::begin(next_grid_0), std::end(next_grid_0), 0));
 	fill(next_grid_1, coord);
 	}
 
@@ -640,9 +715,9 @@ game::fill_grid(const std::vector<vec2i>& contour)
 	int count1 = std::accumulate(std::begin(next_grid_1), std::end(next_grid_1), 0);
 
 	if (count0 < count1) {
-		std::copy(std::begin(next_grid_0), std::end(next_grid_0), grid);
+		std::copy(std::begin(next_grid_0), std::end(next_grid_0), std::begin(grid));
 	} else {
-		std::copy(std::begin(next_grid_1), std::end(next_grid_1), grid);
+		std::copy(std::begin(next_grid_1), std::end(next_grid_1), std::begin(grid));
 	}
 
 	// vertex arrays
@@ -653,7 +728,7 @@ game::fill_grid(const std::vector<vec2i>& contour)
 
 	int cover = 0;
 
-	for (size_t i = 0; i < GRID_ROWS*GRID_COLS; i++) {
+	for (size_t i = 0; i < grid_rows*grid_cols; i++) {
 		if (grid[i]) {
 			cover += cur_level_->silhouette[i];
 		}

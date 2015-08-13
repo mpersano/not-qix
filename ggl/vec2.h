@@ -31,6 +31,13 @@ operator-(const vec2<T>& v)
 	return { -v.x, -v.y };
 }
 
+template <typename S, typename T>
+inline const vec2<T>
+operator*(S s, const vec2<T>& v)
+{
+	return { v.x*s, v.y*s };
+}
+
 template <typename T, typename S>
 inline const vec2<T>
 operator*(const vec2<T>& v, S s)

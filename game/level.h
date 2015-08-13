@@ -1,10 +1,12 @@
 #pragma once
 
-#include "common.h"
+#include <vector>
 
 namespace ggl {
 class texture;
 }
+
+static const int CELL_SIZE = 16;
 
 class level
 {
@@ -13,6 +15,7 @@ public:
 
 	const ggl::texture *background_texture;
 	const ggl::texture *mask_texture;
-	int silhouette[GRID_ROWS*GRID_COLS];
+	int grid_rows, grid_cols;
+	std::vector<int> silhouette;
 	int silhouette_pixels;
 };

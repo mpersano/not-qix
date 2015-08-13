@@ -6,7 +6,7 @@
 #include <ggl/vec2.h>
 #include <ggl/vertex_array.h>
 
-#include "common.h"
+#include "level.h"
 
 namespace ggl {
 class font;
@@ -15,7 +15,6 @@ class font;
 enum class direction { UP, DOWN, LEFT, RIGHT };
 
 class game;
-class level;
 
 class player
 {
@@ -27,6 +26,7 @@ public:
 	void update(float dt);
 
 	void draw() const;
+	const vec2i get_position() const;
 
 private:
 	void move_slide(direction dir);
@@ -34,7 +34,6 @@ private:
 
 	enum class state { IDLE, SLIDING, EXTENDING_IDLE, EXTENDING };
 
-	const vec2i get_position() const;
 	void set_state(state next_state);
 
 	static const int PLAYER_RADIUS = 5;
@@ -57,10 +56,11 @@ public:
 	void draw() const;
 	void fill_grid(const std::vector<vec2i>& contour);
 
-	bool grid[GRID_ROWS*GRID_COLS];
-	int cell_size;
+	std::vector<int> grid;
+	int grid_rows, grid_cols;
 
 private:
+	vec2f get_offset() const;
 	void draw_background() const;
 	void draw_border() const;
 
@@ -68,10 +68,12 @@ private:
 	void initialize_background_vas();
 	void initialize_border_va();
 
-	int base_x_, base_y_;
+	int viewport_width_, viewport_height_;
+	vec2i offset_, next_offset_;
 	player player_;
 	const level *cur_level_;
-	float elapsed_t_;
+	bool scrolling_;
+	float scroll_t_;
 
 	ggl::vertex_array_texcoord<GLshort, 2, GLfloat, 2> background_filled_va_;
 	ggl::vertex_array_texcoord<GLshort, 2, GLfloat, 2> background_unfilled_va_;
