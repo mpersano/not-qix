@@ -25,6 +25,7 @@ public:
 	void reset();
 	void move(direction dir, bool button_pressed);
 	void update(float dt);
+
 	void draw() const;
 
 private:
@@ -36,24 +37,13 @@ private:
 	const vec2i get_position() const;
 	void set_state(state next_state);
 
+	static const int PLAYER_RADIUS = 5;
+
 	game& game_;
 	vec2i pos_, next_pos_;
 	std::vector<vec2i> extend_trail_;
 	state state_;
 	float state_t_;
-};
-
-class foe
-{
-public:
-	foe(game& g);
-	virtual ~foe() { }
-
-	virtual bool update(float dt) = 0;
-	virtual void draw() const = 0;
-
-protected:
-	game& game_;
 };
 
 class game
@@ -80,7 +70,6 @@ private:
 
 	int base_x_, base_y_;
 	player player_;
-	std::vector<std::unique_ptr<foe>> foes_;
 	const level *cur_level_;
 	float elapsed_t_;
 

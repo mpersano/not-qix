@@ -209,7 +209,7 @@ player::draw() const
 	// trail
 
 	if (state_ == state::EXTENDING || state_ == state::EXTENDING_IDLE) {
-		static const int TRAIL_RADIUS = 4;
+		static const int TRAIL_RADIUS = 2;
 
 		ggl::vertex_array_flat<GLshort, 2> va;
 
@@ -268,23 +268,37 @@ player::draw() const
 
 		glColor4f(1, 0, 0, 1);
 		va.draw(GL_TRIANGLE_STRIP);
+
+		if (state_ == state::EXTENDING) {
+			vec2s v0 = pos_*game_.cell_size;
+			vec2s v1 = get_position();
+
+			short x0 = std::min(v0.x - TRAIL_RADIUS, v1.x - TRAIL_RADIUS);
+			short x1 = std::max(v0.x + TRAIL_RADIUS, v1.x + TRAIL_RADIUS);
+
+			short y0 = std::min(v0.y - TRAIL_RADIUS, v1.y - TRAIL_RADIUS);
+			short y1 = std::max(v0.y + TRAIL_RADIUS, v1.y + TRAIL_RADIUS);
+
+			(ggl::vertex_array_flat<GLshort, 2>
+				{ { x0, y0 }, { x1, y0 },
+				  { x0, y1 }, { x1, y1 } }).draw(GL_TRIANGLE_STRIP);
+		}
 	}
 
 	// head
 
 	auto pos = get_position();
 
-	static const int PLAYER_RADIUS = 5;
-
 	const short x0 = pos.x - PLAYER_RADIUS;
 	const short x1 = pos.x + PLAYER_RADIUS;
 	const short y0 = pos.y - PLAYER_RADIUS;
 	const short y1 = pos.y + PLAYER_RADIUS;
 
-	ggl::vertex_array_flat<GLshort, 2> va { { x0, y0 }, { x1, y0 }, { x0, y1 }, { x1, y1 } };
-
 	glColor4f(0, 1, 0, 1);
-	va.draw(GL_TRIANGLE_STRIP);
+
+	(ggl::vertex_array_flat<GLshort, 2>
+		{ { x0, y0 }, { x1, y0 },
+		  { x0, y1 }, { x1, y1 } }).draw(GL_TRIANGLE_STRIP);
 }
 
 const vec2i
