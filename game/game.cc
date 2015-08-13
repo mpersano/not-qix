@@ -475,68 +475,48 @@ game::initialize_border()
 
 	vec2i pos = start_pos;
 
-	auto move_up = [&]()
+	auto try_move = [&](const vec2i& d)
 		{
-			auto *p = &grid[pos.y*grid_cols + pos.x];
-
-			if (pos.y < grid_rows && (pos.x == 0 || p[-1]) != (pos.x == grid_cols || p[0])) {
-				auto next = pos + vec2i { 0, 1 };
-				if (border_.empty() || border_.back() != next) {
-					border_.push_back(pos);
-					pos = next;
-					return true;
-				}
+			auto next = pos + d;
+			if (border_.empty() || border_.back() != next) {
+				border_.push_back(pos);
+				pos = next;
+				return true;
 			}
 
 			return false;
+		};
+
+	auto move_up = [&]()
+		{
+			auto *p = &grid[pos.y*grid_cols + pos.x];
+			return pos.y < grid_rows &&
+				(pos.x == 0 || p[-1]) != (pos.x == grid_cols || p[0]) &&
+				try_move({ 0, 1 });
 		};
 
 	auto move_right = [&]()
 		{
 			auto *p = &grid[pos.y*grid_cols + pos.x];
-
-			if (pos.x < grid_cols && (pos.y == 0 || p[-grid_cols]) != (pos.y == grid_rows || p[0])) {
-				auto next = pos + vec2i { 1, 0 };
-				if (border_.empty() || border_.back() != next) {
-					border_.push_back(pos);
-					pos = next;
-					return true;
-				}
-			}
-
-			return false;
+			return pos.x < grid_cols &&
+				(pos.y == 0 || p[-grid_cols]) != (pos.y == grid_rows || p[0]) &&
+				try_move({ 1, 0 });
 		};
 
 	auto move_down = [&]()
 		{
 			auto *p = &grid[pos.y*grid_cols + pos.x];
-
-			if (pos.y > 0 && (pos.x == 0 || p[-grid_cols - 1]) != (pos.x == grid_cols || p[-grid_cols])) {
-				auto next = pos + vec2i { 0, -1 };
-				if (border_.empty() || border_.back() != next) {
-					border_.push_back(pos);
-					pos = next;
-					return true;
-				}
-			}
-
-			return false;
+			return pos.y > 0 &&
+				(pos.x == 0 || p[-grid_cols - 1]) != (pos.x == grid_cols || p[-grid_cols]) &&
+				try_move({ 0, -1 });
 		};
 
 	auto move_left = [&]()
 		{
 			auto *p = &grid[pos.y*grid_cols + pos.x];
-
-			if (pos.x > 0 && (pos.y == 0 || p[-grid_cols - 1]) != (pos.y == grid_rows || p[-1])) {
-				auto next = pos + vec2i { -1, 0 };
-				if (border_.empty() || border_.back() != next) {
-					border_.push_back(pos);
-					pos = next;
-					return true;
-				}
-			}
-
-			return false;
+			return pos.x > 0 &&
+				(pos.y == 0 || p[-grid_cols - 1]) != (pos.y == grid_rows || p[-1]) &&
+				try_move({ -1, 0 });
 		};
 
 	do {
