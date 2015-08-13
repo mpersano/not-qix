@@ -12,10 +12,11 @@ static const int CELL_SIZE = 16;
 class level
 {
 public:
-	level(const std::string& background, const std::string& mask);
+	level(const std::string& fg_path, const std::string& bg_path, const std::string& mask_path);
 
-	const ggl::texture *background_texture;
-	const ggl::texture *mask_texture;
+	const ggl::texture *fg_texture;
+	const ggl::texture *bg_texture;
+
 	int grid_rows, grid_cols;
 	std::vector<int> silhouette;
 	int silhouette_pixels;

@@ -13,21 +13,28 @@
 
 std::vector<std::unique_ptr<level>> g_levels;
 
-level::level(const std::string& background, const std::string& mask)
-: background_texture { ggl::res::get_texture(background) }
-, mask_texture { ggl::res::get_texture(mask) }
+level::level(const std::string& fg_path, const std::string& bg_path, const std::string& mask_path)
+: fg_texture { ggl::res::get_texture(fg_path) }
+, bg_texture { ggl::res::get_texture(bg_path) }
 {
-	assert(background_texture->orig_width == mask_texture->orig_width);
-	assert(background_texture->orig_height == mask_texture->orig_height);
-	assert(mask_texture->orig_width%CELL_SIZE == 0);
-	assert(mask_texture->orig_height%CELL_SIZE == 0);
+	ggl::image mask { mask_path };
 
-	const unsigned row_stride = mask_texture->row_stride();
-	const unsigned pixel_size = mask_texture->pixel_size();
-	const uint8_t *mask_pixels = &mask_texture->data[0];
+	assert(mask.width%CELL_SIZE == 0);
+	assert(mask.height%CELL_SIZE == 0);
 
-	grid_rows = mask_texture->orig_height/CELL_SIZE;
-	grid_cols = mask_texture->orig_width/CELL_SIZE;
+	assert(fg_texture->orig_width == mask.width);
+	assert(fg_texture->orig_height == mask.height);
+
+	assert(bg_texture->orig_width == mask.width);
+	assert(bg_texture->orig_height == mask.height);
+
+	assert(mask.type == ggl::pixel_type::GRAY);
+
+	const unsigned row_stride = mask.row_stride();
+	const uint8_t *mask_pixels = &mask.data[0];
+
+	grid_rows = mask.height/CELL_SIZE;
+	grid_cols = mask.width/CELL_SIZE;
 
 	silhouette.resize(grid_rows*grid_cols);
 
@@ -35,18 +42,17 @@ level::level(const std::string& background, const std::string& mask)
 		for (int c = 0; c < grid_cols; c++) {
 			int s = 0;
 
-			auto *p = &mask_pixels[r*CELL_SIZE*row_stride + c*CELL_SIZE*pixel_size];
+			auto *p = &mask_pixels[r*CELL_SIZE*row_stride + c*CELL_SIZE];
 
 			for (int i = 0; i < CELL_SIZE; i++) {
 				for (int j = 0; j < CELL_SIZE; j++) {
-					s += *p != 0;
-					p += pixel_size;
+					s += *p++ != 0;
 				}
 
-				p += row_stride - CELL_SIZE*pixel_size;
+				p += row_stride - CELL_SIZE;
 			}
 
-			silhouette[r*grid_cols + c] = s;
+			silhouette[(grid_rows - r - 1)*grid_cols + c] = s;
 		}
 	}
 
@@ -63,7 +69,7 @@ level_from_xml_node(TiXmlNode *level_node)
 	std::unique_ptr<level> rv;
 
 	if (TiXmlElement *element = level_node->ToElement()) {
-		std::string foreground, mask;
+		std::string fg_path, bg_path, mask_path;
 
 		for (TiXmlNode *node = element->FirstChild(); node; node = node->NextSibling()) {
 			TiXmlElement *e = node->ToElement();
@@ -73,13 +79,15 @@ level_from_xml_node(TiXmlNode *level_node)
 			const char *value = e->Value();
 
 			if (strcmp(value, "foreground") == 0) {
-				foreground = e->Attribute("path");
+				fg_path  = e->Attribute("path");
+			} else if (strcmp(value, "background") == 0) {
+				bg_path = e->Attribute("path");
 			} else if (strcmp(value, "mask") == 0) {
-				mask = e->Attribute("path");
+				mask_path = e->Attribute("path");
 			}
 		}
 
-		rv.reset(new level { foreground, mask });
+		rv.reset(new level { fg_path, bg_path, mask_path });
 	}
 
 	return rv;

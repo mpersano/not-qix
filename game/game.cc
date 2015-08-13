@@ -412,7 +412,7 @@ game::initialize_vas()
 void
 game::initialize_background_vas()
 {
-	auto& tex = cur_level_->background_texture;
+	auto& tex = cur_level_->fg_texture;
 
 	const float du = static_cast<float>(tex->orig_width)/tex->width/grid_cols;
 	const float dv = static_cast<float>(tex->orig_height)/tex->height/grid_rows;
@@ -552,10 +552,10 @@ game::draw_background() const
 
 	glEnable(GL_TEXTURE_2D);
 
-	cur_level_->background_texture->bind();
+	cur_level_->fg_texture->bind();
 	background_filled_va_.draw(GL_TRIANGLES);
 
-	cur_level_->mask_texture->bind();
+	cur_level_->bg_texture->bind();
 	background_unfilled_va_.draw(GL_TRIANGLES);
 
 	glDisable(GL_TEXTURE_2D);
