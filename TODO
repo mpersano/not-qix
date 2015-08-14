@@ -28,7 +28,7 @@ TODO
 * border vertex array: use triangle strip
 * after each grid update, work out line loop representing outline.
   use this for:
-  - create triangle strip for outline rendering
+  v create triangle strip for outline rendering
   - collision detection
 
 BUGS

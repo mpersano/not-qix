@@ -479,6 +479,7 @@ game::initialize_border()
 		{
 			auto next = pos + d;
 			if (border_.empty() || border_.back() != next) {
+				// TODO: only add pos to border_ if direction changed
 				border_.push_back(pos);
 				pos = next;
 				return true;
@@ -523,85 +524,41 @@ game::initialize_border()
 		// tee-hee.
 		move_up() || move_left() || move_down() || move_right() || (assert(0), false);
 	} while (pos != start_pos);
+
+	printf("%d verts\n", border_.size());
 }
 
 void
 game::initialize_border_va()
 {
+	static const int BORDER_RADIUS = 2;
+
+	assert(!border_.empty());
+
 	border_va_.clear();
 
-	static const int BORDER_RADIUS = 1;
+	const size_t border_size = border_.size();
 
-	int y = 0;
+	for (size_t i = 0; i <= border_size; i++) {
+		auto& v0 = border_[(i + border_size - 1)%border_size];
+		auto& v1 = border_[i%border_size];
+		auto& v2 = border_[(i + 1)%border_size];
 
-	for (int i = 0; i < grid_rows; i++) {
-		int x = 0;
+		vec2s ds = v1 - v0;
+		vec2s ns { -ds.y, ds.x };
 
-		for (int j = 0; j < grid_cols; j++) {
-			auto *p = &grid[i*grid_cols + j];
+		vec2s de = v2 - v1;
+		vec2s ne { -de.y, de.x };
 
-			if (!*p) {
-				const short x0 = x - BORDER_RADIUS;
-				const short x1 = x + BORDER_RADIUS;
+		vec2s nm = ns + ne;
 
-				const short x2 = x + CELL_SIZE - BORDER_RADIUS;
-				const short x3 = x + CELL_SIZE + BORDER_RADIUS;
+		short d = static_cast<float>(BORDER_RADIUS)/dot(ns, nm);
 
-				const short y0 = y - BORDER_RADIUS;
-				const short y1 = y + BORDER_RADIUS;
+		vec2s p0 = vec2s(v1)*CELL_SIZE + nm*d;
+		vec2s p1 = vec2s(v1)*CELL_SIZE - nm*d;
 
-				const short y2 = y + CELL_SIZE - BORDER_RADIUS;
-				const short y3 = y + CELL_SIZE + BORDER_RADIUS;
-
-				// top
-				if (i == grid_rows - 1 || p[grid_cols]) {
-					border_va_.push_back({ x0, y2 });
-					border_va_.push_back({ x3, y2 });
-					border_va_.push_back({ x3, y3 });
-
-					border_va_.push_back({ x3, y3 });
-					border_va_.push_back({ x0, y3 });
-					border_va_.push_back({ x0, y2 });
-				}
-
-				// down
-				if (i == 0 || p[-grid_cols]) {
-					border_va_.push_back({ x0, y0 });
-					border_va_.push_back({ x3, y0 });
-					border_va_.push_back({ x3, y1 });
-
-					border_va_.push_back({ x3, y1 });
-					border_va_.push_back({ x0, y1 });
-					border_va_.push_back({ x0, y0 });
-				}
-
-				// left
-				if (j == 0 || p[-1]) {
-					border_va_.push_back({ x0, y0 });
-					border_va_.push_back({ x0, y3 });
-					border_va_.push_back({ x1, y3 });
-
-					border_va_.push_back({ x1, y3 });
-					border_va_.push_back({ x1, y0 });
-					border_va_.push_back({ x0, y0 });
-				}
-
-				// right
-				if (j == grid_cols - 1 || p[1]) {
-					border_va_.push_back({ x2, y0 });
-					border_va_.push_back({ x2, y3 });
-					border_va_.push_back({ x3, y3 });
-
-					border_va_.push_back({ x3, y3 });
-					border_va_.push_back({ x3, y0 });
-					border_va_.push_back({ x2, y0 });
-				}
-			}
-
-			x += CELL_SIZE;
-		}
-
-		y += CELL_SIZE;
+		border_va_.push_back({ p0.x, p0.y });
+		border_va_.push_back({ p1.x, p1.y });
 	}
 }
 
@@ -612,13 +569,11 @@ game::draw_background() const
 
 	glEnable(GL_TEXTURE_2D);
 
-#if 0
 	cur_level_->fg_texture->bind();
 	background_filled_va_.draw(GL_TRIANGLES);
 
 	cur_level_->bg_texture->bind();
 	background_unfilled_va_.draw(GL_TRIANGLES);
-#endif
 
 	glDisable(GL_TEXTURE_2D);
 }
@@ -627,9 +582,8 @@ void
 game::draw_border() const
 {
 	glColor4f(1, 1, 0, 1);
-
-#if 0
-	border_va_.draw(GL_TRIANGLES);
+#if 1
+	border_va_.draw(GL_TRIANGLE_STRIP);
 #else
 	glBegin(GL_LINE_LOOP);
 	for (auto& v : border_)
