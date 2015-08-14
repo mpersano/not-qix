@@ -30,6 +30,7 @@ TODO
   use this for:
   v create triangle strip for outline rendering
   - collision detection
+* font: store 2 texuv coords instead of 4
 
 BUGS
 ----

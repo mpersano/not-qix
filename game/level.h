@@ -19,7 +19,7 @@ public:
 
 	int grid_rows, grid_cols;
 	std::vector<int> silhouette;
-	int silhouette_pixels;
+	unsigned silhouette_pixels;
 };
 
 extern std::vector<std::unique_ptr<level>> g_levels;

@@ -1,8 +1,8 @@
 #pragma once
 
 #include <vector>
-#include <memory>
 
+#include <ggl/noncopyable.h>
 #include <ggl/vec2.h>
 #include <ggl/vertex_array.h>
 
@@ -16,7 +16,7 @@ enum class direction { UP, DOWN, LEFT, RIGHT };
 
 class game;
 
-class player
+class player : private ggl::noncopyable
 {
 public:
 	player(game& g);
@@ -45,7 +45,7 @@ private:
 	float state_t_;
 };
 
-class game
+class game : private ggl::noncopyable
 {
 public:
 	game(int width, int height);
@@ -55,6 +55,7 @@ public:
 	void update(float dt);
 	void draw() const;
 	void fill_grid(const std::vector<vec2i>& contour);
+	unsigned get_cover_percentage() const;
 
 	std::vector<int> grid;
 	int grid_rows, grid_cols;
@@ -75,6 +76,8 @@ private:
 	const level *cur_level_;
 	bool scrolling_;
 	float scroll_t_;
+
+	unsigned cover_percentage_;
 
 	std::vector<vec2i> border_;
 

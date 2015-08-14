@@ -56,7 +56,7 @@ level::level(const std::string& fg_path, const std::string& bg_path, const std::
 		}
 	}
 
-	silhouette_pixels = std::accumulate(std::begin(silhouette), std::end(silhouette), 0);
+	silhouette_pixels = std::accumulate(std::begin(silhouette), std::end(silhouette), 0u);
 }
 
 namespace {

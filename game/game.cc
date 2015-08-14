@@ -354,13 +354,13 @@ game::reset(const level *l)
 	grid.resize(grid_rows*grid_cols);
 	std::fill(std::begin(grid), std::end(grid), 0);
 
+	offset_ = vec2i { 0, 0 };
+	scrolling_ = false;
+	cover_percentage_ = 0u;
+
 	initialize_vas();
 
 	player_.reset();
-
-	offset_ = vec2i { 0, 0 };
-
-	scrolling_ = false;
 }
 
 void
@@ -749,7 +749,7 @@ game::fill_grid(const std::vector<vec2i>& contour)
 
 	// update cover percentage
 
-	int cover = 0;
+	unsigned cover = 0;
 
 	for (size_t i = 0; i < grid_rows*grid_cols; i++) {
 		if (grid[i]) {
@@ -757,7 +757,11 @@ game::fill_grid(const std::vector<vec2i>& contour)
 		}
 	}
 
-	printf("%d/%d cover: %.2f %%\n",
-		cover, cur_level_->silhouette_pixels,
-		static_cast<float>(cover*100)/cur_level_->silhouette_pixels);
+	cover_percentage_ = (cover*10000)/cur_level_->silhouette_pixels; // XXX: will probably overflow on large images
+}
+
+unsigned
+game::get_cover_percentage() const
+{
+	return cover_percentage_;
 }

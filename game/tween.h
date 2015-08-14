@@ -3,13 +3,7 @@
 #include <cmath>
 
 template <class T>
-struct tween
-{
-	using type = T;
-};
-
-template <class T>
-struct linear_tween : tween<T>
+struct linear_tween
 {
 	T operator()(const T& a, const T& b, float t) const
 	{
@@ -18,7 +12,7 @@ struct linear_tween : tween<T>
 };
 
 template <class T>
-struct quadratic_tween : tween<T>
+struct quadratic_tween
 {
 	T operator()(const T& a, const T& b, float t) const
 	{
@@ -27,7 +21,7 @@ struct quadratic_tween : tween<T>
 };
 
 template <class T>
-struct in_cos_tween : tween<T>
+struct in_cos_tween
 {
 	T operator()(const T& a, const T& b, float t) const
 	{
@@ -37,7 +31,7 @@ struct in_cos_tween : tween<T>
 };
 
 template <class T>
-struct out_cos_tween : tween<T>
+struct out_cos_tween
 {
 	T operator()(const T& a, const T& b, float t) const
 	{
@@ -49,7 +43,7 @@ struct out_cos_tween : tween<T>
 // stolen from robert penner
 
 template <class T>
-struct in_back_tween : tween<T>
+struct in_back_tween
 {
 	T operator()(const T& a, const T& b, float t) const
 	{
@@ -59,7 +53,7 @@ struct in_back_tween : tween<T>
 };
 
 template <class T>
-struct out_bounce_tween : tween<T>
+struct out_bounce_tween
 {
 	T operator()(const T& a, const T& b, float t) const
 	{
