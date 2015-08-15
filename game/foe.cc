@@ -60,6 +60,21 @@ foe::update(float dt)
 
 	position_ += speed_*dir_;
 
+	// rotate towards player
+
+	{
+	vec2f n { -dir_.y, dir_.x };
+
+	float da = .05f*dot(n, normalized(vec2f(game_.get_player_world_position()) - position_));
+
+	const float c = cosf(da);
+	const float s = sinf(da);
+
+	vec2f next_dir { dot(dir_, vec2f { c, -s }), dot(dir_, vec2f { s, c }) };
+
+	dir_ = next_dir;
+	}
+
 	// collide against edge
 
 	const auto& border = game_.border;

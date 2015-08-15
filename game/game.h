@@ -59,6 +59,7 @@ public:
 	void fill_grid(const std::vector<vec2i>& contour);
 	unsigned get_cover_percent() const;
 	vec2i get_player_screen_position() const;
+	vec2i get_player_world_position() const;
 
 	std::vector<int> grid;
 	int grid_rows, grid_cols;

@@ -775,3 +775,9 @@ game::get_player_screen_position() const
 {
 	return player_.get_position() + offset_;
 }
+
+vec2i
+game::get_player_world_position() const
+{
+	return player_.get_position();
+}
