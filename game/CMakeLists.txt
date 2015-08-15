@@ -50,6 +50,7 @@ set(GAME_SOURCES
 	level.cc
 	game.cc
 	foe.cc
+	boss.cc
 	in_game_state.cc
 	percent_gauge.cc)
 

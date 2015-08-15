@@ -14,11 +14,11 @@ public:
 	in_game_state(int width, int height);
 
 	void draw() const override;
-	void update(float dt) override;
+	void update() override;
 
 private:
-	void update_game(float dt);
-	void update_effects(float dt);
+	void update_game();
+	void update_effects();
 
 	game game_;
 	std::list<std::unique_ptr<effect>> effects_;

@@ -9,6 +9,11 @@
 #include "level.h"
 #include "in_game_state.h"
 
+namespace {
+
+const float UPDATE_RATE = 1.f/60;
+}
+
 class game_app : public ggl::app
 {
 public:
@@ -17,6 +22,7 @@ public:
 
 private:
 	std::unique_ptr<app_state> cur_state_;
+	float update_t_;
 	int width_, height_;
 };
 
@@ -28,12 +34,19 @@ game_app::init(int width, int height)
 
 	init_levels();
 	cur_state_.reset(new in_game_state { width, height });
+
+	update_t_ = 0;
 }
 
 void
 game_app::update_and_render(float dt)
 {
-	cur_state_->update(dt);
+	update_t_ += dt;
+
+	while (update_t_ > UPDATE_RATE) {
+		cur_state_->update();
+		update_t_ -= UPDATE_RATE;
+	}
 
 	glViewport(0, 0, width_, height_);
 	glClearColor(0, 0, 0, 0);

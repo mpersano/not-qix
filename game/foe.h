@@ -9,14 +9,26 @@ class foe : private ggl::noncopyable
 {
 public:
 	foe(game& g);
+	virtual ~foe() = default;
 
-	void draw() const;
-	bool update(float dt);
+	virtual void draw() const = 0;
+	virtual bool update() = 0;
 
-private:
+	virtual bool is_boss() const = 0;
+
+protected:
 	game& game_;
-	vec2f position_;
-	vec2f dir_;
-	float speed_;
-	float radius_;
+};
+
+class phys_foe : public foe
+{
+public:
+	phys_foe(game& g, vec2f pos, vec2f dir, float speed, float radius);
+
+	void move();
+
+	vec2f pos;
+	vec2f dir;
+	float speed;
+	float radius;
 };

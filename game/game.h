@@ -25,7 +25,7 @@ public:
 
 	void reset();
 	void move(direction dir, bool button_pressed);
-	void update(float dt);
+	void update();
 
 	void draw() const;
 	const vec2i get_position() const;
@@ -39,12 +39,13 @@ private:
 	void set_state(state next_state);
 
 	static const int PLAYER_RADIUS = 5;
+	static const int SLIDE_TICS = 5;
 
 	game& game_;
 	vec2i pos_, next_pos_;
 	std::vector<vec2i> extend_trail_;
 	state state_;
-	float state_t_;
+	int state_tics_;
 };
 
 class game : private ggl::noncopyable
@@ -54,12 +55,16 @@ public:
 
 	void reset(const level *l);
 	void move(direction dir, bool button_pressed);
-	void update(float dt);
+	void update();
 	void draw() const;
 	void fill_grid(const std::vector<vec2i>& contour);
+
 	unsigned get_cover_percent() const;
+
 	vec2i get_player_screen_position() const;
 	vec2i get_player_world_position() const;
+
+	void add_foe(std::unique_ptr<foe> f);
 
 	std::vector<int> grid;
 	int grid_rows, grid_cols;
@@ -81,7 +86,9 @@ private:
 	player player_;
 	const level *cur_level_;
 	bool scrolling_;
-	float scroll_t_;
+	float scroll_tics_;
+
+	static const int SCROLL_TICS = 5;
 
 	unsigned cover_percent_;
 

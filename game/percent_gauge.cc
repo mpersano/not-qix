@@ -8,9 +8,9 @@
 
 namespace {
 
-static const float INTRO_T = 1;
-static const float OUTRO_T = 1;
-static const float UPDATE_T = .5;
+static const int INTRO_TICS = 10;
+static const int OUTRO_TICS = 10;
+static const int UPDATE_TICS = 5;
 
 }
 
@@ -22,7 +22,7 @@ percent_gauge::percent_gauge(game& g, int viewport_height)
 , large_font_ { ggl::res::get_font("fonts/small") }
 , small_font_ { ggl::res::get_font("fonts/tiny") }
 , updating_ { false }
-, update_t_ { 0 }
+, update_tics_ { 0 }
 {
 	set_state(state::INTRO);
 }
@@ -31,15 +31,15 @@ void
 percent_gauge::set_state(state next_state)
 {
 	state_ = next_state;
-	state_t_ = 0;
+	state_tics_ = 0;
 }
 
 bool
-percent_gauge::update(float dt)
+percent_gauge::update()
 {
 	switch (state_) {
 		case state::INTRO:
-			if ((state_t_ += dt) >= INTRO_T) {
+			if (++state_tics_ >= INTRO_TICS) {
 				state_ = state::IDLE;
 			}
 			break;
@@ -61,7 +61,7 @@ percent_gauge::update(float dt)
 			break;
 
 		case state::OUTRO:
-			if ((state_t_ += dt) >= OUTRO_T) {
+			if (++state_tics_ >= OUTRO_TICS) {
 				position_top_ = !position_top_;
 				set_state(state::INTRO);
 			}
@@ -69,7 +69,7 @@ percent_gauge::update(float dt)
 	}
 
 	if (updating_) {
-		if ((update_t_ += dt) >= UPDATE_T) {
+		if (++update_tics_ >= UPDATE_TICS) {
 			cur_value_ = next_value_;
 			updating_ = false;
 		}
@@ -79,7 +79,7 @@ percent_gauge::update(float dt)
 		if (p != cur_value_) {
 			next_value_ = p;
 			updating_ = true;
-			update_t_ = 0;
+			update_tics_ = 0;
 		}
 	}
 
@@ -100,13 +100,13 @@ percent_gauge::get_base_x() const
 {
 	switch (state_) {
 		case state::INTRO:
-			return quadratic_tween<int>()(-WIDTH, LEFT_MARGIN, static_cast<float>(state_t_)/INTRO_T);
+			return quadratic_tween<int>()(-WIDTH, LEFT_MARGIN, static_cast<float>(state_tics_)/INTRO_TICS);
 
 		case state::IDLE:
 			return LEFT_MARGIN;
 
 		case state::OUTRO:
-			return quadratic_tween<int>()(LEFT_MARGIN, -WIDTH, static_cast<float>(state_t_)/OUTRO_T);
+			return quadratic_tween<int>()(LEFT_MARGIN, -WIDTH, static_cast<float>(state_tics_)/OUTRO_TICS);
 	}
 }
 
@@ -114,7 +114,7 @@ unsigned
 percent_gauge::get_value() const
 {
 	if (updating_)
-		return exp_tween<unsigned>()(cur_value_, next_value_, static_cast<float>(update_t_)/UPDATE_T);
+		return exp_tween<unsigned>()(cur_value_, next_value_, static_cast<float>(update_tics_)/UPDATE_TICS);
 	else
 		return cur_value_;
 }

@@ -10,13 +10,12 @@
 
 #include "tween.h"
 #include "level.h"
+#include "boss.h"
 #include "game.h"
 
 //
 //  p l a y e r
 //
-
-static const float SLIDE_T = .1f;
 
 player::player(game& g)
 : game_ { g }
@@ -152,7 +151,7 @@ player::move_slide(direction dir)
 }
 
 void
-player::update(float dt)
+player::update()
 {
 	const int grid_cols = game_.grid_cols;
 	const int grid_rows = game_.grid_rows;
@@ -163,14 +162,14 @@ player::update(float dt)
 			break;
 
 		case state::SLIDING:
-			if ((state_t_ += dt) >= SLIDE_T) {
+			if (++state_tics_ >= SLIDE_TICS) {
 				pos_ = next_pos_;
 				state_ = state::IDLE;
 			}
 			break;
 
 		case state::EXTENDING:
-			if ((state_t_ += dt) >= SLIDE_T) {
+			if (++state_tics_ >= SLIDE_TICS) {
 				pos_ = next_pos_;
 
 				if (!extend_trail_.empty() && extend_trail_.back() == pos_)
@@ -207,7 +206,7 @@ void
 player::set_state(state next_state)
 {
 	state_ = next_state;
-	state_t_ = 0;
+	state_tics_ = 0;
 }
 
 void
@@ -324,7 +323,7 @@ player::get_position() const
 		case state::SLIDING:
 		case state::EXTENDING:
 			{
-			int d = CELL_SIZE*state_t_/SLIDE_T;
+			int d = CELL_SIZE*state_tics_/SLIDE_TICS;
 			return pos_*CELL_SIZE + (next_pos_ - pos_)*d;
 			}
 	}
@@ -363,7 +362,7 @@ game::reset(const level *l)
 
 	player_.reset();
 
-	foes_.push_back(std::unique_ptr<foe> { new foe { *this } });
+	foes_.push_back(std::unique_ptr<foe> { new boss { *this } });
 }
 
 void
@@ -387,7 +386,7 @@ game::get_offset() const
 	if (!scrolling_) {
 		return offset_;
 	} else {
-		return quadratic_tween<vec2f>()(vec2f(offset_), vec2f(next_offset_), scroll_t_/SCROLL_T);
+		return quadratic_tween<vec2f>()(vec2f(offset_), vec2f(next_offset_), static_cast<float>(scroll_tics_)/SCROLL_TICS);
 	}
 }
 
@@ -520,14 +519,12 @@ game::initialize_border()
 		// tee-hee.
 		move_up() || move_left() || move_down() || move_right() || (assert(0), false);
 	} while (pos != start_pos);
-
-	printf("%d verts\n", border.size());
 }
 
 void
 game::initialize_border_va()
 {
-	static const int BORDER_RADIUS = 2;
+	static const int BORDER_RADIUS = 1;
 
 	assert(!border.empty());
 
@@ -588,18 +585,18 @@ game::move(direction dir, bool button_pressed)
 }
 
 void
-game::update(float dt)
+game::update()
 {
 	// player
 
-	player_.update(dt);
+	player_.update();
 
 	// foes
 
 	auto it = std::begin(foes_);
 
 	while (it != std::end(foes_)) {
-		if (!(*it)->update(dt))
+		if (!(*it)->update())
 			it = foes_.erase(it);
 		else
 			++it;
@@ -608,7 +605,7 @@ game::update(float dt)
 	// scrolling
 
 	if (scrolling_) {
-		if ((scroll_t_ += dt) >= SCROLL_T) {
+		if (++scroll_tics_ >= SCROLL_TICS) {
 			offset_ = next_offset_;
 			scrolling_ = false;
 		}
@@ -622,7 +619,7 @@ game::update(float dt)
 				next_offset_.x = std::min(0, offset_.x + SCROLL_DIST);
 				next_offset_.y = offset_.y;
 
-				scroll_t_ = 0;
+				scroll_tics_ = 0;
 				scrolling_ = true;
 			}
 		} else if (pos.x > .8*viewport_width_) {
@@ -630,7 +627,7 @@ game::update(float dt)
 				next_offset_.x = std::max(viewport_width_ - grid_cols*CELL_SIZE, offset_.x - SCROLL_DIST);
 				next_offset_.y = offset_.y;
 
-				scroll_t_ = 0;
+				scroll_tics_ = 0;
 				scrolling_ = true;
 			}
 		}
@@ -640,7 +637,7 @@ game::update(float dt)
 				next_offset_.x = offset_.x;
 				next_offset_.y = std::min(0, offset_.y + SCROLL_DIST);
 
-				scroll_t_ = 0;
+				scroll_tics_ = 0;
 				scrolling_ = true;
 			}
 		} else if (pos.y > .8*viewport_height_) {
@@ -648,7 +645,7 @@ game::update(float dt)
 				next_offset_.x = offset_.x;
 				next_offset_.y = std::max(viewport_height_ - grid_rows*CELL_SIZE, offset_.y - SCROLL_DIST);
 
-				scroll_t_ = 0;
+				scroll_tics_ = 0;
 				scrolling_ = true;
 			}
 		}
@@ -780,4 +777,10 @@ vec2i
 game::get_player_world_position() const
 {
 	return player_.get_position();
+}
+
+void
+game::add_foe(std::unique_ptr<foe> f)
+{
+	foes_.push_back(std::move(f));
 }

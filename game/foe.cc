@@ -24,62 +24,27 @@ seg_closest_point(const vec2f& v0, const vec2f& v1, const vec2f& p)
 }
 
 foe::foe(game& g)
-: game_(g)
-, position_ { 100, 100 }
-, radius_ { 30 }
-, dir_ { normalized(vec2f { 1.f, .5f }) }
-, speed_ { 3 }
+: game_ { g }
+{ }
+
+phys_foe::phys_foe(game& g, vec2f pos, vec2f dir, float speed, float radius)
+: foe { g }
+, pos { pos }
+, dir { dir }
+, speed { speed }
+, radius { radius }
 { }
 
 void
-foe::draw() const
-{
-	static const int NUM_SEGS = 13;
-
-	glDisable(GL_TEXTURE_2D);
-	glColor4f(1, 1, 0, 1);
-
-	float a = 0;
-	const float da = 2.f*M_PI/NUM_SEGS;
-
-	glBegin(GL_LINE_LOOP);
-
-	for (int i = 0; i < NUM_SEGS; i++) {
-		vec2f p = position_ + vec2f { cosf(a), sinf(a) }*radius_;
-		glVertex2f(p.x, p.y);
-		a += da;
-	}
-
-	glEnd();
-}
-
-bool
-foe::update(float dt)
+phys_foe::move()
 {
 	// update position
 
-	position_ += speed_*dir_;
+	pos += speed*dir;
 
-	// rotate towards player
-
-	{
-	vec2f n { -dir_.y, dir_.x };
-
-	float da = .05f*dot(n, normalized(vec2f(game_.get_player_world_position()) - position_));
-
-	const float c = cosf(da);
-	const float s = sinf(da);
-
-	vec2f next_dir { dot(dir_, vec2f { c, -s }), dot(dir_, vec2f { s, c }) };
-
-	dir_ = next_dir;
-	}
-
-	// collide against edge
+	// collide against border
 
 	const auto& border = game_.border;
-
-	static const float FUDGE = 2.;
 
 	bool collided;
 
@@ -90,20 +55,19 @@ foe::update(float dt)
 			const vec2f v0 = border[i]*CELL_SIZE;
 			const vec2f v1 = border[(i + 1)%border.size()]*CELL_SIZE;
 
-			vec2f c = seg_closest_point(v0, v1, position_);
-			vec2f d = position_ - c;
+			vec2f c = seg_closest_point(v0, v1, pos);
+			vec2f d = pos - c;
 
 			float dist = length(d);
 
-			if (dist < radius_) {
-				position_ += ((radius_ - dist) + FUDGE)*normalized(d);
-				vec2f n = normalized(position_ - c);
-				dir_ -= 2.f*dot(dir_, n)*n;
+			if (dist < radius) {
+				static const float FUDGE = 2.;
+				pos += ((radius - dist) + FUDGE)*normalized(d);
+				vec2f n = normalized(pos - c);
+				dir -= 2.f*dot(dir, n)*n;
 
 				collided = true;
 			}
 		}
 	} while (collided);
-
-	return true;
 }

@@ -13,7 +13,7 @@ class percent_gauge : public effect
 public:
 	percent_gauge(game& g, int viewport_height);
 
-	bool update(float dt) override;
+	bool update() override;
 	void draw() const override;
 
 private:
@@ -40,10 +40,10 @@ private:
 
 	enum state { INTRO, IDLE, OUTRO } state_;
 	void set_state(state next_state);
-	float state_t_;
+	int state_tics_;
 
 	bool updating_;
-	float update_t_;
+	int update_tics_;
 
 	const ggl::font *large_font_, *small_font_;
 };

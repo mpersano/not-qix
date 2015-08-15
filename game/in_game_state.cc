@@ -22,14 +22,14 @@ in_game_state::draw() const
 }
 
 void
-in_game_state::update(float dt)
+in_game_state::update()
 {
-	update_game(dt);
-	update_effects(dt);
+	update_game();
+	update_effects();
 }
 
 void
-in_game_state::update_game(float dt)
+in_game_state::update_game()
 {
 	unsigned dpad_state = ggl::g_core->get_dpad_state();
 
@@ -45,16 +45,16 @@ in_game_state::update_game(float dt)
 	if (dpad_state & ggl::DPAD_RIGHT)
 		game_.move(direction::RIGHT, dpad_state & ggl::DPAD_BUTTON1);
 
-	game_.update(dt);
+	game_.update();
 }
 
 void
-in_game_state::update_effects(float dt)
+in_game_state::update_effects()
 {
 	auto it = effects_.begin();
 
 	while (it != effects_.end()) {
-		if (!(*it)->update(dt))
+		if (!(*it)->update())
 			it = effects_.erase(it);
 		else
 			++it;
