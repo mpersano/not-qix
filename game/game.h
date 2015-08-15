@@ -1,11 +1,13 @@
 #pragma once
 
 #include <vector>
+#include <list>
 
 #include <ggl/noncopyable.h>
 #include <ggl/vec2.h>
 #include <ggl/vertex_array.h>
 
+#include "foe.h"
 #include "level.h"
 
 namespace ggl {
@@ -60,11 +62,13 @@ public:
 
 	std::vector<int> grid;
 	int grid_rows, grid_cols;
+	std::vector<vec2i> border;
 
 private:
 	vec2f get_offset() const;
 	void draw_background() const;
 	void draw_border() const;
+	void draw_foes() const;
 
 	void initialize_vas();
 	void initialize_border();
@@ -80,7 +84,7 @@ private:
 
 	unsigned cover_percent_;
 
-	std::vector<vec2i> border_;
+	std::list<std::unique_ptr<foe>> foes_;
 
 	ggl::vertex_array_texcoord<GLshort, 2, GLfloat, 2> background_filled_va_;
 	ggl::vertex_array_texcoord<GLshort, 2, GLfloat, 2> background_unfilled_va_;

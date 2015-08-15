@@ -362,6 +362,8 @@ game::reset(const level *l)
 	initialize_vas();
 
 	player_.reset();
+
+	foes_.push_back(std::unique_ptr<foe> { new foe { *this } });
 }
 
 void
@@ -373,21 +375,10 @@ game::draw() const
 	draw_background();
 	draw_border();
 
+	for (auto& foe : foes_)
+		foe->draw();
+
 	player_.draw();
-
-	glColor4f(1, 1, 1, 1);
-
-#if 0
-	glPushMatrix();
-	glTranslatef(50, 50, 0);
-
-	glEnable(GL_BLEND);
-	glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
-	font_->render(L"hello, world");
-	glDisable(GL_BLEND);
-
-	glPopMatrix();
-#endif
 }
 
 vec2f
@@ -467,7 +458,7 @@ game::initialize_background_vas()
 void
 game::initialize_border()
 {
-	border_.clear();
+	border.clear();
 
 	int coord = std::distance(std::begin(grid), std::find(std::begin(grid), std::end(grid), 0));
 	assert(coord < grid_rows*grid_cols);
@@ -480,10 +471,10 @@ game::initialize_border()
 		{
 			auto next = pos + d;
 
-			if (border_.empty() || dot(border_.back() - pos, next - pos) <= 0) {
+			if (border.empty() || dot(border.back() - pos, next - pos) <= 0) {
 				// only push new verts if direction changed
-				if (border_.empty() || dot(border_.back() - pos, next - pos) == 0) {
-					border_.push_back(pos);
+				if (border.empty() || dot(border.back() - pos, next - pos) == 0) {
+					border.push_back(pos);
 				}
 
 				pos = next;
@@ -530,7 +521,7 @@ game::initialize_border()
 		move_up() || move_left() || move_down() || move_right() || (assert(0), false);
 	} while (pos != start_pos);
 
-	printf("%d verts\n", border_.size());
+	printf("%d verts\n", border.size());
 }
 
 void
@@ -538,16 +529,16 @@ game::initialize_border_va()
 {
 	static const int BORDER_RADIUS = 2;
 
-	assert(!border_.empty());
+	assert(!border.empty());
 
 	border_va_.clear();
 
-	const size_t border_size = border_.size();
+	const size_t border_size = border.size();
 
 	for (size_t i = 0; i <= border_size; i++) {
-		auto& v0 = border_[(i + border_size - 1)%border_size];
-		auto& v1 = border_[i%border_size];
-		auto& v2 = border_[(i + 1)%border_size];
+		auto& v0 = border[(i + border_size - 1)%border_size];
+		auto& v1 = border[i%border_size];
+		auto& v2 = border[(i + 1)%border_size];
 
 		vec2s ds = normalized(v1 - v0);
 		vec2s ns { -ds.y, ds.x };
@@ -587,14 +578,7 @@ void
 game::draw_border() const
 {
 	glColor4f(1, 1, 0, 1);
-#if 1
 	border_va_.draw(GL_TRIANGLE_STRIP);
-#else
-	glBegin(GL_LINE_LOOP);
-	for (auto& v : border_)
-		glVertex2i(v.x*CELL_SIZE, v.y*CELL_SIZE);
-	glEnd();
-#endif
 }
 
 void
@@ -606,7 +590,22 @@ game::move(direction dir, bool button_pressed)
 void
 game::update(float dt)
 {
+	// player
+
 	player_.update(dt);
+
+	// foes
+
+	auto it = std::begin(foes_);
+
+	while (it != std::end(foes_)) {
+		if (!(*it)->update(dt))
+			it = foes_.erase(it);
+		else
+			++it;
+	}
+
+	// scrolling
 
 	if (scrolling_) {
 		if ((scroll_t_ += dt) >= SCROLL_T) {
