@@ -655,9 +655,10 @@ game::update()
 void
 game::fill_grid(const std::vector<vec2i>& contour)
 {
-	// flood fill
+	// flood fill from boss
 
 	// forbidden transitions
+
 	std::vector<std::pair<vec2i, vec2i>> transitions;
 
 	for (size_t i = 0; i < contour.size() - 1; i++) {
@@ -681,67 +682,55 @@ game::fill_grid(const std::vector<vec2i>& contour)
 		}
 	}
 
-	auto fill = [&](std::vector<int>& grid, int coord)
-		{
-			std::queue<vec2i> queue;
-			queue.push(vec2i { coord%grid_cols, coord/grid_cols });
+	assert(!foes_.empty() && foes_.front()->is_boss());
+	auto *boss = static_cast<phys_foe *>(foes_.front().get());
 
-			grid[coord] = 1;
+	vec2i pos = (vec2i(boss->pos) + vec2i { CELL_SIZE, CELL_SIZE }/2)/CELL_SIZE;
 
-			while (!queue.empty()) {
-				auto pos = queue.front();
-				queue.pop();
+	std::queue<vec2i> queue;
+	queue.push(pos);
 
-				static const vec2i dirs[4] { { -1, 0 }, { 1, 0 }, { 0, -1 }, { 0, 1 } };
+	grid[pos.y*grid_cols + pos.x] = -1;
 
-				for (auto& d : dirs) {
-					auto next_pos = pos + d;
+	while (!queue.empty()) {
+		auto pos = queue.front();
+		queue.pop();
 
-					if (next_pos.x < 0 || next_pos.x >= grid_cols || next_pos.y < 0 || next_pos.y >= grid_rows) {
-						continue;
-					}
+		static const vec2i dirs[4] { { -1, 0 }, { 1, 0 }, { 0, -1 }, { 0, 1 } };
 
-					if (grid[next_pos.y*grid_cols + next_pos.x]) {
-						continue;
-					}
+		for (auto& d : dirs) {
+			auto next_pos = pos + d;
 
-					bool allow = true;
-					for (auto& t : transitions) {
-						if ((pos == t.first && next_pos == t.second) || (pos == t.second && next_pos == t.first)) {
-							allow = false;
-							break;
-						}
-					}
+			if (next_pos.x < 0 || next_pos.x >= grid_cols || next_pos.y < 0 || next_pos.y >= grid_rows) {
+				continue;
+			}
 
-					if (allow) {
-						grid[next_pos.y*grid_cols + next_pos.x] = 1;
-						queue.push(next_pos);
-					}
+			if (grid[next_pos.y*grid_cols + next_pos.x]) {
+				continue;
+			}
+
+			bool allow = true;
+			for (auto& t : transitions) {
+				if ((pos == t.first && next_pos == t.second) || (pos == t.second && next_pos == t.first)) {
+					allow = false;
+					break;
 				}
 			}
-		};
 
-	auto next_grid_0 = grid;
-
-	{
-	int coord = std::distance(std::begin(grid), std::find(std::begin(grid), std::end(grid), 0));
-	fill(next_grid_0, coord);
+			if (allow) {
+				grid[next_pos.y*grid_cols + next_pos.x] = -1;
+				queue.push(next_pos);
+			}
+		}
 	}
 
-	auto next_grid_1 = grid;
-
-	{
-	int coord = std::distance(std::begin(next_grid_0), std::find(std::begin(next_grid_0), std::end(next_grid_0), 0));
-	fill(next_grid_1, coord);
-	}
-
-	int count0 = std::accumulate(std::begin(next_grid_0), std::end(next_grid_0), 0);
-	int count1 = std::accumulate(std::begin(next_grid_1), std::end(next_grid_1), 0);
-
-	if (count0 < count1) {
-		std::copy(std::begin(next_grid_0), std::end(next_grid_0), std::begin(grid));
-	} else {
-		std::copy(std::begin(next_grid_1), std::end(next_grid_1), std::begin(grid));
+	for (auto& v : grid) {
+		switch (v) {
+			case -1: v = 0; break;
+			case 0: v = 1; break;
+			case 1: break;
+			default: assert(0);
+		}
 	}
 
 	// vertex arrays
