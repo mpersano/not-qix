@@ -55,7 +55,8 @@ public:
 	void update(float dt);
 	void draw() const;
 	void fill_grid(const std::vector<vec2i>& contour);
-	unsigned get_cover_percentage() const;
+	unsigned get_cover_percent() const;
+	vec2i get_player_screen_position() const;
 
 	std::vector<int> grid;
 	int grid_rows, grid_cols;
@@ -77,7 +78,7 @@ private:
 	bool scrolling_;
 	float scroll_t_;
 
-	unsigned cover_percentage_;
+	unsigned cover_percent_;
 
 	std::vector<vec2i> border_;
 
