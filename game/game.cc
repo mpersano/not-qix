@@ -244,7 +244,7 @@ player::draw() const
 			for (size_t i = 1; i < extend_trail_.size() - 1; i++) {
 				auto& v0 = extend_trail_[i - 1];
 				auto& v1 = extend_trail_[i];
-				auto& v2 = extend_trail_[i + 1]; // i < extend_trail_.size() - 1 ? extend_trail_[i + 1] : pos_;
+				auto& v2 = extend_trail_[i + 1];
 
 				vec2s ds = v1 - v0;
 				vec2s ns { -ds.y, ds.x };
@@ -479,9 +479,13 @@ game::initialize_border()
 	auto try_move = [&](const vec2i& d)
 		{
 			auto next = pos + d;
-			if (border_.empty() || border_.back() != next) {
-				// TODO: only add pos to border_ if direction changed
-				border_.push_back(pos);
+
+			if (border_.empty() || dot(border_.back() - pos, next - pos) <= 0) {
+				// only push new verts if direction changed
+				if (border_.empty() || dot(border_.back() - pos, next - pos) == 0) {
+					border_.push_back(pos);
+				}
+
 				pos = next;
 				return true;
 			}
@@ -545,10 +549,10 @@ game::initialize_border_va()
 		auto& v1 = border_[i%border_size];
 		auto& v2 = border_[(i + 1)%border_size];
 
-		vec2s ds = v1 - v0;
+		vec2s ds = normalized(v1 - v0);
 		vec2s ns { -ds.y, ds.x };
 
-		vec2s de = v2 - v1;
+		vec2s de = normalized(v2 - v1);
 		vec2s ne { -de.y, de.x };
 
 		vec2s nm = ns + ne;

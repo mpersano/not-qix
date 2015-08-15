@@ -97,7 +97,7 @@ template <typename T>
 vec2<T>
 normalized(const vec2<T>& v)
 {
-	return v*(1.f/length(v));
+	return v/length(v);
 }
 
 using vec2s = vec2<short>;
