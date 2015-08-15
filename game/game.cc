@@ -55,14 +55,14 @@ player::move_extend(direction dir)
 
 	auto *p = &game_.grid[pos_.y*grid_cols + pos_.x];
 
-	auto slide_to = [&](const vec2i& where)
+	auto extend_to = [&](const vec2i& where)
 		{
 			auto it = std::find(std::begin(extend_trail_), std::end(extend_trail_), where);
 
 			if (it == extend_trail_.end() || it + 1 == extend_trail_.end()) {
 				next_pos_ = where;
 
-				if (!(!extend_trail_.empty() && extend_trail_.back() == where)) {
+				if (extend_trail_.empty() || extend_trail_.back() != where) {
 					extend_trail_.push_back(pos_);
 				}
 
@@ -74,7 +74,7 @@ player::move_extend(direction dir)
 		case direction::UP:
 			if (pos_.y < grid_rows) {
 				if (pos_.x > 0 && pos_.x < grid_cols && !p[0] && !p[-1]) {
-					slide_to(pos_ + vec2i { 0, 1 });
+					extend_to(pos_ + vec2i { 0, 1 });
 				}
 			}
 			break;
@@ -82,7 +82,7 @@ player::move_extend(direction dir)
 		case direction::DOWN:
 			if (pos_.y > 0) {
 				if (pos_.x > 0 && pos_.x < grid_cols && !p[-grid_cols] && !p[-grid_cols - 1]) {
-					slide_to(pos_ + vec2i { 0, -1 });
+					extend_to(pos_ + vec2i { 0, -1 });
 				}
 			}
 			break;
@@ -90,7 +90,7 @@ player::move_extend(direction dir)
 		case direction::LEFT:
 			if (pos_.x > 0) {
 				if (pos_.y > 0 && pos_.y < grid_rows && !p[-grid_cols - 1] && !p[-1]) {
-					slide_to(pos_ + vec2i { -1, 0 });
+					extend_to(pos_ + vec2i { -1, 0 });
 				}
 			}
 			break;
@@ -98,7 +98,7 @@ player::move_extend(direction dir)
 		case direction::RIGHT:
 			if (pos_.x < grid_cols) {
 				if (pos_.y > 0 && pos_.y < grid_rows && !p[-grid_cols] && !p[0]) {
-					slide_to(pos_ + vec2i { 1, 0 });
+					extend_to(pos_ + vec2i { 1, 0 });
 				}
 			}
 			break;
@@ -174,9 +174,8 @@ player::update(float dt)
 			if ((state_t_ += dt) >= SLIDE_T) {
 				pos_ = next_pos_;
 
-				if (!extend_trail_.empty() && extend_trail_.back() == pos_) {
+				if (!extend_trail_.empty() && extend_trail_.back() == pos_)
 					extend_trail_.pop_back();
-				}
 
 				if (extend_trail_.empty()) {
 					state_ = state::IDLE;
@@ -222,78 +221,81 @@ player::draw() const
 	if (state_ == state::EXTENDING || state_ == state::EXTENDING_IDLE) {
 		static const int TRAIL_RADIUS = 2;
 
-		ggl::vertex_array_flat<GLshort, 2> va;
-
-		// first
-		{
-		auto& v0 = extend_trail_[0];
-		auto& v1 = extend_trail_.size() > 1 ? extend_trail_[1] : pos_;
-
-		vec2s d = v1 - v0;
-		vec2s n { -d.y, d.x };
-
-		vec2s p0 = vec2s(v0)*CELL_SIZE + n*TRAIL_RADIUS;
-		vec2s p1 = vec2s(v0)*CELL_SIZE - n*TRAIL_RADIUS;
-
-		va.push_back({ p0.x, p0.y });
-		va.push_back({ p1.x, p1.y });
-		}
-
-		// middle
-		for (size_t i = 1; i < extend_trail_.size(); i++) {
-			auto& v0 = extend_trail_[i - 1];
-			auto& v1 = extend_trail_[i];
-			auto& v2 = i < extend_trail_.size() - 1 ? extend_trail_[i + 1] : pos_;
-
-			vec2s ds = v1 - v0;
-			vec2s ns { -ds.y, ds.x };
-
-			vec2s de = v2 - v1;
-			vec2s ne { -de.y, de.x };
-
-			vec2s nm = ns + ne;
-
-			short d = static_cast<float>(TRAIL_RADIUS)/dot(ns, nm);
-
-			vec2s p0 = vec2s(v1)*CELL_SIZE + nm*d;
-			vec2s p1 = vec2s(v1)*CELL_SIZE - nm*d;
-
-			va.push_back({ p0.x, p0.y });
-			va.push_back({ p1.x, p1.y });
-		}
-
-		// last
-		{
-		auto& v0 = pos_;
-		auto& v1 = extend_trail_.back();
-
-		vec2s d = v0 - v1;
-		vec2s n { -d.y, d.x };
-
-		vec2s p0 = vec2s(v0)*CELL_SIZE + n*TRAIL_RADIUS;
-		vec2s p1 = vec2s(v0)*CELL_SIZE - n*TRAIL_RADIUS;
-
-		va.push_back({ p0.x, p0.y });
-		va.push_back({ p1.x, p1.y });
-		}
-
 		glColor4f(1, 0, 0, 1);
-		va.draw(GL_TRIANGLE_STRIP);
 
-		if (state_ == state::EXTENDING) {
-			vec2s v0 = pos_*CELL_SIZE;
-			vec2s v1 = get_position();
+		if (extend_trail_.size() > 1) {
+			ggl::vertex_array_flat<GLshort, 2> va;
 
-			short x0 = std::min(v0.x - TRAIL_RADIUS, v1.x - TRAIL_RADIUS);
-			short x1 = std::max(v0.x + TRAIL_RADIUS, v1.x + TRAIL_RADIUS);
+			// first
+			{
+				auto& v0 = extend_trail_[0];
+				auto& v1 = extend_trail_[1];
 
-			short y0 = std::min(v0.y - TRAIL_RADIUS, v1.y - TRAIL_RADIUS);
-			short y1 = std::max(v0.y + TRAIL_RADIUS, v1.y + TRAIL_RADIUS);
+				vec2s d = v1 - v0;
+				vec2s n { -d.y, d.x };
 
-			(ggl::vertex_array_flat<GLshort, 2>
-				{ { x0, y0 }, { x1, y0 },
-				  { x0, y1 }, { x1, y1 } }).draw(GL_TRIANGLE_STRIP);
+				vec2s p0 = vec2s(v0)*CELL_SIZE + n*TRAIL_RADIUS;
+				vec2s p1 = vec2s(v0)*CELL_SIZE - n*TRAIL_RADIUS;
+
+				va.push_back({ p0.x, p0.y });
+				va.push_back({ p1.x, p1.y });
+			}
+
+			// middle
+			for (size_t i = 1; i < extend_trail_.size() - 1; i++) {
+				auto& v0 = extend_trail_[i - 1];
+				auto& v1 = extend_trail_[i];
+				auto& v2 = extend_trail_[i + 1]; // i < extend_trail_.size() - 1 ? extend_trail_[i + 1] : pos_;
+
+				vec2s ds = v1 - v0;
+				vec2s ns { -ds.y, ds.x };
+
+				vec2s de = v2 - v1;
+				vec2s ne { -de.y, de.x };
+
+				vec2s nm = ns + ne;
+
+				short d = static_cast<float>(TRAIL_RADIUS)/dot(ns, nm);
+
+				vec2s p0 = vec2s(v1)*CELL_SIZE + nm*d;
+				vec2s p1 = vec2s(v1)*CELL_SIZE - nm*d;
+
+				va.push_back({ p0.x, p0.y });
+				va.push_back({ p1.x, p1.y });
+			}
+
+			// last
+			{
+				auto& v0 = extend_trail_[extend_trail_.size() - 1];
+				auto& v1 = extend_trail_[extend_trail_.size() - 2];
+
+				vec2s d = v0 - v1;
+				vec2s n { -d.y, d.x };
+
+				vec2s p0 = vec2s(v0)*CELL_SIZE + n*TRAIL_RADIUS;
+				vec2s p1 = vec2s(v0)*CELL_SIZE - n*TRAIL_RADIUS;
+
+				va.push_back({ p0.x, p0.y });
+				va.push_back({ p1.x, p1.y });
+			}
+
+			va.draw(GL_TRIANGLE_STRIP);
 		}
+
+		// last bit
+
+		vec2s v0 = extend_trail_.back()*CELL_SIZE;
+		vec2s v1 = get_position();
+
+		short x0 = std::min(v0.x - TRAIL_RADIUS, v1.x - TRAIL_RADIUS);
+		short x1 = std::max(v0.x + TRAIL_RADIUS, v1.x + TRAIL_RADIUS);
+
+		short y0 = std::min(v0.y - TRAIL_RADIUS, v1.y - TRAIL_RADIUS);
+		short y1 = std::max(v0.y + TRAIL_RADIUS, v1.y + TRAIL_RADIUS);
+
+		(ggl::vertex_array_flat<GLshort, 2>
+			{ { x0, y0 }, { x1, y0 },
+			  { x0, y1 }, { x1, y1 } }).draw(GL_TRIANGLE_STRIP);
 	}
 
 	// head
