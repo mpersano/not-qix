@@ -75,3 +75,12 @@ struct out_bounce_tween
 		return a + f*(b - a);
 	}
 };
+
+template <class T>
+struct exp_tween
+{
+	T operator()(const T& a, const T& b, float t) const
+	{
+		return a + (b - a)*(-powf(2.f, -10.f*t) + 1);
+	}
+};

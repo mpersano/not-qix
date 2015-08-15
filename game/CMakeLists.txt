@@ -49,7 +49,8 @@ set(GAME_SOURCES
 	main.cc
 	level.cc
 	game.cc
-	in_game_state.cc)
+	in_game_state.cc
+	percent_gauge.cc)
 
 if (ANDROID)
 	list(APPEND GAME_SOURCES
