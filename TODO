@@ -1,7 +1,9 @@
 TODO
 ----
 * android port: handle pause/resume
-? shader wrappers
+? shaders
+  * shader wrappers
+  * shader parser
 * gesture detection
   * tap
   * swipe
@@ -34,7 +36,6 @@ TODO
 
 BUGS
 ----
-* glitch returning along player trail
 
 DONE
 ----
@@ -43,3 +44,4 @@ v text rendering
   v add font loader from kasui
   v add font packer to build script
 v background scrolling
+v glitch returning along player trail

@@ -62,9 +62,8 @@ player::move_extend(direction dir)
 			if (it == extend_trail_.end() || it + 1 == extend_trail_.end()) {
 				next_pos_ = where;
 
-				if (extend_trail_.empty() || extend_trail_.back() != where) {
+				if (extend_trail_.empty() || extend_trail_.back() != where)
 					extend_trail_.push_back(pos_);
-				}
 
 				set_state(state::EXTENDING);
 			}
