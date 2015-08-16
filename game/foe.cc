@@ -71,3 +71,9 @@ phys_foe::move()
 		}
 	} while (collided);
 }
+
+bool
+phys_foe::intersects(const vec2i& from, const vec2i& to) const
+{
+	return length(pos - seg_closest_point(vec2f(from), vec2f(to), pos)) < radius;
+}

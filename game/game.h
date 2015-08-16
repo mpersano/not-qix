@@ -38,6 +38,8 @@ private:
 
 	void set_state(state next_state);
 
+	void check_foe_collisions();
+
 	static const int PLAYER_RADIUS = 5;
 	static const int SLIDE_TICS = 5;
 
@@ -69,6 +71,7 @@ public:
 	std::vector<int> grid;
 	int grid_rows, grid_cols;
 	std::vector<vec2i> border;
+	std::list<std::unique_ptr<foe>> foes;
 
 private:
 	vec2f get_offset() const;
@@ -91,8 +94,6 @@ private:
 	static const int SCROLL_TICS = 5;
 
 	unsigned cover_percent_;
-
-	std::list<std::unique_ptr<foe>> foes_;
 
 	ggl::vertex_array_texcoord<GLshort, 2, GLfloat, 2> background_filled_va_;
 	ggl::vertex_array_texcoord<GLshort, 2, GLfloat, 2> background_unfilled_va_;

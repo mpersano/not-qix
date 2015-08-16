@@ -159,6 +159,7 @@ player::update()
 	switch (state_) {
 		case state::IDLE:
 		case state::EXTENDING_IDLE:
+			check_foe_collisions();
 			break;
 
 		case state::SLIDING:
@@ -198,7 +199,40 @@ player::update()
 					}
 				}
 			}
+			check_foe_collisions();
 			break;
+	}
+}
+
+void
+player::check_foe_collisions()
+{
+	if (extend_trail_.size() > 1) {
+		auto& foes = game_.foes;
+
+		auto it = std::find_if(
+				std::begin(foes),
+				std::end(foes),
+				[this](std::unique_ptr<foe>& f)
+					{
+						for (size_t i = 0; i < extend_trail_.size() - 1; i++) {
+							const vec2i v0 = extend_trail_[i]*CELL_SIZE;
+							const vec2i v1 = extend_trail_[i + 1]*CELL_SIZE;
+
+							if (f->intersects(v0, v1))
+								return true;
+						}
+
+						return false;
+					});
+
+		if (it != std::end(foes)) {
+			printf("collision!\n");
+
+			pos_ = extend_trail_.front();
+			extend_trail_.clear();
+			state_ = state::IDLE;
+		}
 	}
 }
 
@@ -362,7 +396,7 @@ game::reset(const level *l)
 
 	player_.reset();
 
-	foes_.push_back(std::unique_ptr<foe> { new boss { *this } });
+	foes.push_back(std::unique_ptr<foe> { new boss { *this } });
 }
 
 void
@@ -374,7 +408,7 @@ game::draw() const
 	draw_background();
 	draw_border();
 
-	for (auto& foe : foes_)
+	for (auto& foe : foes)
 		foe->draw();
 
 	player_.draw();
@@ -593,11 +627,11 @@ game::update()
 
 	// foes
 
-	auto it = std::begin(foes_);
+	auto it = std::begin(foes);
 
-	while (it != std::end(foes_)) {
+	while (it != std::end(foes)) {
 		if (!(*it)->update())
-			it = foes_.erase(it);
+			it = foes.erase(it);
 		else
 			++it;
 	}
@@ -682,8 +716,8 @@ game::fill_grid(const std::vector<vec2i>& contour)
 		}
 	}
 
-	assert(!foes_.empty() && foes_.front()->is_boss());
-	auto *boss = static_cast<phys_foe *>(foes_.front().get());
+	assert(!foes.empty() && foes.front()->is_boss());
+	auto *boss = static_cast<phys_foe *>(foes.front().get());
 
 	vec2i pos = (vec2i(boss->pos) + vec2i { CELL_SIZE, CELL_SIZE }/2)/CELL_SIZE;
 
@@ -771,5 +805,5 @@ game::get_player_world_position() const
 void
 game::add_foe(std::unique_ptr<foe> f)
 {
-	foes_.push_back(std::move(f));
+	foes.push_back(std::move(f));
 }

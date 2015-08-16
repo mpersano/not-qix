@@ -19,6 +19,8 @@ public:
 	bool is_boss() const
 	{ return false; }
 
+	bool intersects(const vec2i& from, const vec2i& to) const override;
+
 private:
 	static const int LENGTH = 20;
 
@@ -235,16 +237,33 @@ bullet::update()
 	int grid_width = game_.grid_cols*CELL_SIZE;
 	int grid_height = game_.grid_rows*CELL_SIZE;
 
-	vec2f pos_end = pos_ + dir_*static_cast<float>(LENGTH);
+	vec2f end = pos_ + dir_*static_cast<float>(LENGTH);
 
-	if (std::min(pos_.x, pos_end.x) > grid_width ||
-		std::max(pos_.x, pos_end.x) < 0 ||
-		std::min(pos_.y, pos_end.y) > grid_height ||
-		std::max(pos_.y, pos_end.y) < 0) {
+	if (std::min(pos_.x, end.x) > grid_width ||
+		std::max(pos_.x, end.x) < 0 ||
+		std::min(pos_.y, end.y) > grid_height ||
+		std::max(pos_.y, end.y) < 0) {
 		return false;
 	}
 
 	return true;
+}
+
+bool
+bullet::intersects(const vec2i& from, const vec2i& to) const
+{
+	vec2f end = pos_ + dir_*static_cast<float>(LENGTH);
+
+	// i'm sure there's a cleaner way to do this...
+
+	float d = (end.y - pos_.y)*(to.x - from.x) - (end.x - pos_.x)*(to.y - from.y);
+	if (d == 0)
+		return false;
+
+	float ua = ((end.x - pos_.x)*(from.y - pos_.y) - (end.y - pos_.y)*(from.x - pos_.x))/d;
+	float ub = ((to.x - from.x)*(from.y - pos_.y) - (to.y - from.y)*(from.x - pos_.x))/d;
+
+	return ua >= 0 && ua <= 1 && ub >= 0 && ub <= 1;
 }
 
 } // (anonymous namespace)

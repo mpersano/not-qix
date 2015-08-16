@@ -16,6 +16,8 @@ public:
 
 	virtual bool is_boss() const = 0;
 
+	virtual bool intersects(const vec2i& from, const vec2i& to) const = 0;
+
 protected:
 	game& game_;
 };
@@ -24,6 +26,8 @@ class phys_foe : public foe
 {
 public:
 	phys_foe(game& g, vec2f pos, vec2f dir, float speed, float radius);
+
+	bool intersects(const vec2i& from, const vec2i& to) const override;
 
 	void move();
 
