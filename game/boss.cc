@@ -28,186 +28,6 @@ private:
 	vec2f dir_;;
 };
 
-class state_chasing : public boss::state
-{
-public:
-	state_chasing(game& g);
-
-	void update(boss& b) override;
-
-private:
-	static const int MIN_STATE_TICS = 180;
-};
-
-class state_aiming : public boss::state
-{
-public:
-	state_aiming(game& g);
-
-	void update(boss& b) override;
-
-private:
-	static const int AIMING_TICS = 90;
-};
-
-class state_firing : public boss::state
-{
-public:
-	state_firing(game& g);
-
-	void update(boss& b) override;
-
-private:
-	static const int FIRING_TICS = 180;
-};
-
-class state_post_firing : public boss::state
-{
-public:
-	state_post_firing(game& g);
-
-	void update(boss& b) override;
-
-private:
-	static const int POST_FIRING_TICS = 90;
-};
-
-//
-//  c h a s i n g
-//
-
-state_chasing::state_chasing(game& g)
-: boss::state { g }
-{ }
-
-void
-state_chasing::update(boss& b)
-{
-	++state_tics_;
-
-	b.chase_player();
-
-	// rotate spikes
-
-	const float da = .025f;
-	for (auto& a : b.spike_angle) {
-		a += da;
-	}
-
-	if (state_tics_ >= MIN_STATE_TICS) {
-		if (rand()%16 == 0)
-			b.set_state_aiming();
-	}
-}
-
-//
-//  a i m i n g
-//
-
-state_aiming::state_aiming(game& g)
-: boss::state { g }
-{ }
-
-void
-boss_aim(boss& b, const vec2f& target)
-{
-	const vec2f d = target - b.pos;
-	const vec2f n = normalized(vec2f { -d.y, d.x });
-
-	// rotate first spike towards player
-
-	const float a = b.spike_angle[0];
-	vec2f u { cosf(a), sinf(a) };
-	b.spike_angle[0] -= .05f*dot(n, u);
-}
-
-void
-boss_aim_transition(boss& b, float t)
-{
-	// speed
-
-	b.speed = exp_tween<float>()(BOSS_SPEED, 0, t);
-
-	// remaining spikes follow first spike
-
-	const float da = 2.f*M_PI/boss::NUM_SPIKES;
-
-	for (size_t i = 1; i <= boss::NUM_SPIKES/2; i++)
-		b.spike_angle[i] = b.spike_angle[0] + exp_tween<float>()(i*da, 0, t);
-
-	for (size_t i = 0; i < boss::NUM_SPIKES/2; i++)
-		b.spike_angle[boss::NUM_SPIKES - 1 - i] = b.spike_angle[0] - exp_tween<float>()((i + 1)*da, 0, t);
-}
-
-void
-state_aiming::update(boss& b)
-{
-	++state_tics_;
-
-	b.chase_player();
-
-	boss_aim(b, vec2f(game_.get_player_world_position()));
-	boss_aim_transition(b, std::min(static_cast<float>(state_tics_)/AIMING_TICS, 1.f));
-
-	if (state_tics_ >= AIMING_TICS)
-		b.set_state_firing();
-}
-
-//
-//  f i r i n g
-//
-
-state_firing::state_firing(game& g)
-: boss::state { g }
-{ }
-
-void
-state_firing::update(boss& b)
-{
-	++state_tics_;
-
-	if (state_tics_%30 == 0) {
-		const float a = b.spike_angle[0];
-		const vec2f pos = b.pos + vec2f { cosf(a), sinf(a) }*b.radius*1.2f;
-		vec2f dir = normalized(pos - b.pos);
-		game_.add_foe(std::unique_ptr<foe>(new bullet { game_, pos, dir }));
-	}
-
-	// keep tracking player
-
-	boss_aim(b, vec2f(game_.get_player_world_position()));
-	for (size_t i = 1; i < boss::NUM_SPIKES; i++)
-		b.spike_angle[i] = b.spike_angle[0];
-
-	if (state_tics_ >= FIRING_TICS)
-		b.set_state_post_firing();
-}
-
-//
-//  p o s t _ f i r i n g
-//
-
-state_post_firing::state_post_firing(game& g)
-: boss::state { g }
-{ }
-
-void
-state_post_firing::update(boss& b)
-{
-	++state_tics_;
-
-	b.chase_player();
-
-	boss_aim_transition(b, 1.f - std::min(static_cast<float>(state_tics_)/POST_FIRING_TICS, 1.f));
-
-	if (state_tics_ >= POST_FIRING_TICS)
-		b.set_state_chasing();
-}
-
-//
-//  b u l l e t
-//
-
 bullet::bullet(game& g, const vec2f& pos, const vec2f& dir)
 : foe { g }
 , pos_ { pos }
@@ -274,46 +94,16 @@ bullet::intersects(const vec2i& from, const vec2i& to) const
 
 boss::boss(game& g)
 : phys_foe { g, vec2f { 100, 100 }, normalized(vec2f { 1.5f, .5f }), BOSS_SPEED, 30 }
+, spike_angle_ { 0 }
 {
-	initialize_spikes();
-
-	set_state_chasing();
+	set_state(state::CHASING);
 }
 
 void
-boss::initialize_spikes()
+boss::set_state(state next_state)
 {
-	const float da = 2.f*M_PI/NUM_SPIKES;
-	float a = 0;
-
-	for (int i = 0; i < NUM_SPIKES; i++) {
-		spike_angle[i] = a;
-		a += da;
-	}
-}
-
-void
-boss::set_state_chasing()
-{
-	state_.reset(new state_chasing { game_ });
-}
-
-void
-boss::set_state_aiming()
-{
-	state_.reset(new state_aiming { game_ });
-}
-
-void
-boss::set_state_firing()
-{
-	state_.reset(new state_firing { game_ });
-}
-
-void
-boss::set_state_post_firing()
-{
-	state_.reset(new state_post_firing { game_ });
+	state_ = next_state;
+	state_tics_ = 0;
 }
 
 bool
@@ -321,9 +111,95 @@ boss::update()
 {
 	move();
 
-	state_->update(*this);
+	++state_tics_;
+
+	switch (state_) {
+		case state::CHASING:
+			update_chasing();
+			break;
+
+		case state::AIMING:
+			update_aiming();
+			break;
+
+		case state::FIRING:
+			update_firing();
+			break;
+
+		case state::POST_FIRING:
+			update_post_firing();
+			break;
+	}
 
 	return true;
+}
+
+void
+boss::update_chasing()
+{
+	chase_player();
+
+	spike_angle_ += .025f;
+
+	if (state_tics_ >= MIN_CHASE_TICS) {
+		if (rand()%16 == 0)
+			set_state(state::AIMING);
+	}
+}
+
+void
+boss::update_aiming()
+{
+	chase_player();
+
+	aim_player();
+
+	const float t = static_cast<float>(state_tics_)/AIMING_TICS;
+	speed = exp_tween<float>()(BOSS_SPEED, 0, t);
+
+	if (state_tics_ >= AIMING_TICS)
+		set_state(state::FIRING);
+}
+
+void
+boss::update_firing()
+{
+	if (state_tics_%30 == 0) {
+		const float a = spike_angle_;
+		const vec2f tip = pos + vec2f { cosf(a), sinf(a) }*radius*1.2f;
+		vec2f dir = normalized(tip - pos);
+		game_.add_foe(std::unique_ptr<foe>(new bullet { game_, tip, dir }));
+	}
+
+	aim_player();
+
+	if (state_tics_ >= FIRING_TICS)
+		set_state(state::POST_FIRING);
+}
+
+void
+boss::update_post_firing()
+{
+	chase_player();
+
+	const float t = 1.f - static_cast<float>(state_tics_)/POST_FIRING_TICS;
+	speed = exp_tween<float>()(BOSS_SPEED, 0, t);
+
+	if (state_tics_ >= POST_FIRING_TICS)
+		set_state(state::CHASING);
+}
+
+void
+boss::aim_player()
+{
+	const vec2f d = vec2f(game_.get_player_world_position()) - pos;
+	const vec2f n = normalized(vec2f { -d.y, d.x });
+
+	// rotate spike towards player
+
+	const float a = spike_angle_;
+	vec2f u { cosf(a), sinf(a) };
+	spike_angle_ -= .05f*dot(n, u);
 }
 
 void
@@ -343,6 +219,9 @@ boss::chase_player()
 void
 boss::draw() const
 {
+	glDisable(GL_TEXTURE_2D);
+	glColor4f(1, 1, 0, 1);
+
 	draw_core();
 	draw_spikes();
 }
@@ -351,9 +230,6 @@ void
 boss::draw_core() const
 {
 	static const int NUM_SEGS = 13;
-
-	glDisable(GL_TEXTURE_2D);
-	glColor4f(1, 1, 0, 1);
 
 	float a = 0;
 	const float da = 2.f*M_PI/NUM_SEGS;
@@ -372,33 +248,59 @@ boss::draw_core() const
 void
 boss::draw_spikes() const
 {
-	for (int i = 0; i < NUM_SPIKES; i++) {
-		float a = spike_angle[i];
+	switch (state_) {
+		case state::CHASING:
+			{
+			const float da = 2.f*M_PI/NUM_SPIKES;
+			float a = spike_angle_;
 
-		glPushMatrix();
+			for (int i = 0; i < NUM_SPIKES; i++) {
+				draw_spike(a);
+				a += da;
+			}
+			}
+			break;
 
-		glTranslatef(pos.x, pos.y, 0.f);
-		glRotatef(a*180.f/M_PI - 90.f, 0, 0, 1);
-		glTranslatef(0, radius*1.2f, 0.f);
-		draw_spike();
+		case state::AIMING:
+		case state::POST_FIRING:
+			{
+			float t;
 
-		glPopMatrix();
+			if (state_ == state::AIMING)
+				t = static_cast<float>(state_tics_)/AIMING_TICS;
+			else
+				t = 1.f - static_cast<float>(state_tics_)/POST_FIRING_TICS;
+
+			const float da = 2.f*M_PI/NUM_SPIKES;
+
+			for (size_t i = 0; i <= NUM_SPIKES/2; i++)
+				draw_spike(spike_angle_ + exp_tween<float>()(i*da, 0, t));
+
+			for (size_t i = 0; i < NUM_SPIKES/2; i++)
+				draw_spike(spike_angle_ - exp_tween<float>()((i + 1)*da, 0, t));
+			}
+			break;
+
+		case state::FIRING:
+			draw_spike(spike_angle_);
+			break;
 	}
 }
 
 void
-boss::draw_spike() const
+boss::draw_spike(float a) const
 {
-	glColor4f(1, 1, 0, 1);
+	glPushMatrix();
+
+	glTranslatef(pos.x, pos.y, 0.f);
+	glRotatef(a*180.f/M_PI - 90.f, 0, 0, 1);
+	glTranslatef(0, radius*1.2f, 0.f);
 
 	glBegin(GL_LINE_LOOP);
 	glVertex2i(-5, 0);
 	glVertex2i(0, 15);
 	glVertex2i(5, 0);
 	glEnd();
-}
 
-boss::state::state(game& g)
-: game_ { g }
-, state_tics_ { 0 }
-{ }
+	glPopMatrix();
+}
