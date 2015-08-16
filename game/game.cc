@@ -743,15 +743,13 @@ game::fill_grid(const std::vector<vec2i>& contour)
 				continue;
 			}
 
-			bool allow = true;
-			for (auto& t : transitions) {
-				if ((pos == t.first && next_pos == t.second) || (pos == t.second && next_pos == t.first)) {
-					allow = false;
-					break;
-				}
-			}
+			auto it = std::find_if(
+					std::begin(transitions),
+					std::end(transitions),
+					[=](const std::pair<vec2i, vec2i>& t)
+						{ return (pos == t.first && next_pos == t.second) || (pos == t.second && next_pos == t.first); });
 
-			if (allow) {
+			if (it == std::end(transitions)) {
 				grid[next_pos.y*grid_cols + next_pos.x] = -1;
 				queue.push(next_pos);
 			}
