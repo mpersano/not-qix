@@ -225,6 +225,9 @@ player::check_foe_collisions()
 								return true;
 						}
 
+						if (f->intersects(extend_trail_.back()*CELL_SIZE, get_position()))
+								return true;
+
 						return false;
 					});
 
