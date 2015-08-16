@@ -14,12 +14,12 @@ public:
 	{ return true; }
 
 private:
-	enum class state { CHASING, AIMING, FIRING, POST_FIRING } state_;
+	enum class state { CHASING, PRE_FIRING, FIRING, POST_FIRING } state_;
 
 	void set_state(state next_state);
 
 	void update_chasing();
-	void update_aiming();
+	void update_pre_firing();
 	void update_firing();
 	void update_post_firing();
 
@@ -35,7 +35,7 @@ private:
 	float spike_angle_;
 
 	static const int MIN_CHASE_TICS = 360;
-	static const int AIMING_TICS = 90;
+	static const int PRE_FIRING_TICS = 90;
 	static const int FIRING_TICS = 180;
 	static const int POST_FIRING_TICS = 90;
 };

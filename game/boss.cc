@@ -118,8 +118,8 @@ boss::update()
 			update_chasing();
 			break;
 
-		case state::AIMING:
-			update_aiming();
+		case state::PRE_FIRING:
+			update_pre_firing();
 			break;
 
 		case state::FIRING:
@@ -143,21 +143,20 @@ boss::update_chasing()
 
 	if (state_tics_ >= MIN_CHASE_TICS) {
 		if (rand()%16 == 0)
-			set_state(state::AIMING);
+			set_state(state::PRE_FIRING);
 	}
 }
 
 void
-boss::update_aiming()
+boss::update_pre_firing()
 {
 	chase_player();
 
 	aim_player();
 
-	const float t = static_cast<float>(state_tics_)/AIMING_TICS;
-	speed = exp_tween<float>()(BOSS_SPEED, 0, t);
+	speed = exp_tween<float>()(BOSS_SPEED, 0, static_cast<float>(state_tics_)/PRE_FIRING_TICS);
 
-	if (state_tics_ >= AIMING_TICS)
+	if (state_tics_ >= PRE_FIRING_TICS)
 		set_state(state::FIRING);
 }
 
@@ -182,8 +181,7 @@ boss::update_post_firing()
 {
 	chase_player();
 
-	const float t = 1.f - static_cast<float>(state_tics_)/POST_FIRING_TICS;
-	speed = exp_tween<float>()(BOSS_SPEED, 0, t);
+	speed = exp_tween<float>()(BOSS_SPEED, 0, 1.f - static_cast<float>(state_tics_)/POST_FIRING_TICS);
 
 	if (state_tics_ >= POST_FIRING_TICS)
 		set_state(state::CHASING);
@@ -261,13 +259,13 @@ boss::draw_spikes() const
 			}
 			break;
 
-		case state::AIMING:
+		case state::PRE_FIRING:
 		case state::POST_FIRING:
 			{
 			float t;
 
-			if (state_ == state::AIMING)
-				t = static_cast<float>(state_tics_)/AIMING_TICS;
+			if (state_ == state::PRE_FIRING)
+				t = static_cast<float>(state_tics_)/PRE_FIRING_TICS;
 			else
 				t = 1.f - static_cast<float>(state_tics_)/POST_FIRING_TICS;
 
