@@ -17,7 +17,7 @@ struct glyph_info
 	int width, height;
 	int left, top;
 	int advance_x;
-	vec2f texuv[4]; // texture coordinates
+	vec2f texuv[2]; // texture coordinates
 };
 
 class font

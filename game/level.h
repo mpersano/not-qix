@@ -7,7 +7,7 @@ namespace ggl {
 class texture;
 }
 
-static const int CELL_SIZE = 16;
+static const int CELL_SIZE = 8;
 
 class level
 {

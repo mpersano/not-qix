@@ -191,16 +191,16 @@ percent_gauge::draw_char(const ggl::font *f, wchar_t ch, int base_x, int base_y)
 	float y0 = base_y + 20 + g->top;
 	float y1 = y0 - g->height;
 
-	auto& t0 = g->texuv[0];
-	auto& t1 = g->texuv[1];
-	auto& t2 = g->texuv[2];
-	auto& t3 = g->texuv[3];
+	const float u0 = g->texuv[0].x;
+	const float u1 = g->texuv[1].x;
+	const float v0 = g->texuv[0].y;
+	const float v1 = g->texuv[1].y;
 
 	f->get_texture()->bind();
 
 	(ggl::vertex_array_texcoord<GLfloat, 2, GLfloat, 2>
-		{ { x0, y0, t0.x, t0.y },
-		  { x1, y0, t1.x, t1.y },
-		  { x0, y1, t3.x, t3.y },
-		  { x1, y1, t2.x, t2.y } }).draw(GL_TRIANGLE_STRIP);
+		{ { x0, y0, u0, v0 },
+		  { x1, y0, u1, v0 },
+		  { x0, y1, u0, v1 },
+		  { x1, y1, u1, v1 } }).draw(GL_TRIANGLE_STRIP);
 }

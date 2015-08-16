@@ -158,6 +158,8 @@ player::update()
 
 	switch (state_) {
 		case state::IDLE:
+			break;
+
 		case state::EXTENDING_IDLE:
 			check_foe_collisions();
 			break;

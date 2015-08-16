@@ -52,9 +52,7 @@ font::font(const std::string& path_base)
 		const float dv = static_cast<float>(h)/texture_height;
 
 		g->texuv[0] = { u0, v0 };
-		g->texuv[1] = { u0 + du, v0 };
-		g->texuv[2] = { u0 + du, v0 - dv };
-		g->texuv[3] = { u0, v0 - dv };
+		g->texuv[1] = { u0 + du, v0 - dv };
 
 		glyph_info_map_[code] = g;
 	}
@@ -93,18 +91,18 @@ font::render(const std::basic_string<wchar_t>& str) const
 		short y0 = y + g->top;
 		short y1 = y0 - g->height;
 
-		auto& t0 = g->texuv[0];
-		auto& t1 = g->texuv[1];
-		auto& t2 = g->texuv[2];
-		auto& t3 = g->texuv[3];
+		const float u0 = g->texuv[0].x;
+		const float u1 = g->texuv[1].x;
+		const float v0 = g->texuv[0].y;
+		const float v1 = g->texuv[1].y;
 
-		va.push_back({ x0, y0, t0.x, t0.y });
-		va.push_back({ x1, y0, t1.x, t1.y });
-		va.push_back({ x1, y1, t2.x, t2.y });
+		va.push_back({ x0, y0, u0, v0 });
+		va.push_back({ x1, y0, u1, v0 });
+		va.push_back({ x1, y1, u1, v1 });
 
-		va.push_back({ x1, y1, t2.x, t2.y });
-		va.push_back({ x0, y1, t3.x, t3.y });
-		va.push_back({ x0, y0, t0.x, t0.y });
+		va.push_back({ x1, y1, u1, v1 });
+		va.push_back({ x0, y1, u0, v1 });
+		va.push_back({ x0, y0, u0, v0 });
 
 		x += g->advance_x;
 	}
