@@ -24,7 +24,9 @@ set(GGL_SOURCES
 	texture.cc
 	font.cc
 	image.cc
-	resources.cc)
+	sprite.cc
+	resources.cc
+	sprite_manager.cc)
 
 if (ANDROID)
 	list(APPEND GGL_SOURCES

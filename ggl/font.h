@@ -6,18 +6,19 @@
 #include <string>
 
 #include <ggl/gl.h>
-#include <ggl/vec2.h>
 
 namespace ggl {
 
 class texture;
 
-struct glyph_info
+struct glyph
 {
+	glyph(const ggl::texture *tex, int left, int top, int advance_x, int u, int v, int width, int height);
+
+	const ggl::texture *tex;
 	int width, height;
-	int left, top;
-	int advance_x;
-	vec2f texuv[2]; // texture coordinates
+	int left, top, advance_x;
+	float u0, u1, v0, v1;
 };
 
 class font
@@ -26,19 +27,17 @@ public:
 	font(const std::string& path_base);
 	~font();
 
-	const glyph_info *find_glyph(wchar_t ch) const
-	{ return glyph_info_map_[ch]; }
+	const glyph *find_glyph(wchar_t ch) const
+	{ return glyph_map_[ch]; }
 
 	unsigned get_string_width(const std::basic_string<wchar_t>& str) const;
 
-	const texture *get_texture() const
-	{ return texture_; }
-
 	void render(const std::basic_string<wchar_t>& str) const;
 
+	const texture *tex;
+
 private:
-	glyph_info *glyph_info_map_[1<<16];
-	const texture *texture_;
+	glyph *glyph_map_[1<<16];
 };
 
 }

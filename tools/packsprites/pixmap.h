@@ -2,14 +2,6 @@
 
 #include <stdint.h>
 
-struct margins {
-	margins(int left, int right, int top, int bottom)
-	: left_(left), right_(right), top_(top), bottom_(bottom)
-	{ }
-
-	int left_, right_, top_, bottom_;
-};
-
 class pixmap
 {
 public:
@@ -39,9 +31,6 @@ public:
 	static size_t get_pixel_size(type pixmap_type);
 
 	void resize(size_t new_width, size_t new_height);
-
-	// returns cropped left/top margins
-	margins trim();
 
 	static pixmap *load(const char *path);
 

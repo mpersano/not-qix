@@ -2,10 +2,11 @@
 
 #include <cstdint>
 #include <cstddef>
-
-#include <ggl/noncopyable.h>
+#include <string>
 
 #include <sys/types.h> // off_t
+
+#include <ggl/noncopyable.h>
 
 namespace ggl {
 
@@ -20,6 +21,7 @@ public:
 	uint8_t read_uint8();
 	uint16_t read_uint16();
 	uint32_t read_uint32();
+	std::string read_string();
 };
 
 }

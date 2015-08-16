@@ -32,7 +32,10 @@ game_app::init(int width, int height)
 	width_ = width;
 	height_ = height;
 
+	ggl::res::load_sprite_sheet("sprites/sprites");
+
 	init_levels();
+
 	cur_state_.reset(new in_game_state { width, height });
 
 	update_t_ = 0;

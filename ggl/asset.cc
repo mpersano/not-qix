@@ -31,4 +31,16 @@ asset::read_uint32()
 	return lo | (hi << 16);
 }
 
+std::string
+asset::read_string()
+{
+	uint8_t len = read_uint8();
+
+	std::string str;
+	for (int i = 0; i < len; i++)
+		str.push_back(read_uint8());
+
+	return str;
+}
+
 }

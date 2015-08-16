@@ -21,7 +21,7 @@ target_link_libraries(
 	${FREETYPE_LIBRARIES}
 	${PNG_LIBRARIES})
 
-add_executable(packsprites packfont.cc ${COMMON_SOURCES})
+add_executable(packsprites packsprites.cc ${COMMON_SOURCES})
 
 target_link_libraries(
 	packsprites

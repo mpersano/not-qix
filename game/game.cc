@@ -407,6 +407,8 @@ game::reset(const level *l)
 void
 game::draw() const
 {
+	glPushMatrix();
+
 	auto offs = get_offset();
 	glTranslatef(offs.x, offs.y, 0);
 
@@ -417,6 +419,8 @@ game::draw() const
 		foe->draw();
 
 	player_.draw();
+
+	glPopMatrix();
 }
 
 vec2f
@@ -724,7 +728,7 @@ game::fill_grid(const std::vector<vec2i>& contour)
 	assert(!foes.empty() && foes.front()->is_boss());
 	auto *boss = static_cast<phys_foe *>(foes.front().get());
 
-	vec2i pos = (vec2i(boss->pos) + vec2i { CELL_SIZE, CELL_SIZE }/2)/CELL_SIZE;
+	vec2i pos = (vec2i(boss->get_position()) + vec2i { CELL_SIZE, CELL_SIZE }/2)/CELL_SIZE;
 
 	std::queue<vec2i> queue;
 	queue.push(pos);

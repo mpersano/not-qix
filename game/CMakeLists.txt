@@ -67,16 +67,23 @@ target_link_libraries(game ${GAME_LIBRARIES})
 if (NOT ANDROID)
 	set(DATA_DIR "${CMAKE_CURRENT_BINARY_DIR}/data")
 	set(FONT_DIR "${DATA_DIR}/fonts")
+	set(SPRITE_DIR "${DATA_DIR}/sprites")
+
 	set(PACKFONT_COMMAND "${CMAKE_BINARY_DIR}/tools/packsprites/packfont")
+	set(PACKSPRITES_COMMAND "${CMAKE_BINARY_DIR}/tools/packsprites/packsprites")
 	
 	add_custom_command(TARGET game POST_BUILD
 		COMMAND mkdir -p ${DATA_DIR})
+
+	# copy images/data
 	
 	add_custom_command(TARGET game POST_BUILD
 		COMMAND cp -r ${CMAKE_SOURCE_DIR}/assets/images ${DATA_DIR})
 
 	add_custom_command(TARGET game POST_BUILD
 		COMMAND cp -r ${CMAKE_SOURCE_DIR}/assets/data ${DATA_DIR})
+
+	# pack fonts
 
 	add_custom_command(TARGET game POST_BUILD
 		COMMAND mkdir -p ${FONT_DIR})
@@ -90,4 +97,14 @@ if (NOT ANDROID)
 		COMMAND ${PACKFONT_COMMAND} -w 256 -h 256 -s 12 -g 2 -1 ${CMAKE_SOURCE_DIR}/assets/fonts/font.ttf tiny x20-x7e
 		WORKING_DIRECTORY ${FONT_DIR}
 		DEPENDS ${PACKFONT_COMMAND})
+
+	# pack sprites
+
+	add_custom_command(TARGET game POST_BUILD
+		COMMAND mkdir -p ${SPRITE_DIR})
+
+	add_custom_command(TARGET game POST_BUILD
+		COMMAND ${PACKSPRITES_COMMAND} -w 256 -h 256 sprites ${CMAKE_SOURCE_DIR}/assets/sprites
+		WORKING_DIRECTORY ${SPRITE_DIR}
+		DEPENDS ${PACKSPRITES_COMMAND})
 endif()

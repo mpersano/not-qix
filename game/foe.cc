@@ -29,10 +29,10 @@ foe::foe(game& g)
 
 phys_foe::phys_foe(game& g, vec2f pos, vec2f dir, float speed, float radius)
 : foe { g }
-, pos { pos }
-, dir { dir }
-, speed { speed }
-, radius { radius }
+, pos_ { pos }
+, dir_ { dir }
+, speed_ { speed }
+, radius_ { radius }
 { }
 
 void
@@ -40,7 +40,7 @@ phys_foe::move()
 {
 	// update position
 
-	pos += speed*dir;
+	pos_ += speed_*dir_;
 
 	// collide against border
 
@@ -55,16 +55,16 @@ phys_foe::move()
 			const vec2f v0 = border[i]*CELL_SIZE;
 			const vec2f v1 = border[(i + 1)%border.size()]*CELL_SIZE;
 
-			vec2f c = seg_closest_point(v0, v1, pos);
-			vec2f d = pos - c;
+			vec2f c = seg_closest_point(v0, v1, pos_);
+			vec2f d = pos_ - c;
 
 			float dist = length(d);
 
-			if (dist < radius) {
+			if (dist < radius_) {
 				static const float FUDGE = 2.;
-				pos += ((radius - dist) + FUDGE)*normalized(d);
-				vec2f n = normalized(pos - c);
-				dir -= 2.f*dot(dir, n)*n;
+				pos_ += ((radius_ - dist) + FUDGE)*normalized(d);
+				vec2f n = normalized(pos_ - c);
+				dir_ -= 2.f*dot(dir_, n)*n;
 
 				collided = true;
 			}
@@ -75,5 +75,11 @@ phys_foe::move()
 bool
 phys_foe::intersects(const vec2i& from, const vec2i& to) const
 {
-	return length(pos - seg_closest_point(vec2f(from), vec2f(to), pos)) < radius;
+	return length(pos_ - seg_closest_point(vec2f(from), vec2f(to), pos_)) < radius_;
+}
+
+vec2f
+phys_foe::get_position() const
+{
+	return pos_;
 }

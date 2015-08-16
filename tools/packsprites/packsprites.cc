@@ -35,9 +35,8 @@ load_sprites(const char *dir_name)
 			sprintf(path, "%s/%s", dir_name, name);
 
 			pixmap *pm = pixmap::load(path);
-			margins m = pm->trim();
 
-			sprite *sp = new sprite(name, m, pm);
+			sprite *sp = new sprite(name, pm);
 			fprintf(stderr, "%s: %ux%u\n", name, sp->width(), sp->height());
 			sprites.push_back(sp);
 		}

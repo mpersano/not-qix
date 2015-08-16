@@ -13,15 +13,36 @@
 
 namespace ggl {
 
+glyph::glyph(const ggl::texture *tex, int left, int top, int advance_x, int u, int v, int width, int height)
+: tex { tex }
+, width { width }
+, height { height }
+, left { left }
+, top { top }
+, advance_x { advance_x }
+{
+	const int tex_width = tex->width;
+	const int tex_height = tex->height;
+
+	const float du = static_cast<float>(width)/tex_width;
+	const float dv = static_cast<float>(height)/tex_height;
+
+	u0 = static_cast<float>(u)/tex_width;
+	v0 = static_cast<float>(tex_height - v)/tex_height;
+
+	u1 = u0 + du;
+	v1 = v0 - dv;
+}
+
 font::font(const std::string& path_base)
 {
-	std::fill(std::begin(glyph_info_map_), std::end(glyph_info_map_), nullptr);
+	std::fill(std::begin(glyph_map_), std::end(glyph_map_), nullptr);
 
 	auto font_asset = g_core->get_asset(path_base + ".spr");
 
 	unsigned num_glyphs = font_asset->read_uint16();
 
-	texture_ = res::get_texture(path_base + ".png");
+	tex = res::get_texture(path_base + ".png");
 
 	for (unsigned i = 0; i < num_glyphs; i++) {
 		wchar_t code = font_asset->read_uint16();
@@ -32,29 +53,10 @@ font::font(const std::string& path_base)
 
 		const int u = font_asset->read_uint16();
 		const int v = font_asset->read_uint16();
-		const int w = font_asset->read_uint16();
-		const int h = font_asset->read_uint16();
+		const int width = font_asset->read_uint16();
+		const int height = font_asset->read_uint16();
 
-		glyph_info *g = new glyph_info;
-		g->width = w;
-		g->height = h;
-		g->left = left;
-		g->top = top;
-		g->advance_x = advance_x;
-
-		const int texture_width = texture_->width;
-		const int texture_height = texture_->height;
-
-		const float u0 = static_cast<float>(u)/texture_width;
-		const float v0 = static_cast<float>(texture_height - v)/texture_height;
-
-		const float du = static_cast<float>(w)/texture_width;
-		const float dv = static_cast<float>(h)/texture_height;
-
-		g->texuv[0] = { u0, v0 };
-		g->texuv[1] = { u0 + du, v0 - dv };
-
-		glyph_info_map_[code] = g;
+		glyph_map_[code] = new glyph { tex, left, top, advance_x, u, v, width, height };
 	}
 }
 
@@ -91,10 +93,10 @@ font::render(const std::basic_string<wchar_t>& str) const
 		short y0 = y + g->top;
 		short y1 = y0 - g->height;
 
-		const float u0 = g->texuv[0].x;
-		const float u1 = g->texuv[1].x;
-		const float v0 = g->texuv[0].y;
-		const float v1 = g->texuv[1].y;
+		const float u0 = g->u0;
+		const float u1 = g->u1;
+		const float v0 = g->v0;
+		const float v1 = g->v1;
 
 		va.push_back({ x0, y0, u0, v0 });
 		va.push_back({ x1, y0, u1, v0 });
@@ -108,7 +110,7 @@ font::render(const std::basic_string<wchar_t>& str) const
 	}
 
 	glEnable(GL_TEXTURE_2D);
-	texture_->bind();
+	tex->bind();
 
 	va.draw(GL_TRIANGLES);
 }

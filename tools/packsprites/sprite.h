@@ -6,10 +6,9 @@
 
 struct sprite : sprite_base
 {
-	sprite(const char *name, const margins& margins, pixmap *pm);
+	sprite(const char *name, pixmap *pm);
 
 	void serialize(file_writer& fw) const;
 
 	std::string name_;
-	margins margins_;
 };

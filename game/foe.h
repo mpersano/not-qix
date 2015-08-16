@@ -31,8 +31,11 @@ public:
 
 	void move();
 
-	vec2f pos;
-	vec2f dir;
-	float speed;
-	float radius;
+	vec2f get_position() const;
+
+protected:
+	vec2f pos_;
+	vec2f dir_;
+	float speed_;
+	float radius_;
 };

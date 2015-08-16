@@ -2,6 +2,10 @@
 
 #include "foe.h"
 
+namespace ggl {
+class sprite;
+}
+
 class boss : public phys_foe
 {
 public:
@@ -38,4 +42,7 @@ private:
 	static const int PRE_FIRING_TICS = 90;
 	static const int FIRING_TICS = 180;
 	static const int POST_FIRING_TICS = 90;
+
+	const ggl::sprite *core_sprite_;
+	const ggl::sprite *spike_sprite_;
 };
