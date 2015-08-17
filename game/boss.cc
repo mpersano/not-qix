@@ -14,43 +14,6 @@ static const float BOSS_SPEED = 2;
 static const float BOSS_RADIUS = 30;
 static const float SPIKE_RADIUS = 36;
 
-void
-draw_sprite(const ggl::sprite *sprite, float x, float y)
-{
-	const int w = sprite->width;
-	const int h = sprite->height;
-
-	const float x0 = x;
-	const float x1 = x + w;
-
-	const float y0 = y;
-	const float y1 = y + h;
-
-	const float u0 = sprite->u0;
-	const float u1 = sprite->u1;
-
-	const float v0 = sprite->v0;
-	const float v1 = sprite->v1;
-
-	glEnable(GL_BLEND);
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
-	glEnable(GL_TEXTURE_2D);
-
-	glColor4f(1, 1, 1, 1);
-
-	sprite->tex->bind();
-
-	(ggl::vertex_array_texcoord<GLfloat, 2, GLfloat, 2>
-		{ { x0, y0, u0, v1 },
-		  { x1, y0, u1, v1 },
-		  { x0, y1, u0, v0 },
-		  { x1, y1, u1, v0 } }).draw(GL_TRIANGLE_STRIP);
-
-	glDisable(GL_TEXTURE_2D);
-	glDisable(GL_BLEND);
-}
-
 class bullet : public foe
 {
 public:
@@ -309,7 +272,7 @@ boss::draw() const
 void
 boss::draw_core() const
 {
-	draw_sprite(core_sprite_, pos_.x - .5f*core_sprite_->width, pos_.y - .5f*core_sprite_->height);
+	core_sprite_->draw(pos_.x, pos_.y, ggl::sprite::horiz_align::CENTER, ggl::sprite::vert_align::CENTER);
 
 #if 0
 	static const int NUM_SEGS = 13;
@@ -380,8 +343,7 @@ boss::draw_spike(float a) const
 	glRotatef(a*180.f/M_PI - 90.f, 0, 0, 1);
 	glTranslatef(0, SPIKE_RADIUS, 0.f);
 
-	draw_sprite(spike_sprite_, -.5f*spike_sprite_->width, 0);
-
+	spike_sprite_->draw(ggl::sprite::horiz_align::CENTER, ggl::sprite::vert_align::BOTTOM);
 #if 0
 	glBegin(GL_LINE_LOOP);
 	glVertex2i(-5, 0);
