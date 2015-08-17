@@ -1,4 +1,4 @@
-#include <sys/time.h>
+#include <time.h>
 
 #include <ggl/log.h>
 #include <ggl/gl.h>
@@ -245,9 +245,15 @@ core::get_asset(const std::string& path) const
 float
 core::now() const
 {
-	struct timeval tv;
-	gettimeofday(&tv, nullptr);
-	return tv.tv_sec + 1e-6f*tv.tv_usec;
+	struct timespec tp;
+	static time_t secbase;
+
+	clock_gettime(CLOCK_MONOTONIC, &tp);
+
+	if (!secbase)
+		secbase = tp.tv_sec;
+
+	return (tp.tv_sec - secbase) + 1e-9f*tp.tv_nsec;
 }
 
 } }
