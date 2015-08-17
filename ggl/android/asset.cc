@@ -8,6 +8,8 @@ asset::asset(AAssetManager *asset_manager, const std::string& path)
 {
 	if (!asset_)
 		panic("failed to open `%s'", path.c_str());
+
+	size_ = AAsset_getLength(asset_);
 }
 
 asset::~asset()
@@ -19,6 +21,12 @@ size_t
 asset::read(void *buf, size_t size)
 {
 	return AAsset_read(asset_, buf, size);
+}
+
+off_t
+asset::size() const
+{
+	return size_;
 }
 
 } }

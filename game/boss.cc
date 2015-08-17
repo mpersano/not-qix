@@ -1,4 +1,5 @@
 #include <cmath>
+#include <cstdlib>
 
 #include <ggl/texture.h>
 #include <ggl/sprite.h>
