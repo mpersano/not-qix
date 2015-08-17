@@ -4,7 +4,6 @@
 
 #include <ggl/gl.h>
 #include <ggl/texture.h>
-#include <ggl/font.h>
 #include <ggl/vertex_array.h>
 #include <ggl/resources.h>
 
@@ -379,7 +378,6 @@ game::game(int width, int height)
 : viewport_width_ { width }
 , viewport_height_ { height }
 , player_ { *this }
-, font_ { ggl::res::get_font("fonts/tiny") }
 { }
 
 void

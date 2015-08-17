@@ -10,10 +10,6 @@
 #include "foe.h"
 #include "level.h"
 
-namespace ggl {
-class font;
-}
-
 enum class direction { UP, DOWN, LEFT, RIGHT };
 
 class game;
@@ -97,6 +93,4 @@ private:
 	ggl::vertex_array_texcoord<GLshort, 2, GLfloat, 2> background_filled_va_;
 	ggl::vertex_array_texcoord<GLshort, 2, GLfloat, 2> background_unfilled_va_;
 	ggl::vertex_array_flat<GLshort, 2> border_va_;
-
-	const ggl::font *font_;
 };
