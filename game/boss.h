@@ -34,9 +34,12 @@ private:
 	void draw_spikes() const;
 	void draw_spike(float a) const;
 
+	void on_miniboss_killed();
+
 	int state_tics_;
 	static const int NUM_SPIKES = 7;
 	float spike_angle_;
+	int miniboss_spawned_;
 
 	static const int MIN_CHASE_TICS = 360;
 	static const int PRE_FIRING_TICS = 90;

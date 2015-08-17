@@ -51,6 +51,7 @@ set(GAME_SOURCES
 	game.cc
 	foe.cc
 	boss.cc
+	miniboss.cc
 	in_game_state.cc
 	percent_gauge.cc)
 

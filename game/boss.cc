@@ -6,13 +6,14 @@
 
 #include "tween.h"
 #include "game.h"
+#include "miniboss.h"
 #include "boss.h"
 
 namespace {
 
-static const float BOSS_SPEED = 2;
-static const float BOSS_RADIUS = 30;
-static const float SPIKE_RADIUS = 36;
+const float BOSS_SPEED = 2;
+const float BOSS_RADIUS = 30;
+const float SPIKE_RADIUS = 36;
 
 class bullet : public foe
 {
@@ -141,6 +142,7 @@ bullet::intersects(const vec2i& from, const vec2i& to) const
 boss::boss(game& g)
 : phys_foe { g, vec2f { 100, 100 }, normalized(vec2f { 1.5f, .5f }), BOSS_SPEED, BOSS_RADIUS }
 , spike_angle_ { 0 }
+, miniboss_spawned_ { 0 }
 , core_sprite_ { ggl::res::get_sprite("boss-core.png") }
 , spike_sprite_ { ggl::res::get_sprite("boss-spike.png") }
 {
@@ -177,6 +179,20 @@ boss::update()
 		case state::POST_FIRING:
 			update_post_firing();
 			break;
+	}
+
+	// XXX: fix this
+	if (miniboss_spawned_ == 0) {
+		auto minion = std::unique_ptr<foe> {
+				new miniboss {
+					game_,
+					pos_,
+					normalized(vec2f { 1.f, -.5f }),
+					[this]() { on_miniboss_killed(); } } };
+
+		game_.add_foe(std::move(minion));
+
+		++miniboss_spawned_;
 	}
 
 	return true;
@@ -353,4 +369,10 @@ boss::draw_spike(float a) const
 #endif
 
 	glPopMatrix();
+}
+
+void
+boss::on_miniboss_killed()
+{
+	--miniboss_spawned_;
 }
