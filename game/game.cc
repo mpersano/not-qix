@@ -258,7 +258,7 @@ player::draw() const
 	if (state_ == state::EXTENDING || state_ == state::EXTENDING_IDLE) {
 		static const int TRAIL_RADIUS = 2;
 
-		glColor4f(1, 0, 0, 1);
+		glColor4f(1, 1, 0, 1);
 
 		if (extend_trail_.size() > 1) {
 			ggl::vertex_array_flat<GLshort, 2> va;
@@ -337,18 +337,18 @@ player::draw() const
 
 	// head
 
-	auto pos = get_position();
+	auto pos = vec2s(get_position());
+	const short radius = 10;
 
-	const short x0 = pos.x - PLAYER_RADIUS;
-	const short x1 = pos.x + PLAYER_RADIUS;
-	const short y0 = pos.y - PLAYER_RADIUS;
-	const short y1 = pos.y + PLAYER_RADIUS;
-
-	glColor4f(0, 1, 0, 1);
+	glColor4f(0, 1, 1, 1);
 
 	(ggl::vertex_array_flat<GLshort, 2>
-		{ { x0, y0 }, { x1, y0 },
-		  { x0, y1 }, { x1, y1 } }).draw(GL_TRIANGLE_STRIP);
+		{ { pos.x, pos.y },
+		  { static_cast<short>(pos.x - radius), pos.y },
+		  { pos.x, static_cast<short>(pos.y + radius) },
+		  { static_cast<short>(pos.x + radius), pos.y },
+		  { pos.x, static_cast<short>(pos.y - radius) },
+		  { static_cast<short>(pos.x - radius), pos.y } }).draw(GL_TRIANGLE_FAN);
 }
 
 const vec2i
@@ -617,7 +617,7 @@ game::draw_background() const
 void
 game::draw_border() const
 {
-	glColor4f(1, 1, 0, 1);
+	glColor4f(1, 1, 1, 1);
 	border_va_.draw(GL_TRIANGLE_STRIP);
 }
 
@@ -788,7 +788,7 @@ game::fill_grid(const std::vector<vec2i>& contour)
 		}
 	}
 
-	cover_percent_ = (cover*10000)/cur_level_->silhouette_pixels; // XXX: will probably overflow on large images
+	cover_percent_ = (static_cast<unsigned long long>(cover)*10000ull)/cur_level_->silhouette_pixels;
 }
 
 unsigned

@@ -40,8 +40,7 @@ private:
 
 	void check_foe_collisions();
 
-	static const int PLAYER_RADIUS = 5;
-	static const int SLIDE_TICS = 5;
+	static const int SLIDE_TICS = 3;
 
 	game& game_;
 	vec2i pos_, next_pos_;
@@ -91,7 +90,7 @@ private:
 	bool scrolling_;
 	float scroll_tics_;
 
-	static const int SCROLL_TICS = 5;
+	static const int SCROLL_TICS = 30;
 
 	unsigned cover_percent_;
 
