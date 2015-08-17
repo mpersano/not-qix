@@ -27,7 +27,7 @@ foe::foe(game& g)
 : game_ { g }
 { }
 
-phys_foe::phys_foe(game& g, vec2f pos, vec2f dir, float speed, float radius)
+phys_foe::phys_foe(game& g, const vec2f& pos, const vec2f& dir, float speed, float radius)
 : foe { g }
 , pos_ { pos }
 , dir_ { dir }

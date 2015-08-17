@@ -25,7 +25,7 @@ protected:
 class phys_foe : public foe
 {
 public:
-	phys_foe(game& g, vec2f pos, vec2f dir, float speed, float radius);
+	phys_foe(game& g, const vec2f& pos, const vec2f& dir, float speed, float radius);
 
 	bool intersects(const vec2i& from, const vec2i& to) const override;
 
