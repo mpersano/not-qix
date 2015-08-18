@@ -1,9 +1,7 @@
 TODO
 ----
 * android port: handle pause/resume
-? shaders
-  * shader wrappers
-  * shader parser
+* android port: scale viewport
 * gesture detection
   * tap
   * swipe
@@ -11,28 +9,28 @@ TODO
 * scrolling: better easing function
 * gui elements
   * percentage
+    v effect class
+    * better border/font rendering
   * time
 * game states
   * level intro
   * in-game
   * level outro
   * game over
-* foes
-  * first iteration: bouncing sphere
-  * sphere vs. grid collision
-  * sphere vs. line collision
+* boss
+  * spawn homing missiles
+  * homing missile animation
+  * spawn minion state
+* miniboss: change motion
 * power ups
 * assets
   * player sprite
     * extending
     * sliding
   * explosion sprite
-* border vertex array: use triangle strip
-* after each grid update, work out line loop representing outline.
-  use this for:
-  v create triangle strip for outline rendering
-  - collision detection
-* font: store 2 texuv coords instead of 4
+? shaders
+  * shader wrappers
+  * shader parser
 
 BUGS
 ----
@@ -45,3 +43,11 @@ v text rendering
   v add font packer to build script
 v background scrolling
 v glitch returning along player trail
+v font: store 2 texuv coords instead of 4
+v after each grid update, work out line loop representing outline.
+  use this for:
+  v create triangle strip for outline rendering
+  v collision detection
+v foes, first iteration: bouncing sphere
+  v sphere vs. grid collision
+  v sphere vs. line collision

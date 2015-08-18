@@ -80,6 +80,21 @@ core::poll_events()
 			case SDL_KEYUP:
 				on_key_up(event.key.keysym.sym);
 				break;
+
+			case SDL_MOUSEBUTTONDOWN:
+				if (event.button.button == SDL_BUTTON_LEFT)
+					app_.on_pointer_down(event.button.x, event.button.y);
+				break;
+
+			case SDL_MOUSEBUTTONUP:
+				if (event.button.button == SDL_BUTTON_LEFT)
+					app_.on_pointer_up(event.button.x, event.button.y);
+				break;
+
+			case SDL_MOUSEMOTION:
+				if (event.motion.state & SDL_BUTTON_LMASK)
+					app_.on_pointer_move(event.motion.x, event.motion.y);
+				break;
 		}
 	}
 
