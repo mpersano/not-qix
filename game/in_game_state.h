@@ -44,7 +44,5 @@ private:
 
 	ggl::event_connection_ptr gesture_conn_;
 
-	int width_, height_;
-
 	gesture_detector gesture_detector_;
 };

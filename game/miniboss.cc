@@ -2,6 +2,7 @@
 #include <ggl/resources.h>
 
 #include "game.h"
+#include "boss.h"
 #include "miniboss.h"
 
 namespace {
@@ -11,10 +12,10 @@ const float RADIUS = 16;
 
 } // (anonymous namespace)
 
-miniboss::miniboss(game& g, const vec2f& pos, const vec2f& dir, const std::function<void(void)>& on_death)
+miniboss::miniboss(game& g, boss *b, const vec2f& pos, const vec2f& dir)
 : phys_foe { g, pos, dir, SPEED, RADIUS }
+, boss_ { b }
 , sprite_ { ggl::res::get_sprite("miniboss.png") }
-, on_death_ { on_death }
 { }
 
 void
@@ -35,7 +36,7 @@ miniboss::update()
 		for (int c = p0.x; c <= p1.x; c++) {
 			if (game_.grid[r*game_.grid_cols + c]) {
 				printf("killed!\n");
-				on_death_();
+				boss_->on_miniboss_killed();
 				return false;
 			}
 		}

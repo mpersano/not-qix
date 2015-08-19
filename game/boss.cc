@@ -187,9 +187,9 @@ boss::update()
 		auto minion = std::unique_ptr<foe> {
 				new miniboss {
 					game_,
+					this,
 					pos_,
-					normalized(vec2f { 1.f, -.5f }),
-					[this]() { on_miniboss_killed(); } } };
+					normalized(vec2f { 1.f, -.5f }) } };
 
 		game_.add_foe(std::move(minion));
 

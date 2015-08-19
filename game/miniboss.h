@@ -1,17 +1,17 @@
 #pragma once
 
-#include <functional>
-
 #include "foe.h"
 
 namespace ggl {
 class sprite;
 }
 
+class boss;
+
 class miniboss : public phys_foe
 {
 public:
-	miniboss(game& g, const vec2f& pos, const vec2f& dir, const std::function<void(void)>& on_death);
+	miniboss(game& g, boss *b, const vec2f& pos, const vec2f& dir);
 
 	void draw() const override;
 	bool update() override;
@@ -20,6 +20,6 @@ public:
 	{ return false; }
 
 private:
+	boss *boss_;
 	const ggl::sprite *sprite_;
-	std::function<void(void)> on_death_;
 };

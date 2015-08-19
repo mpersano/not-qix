@@ -17,6 +17,8 @@ public:
 	bool is_boss() const override
 	{ return true; }
 
+	void on_miniboss_killed();
+
 private:
 	enum class state { CHASING, PRE_FIRING, FIRING, POST_FIRING } state_;
 
@@ -33,8 +35,6 @@ private:
 	void draw_core() const;
 	void draw_spikes() const;
 	void draw_spike(float a) const;
-
-	void on_miniboss_killed();
 
 	int state_tics_;
 	static const int NUM_SPIKES = 7;
