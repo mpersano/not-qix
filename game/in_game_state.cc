@@ -110,5 +110,21 @@ in_game_state::on_dpad_button_up(ggl::dpad_button button)
 void
 in_game_state::on_gesture(gesture g)
 {
-	printf("gesture! %d\n", static_cast<int>(g));
+	switch (g) {
+		case gesture::SWIPE_LEFT:
+			dpad_state_ = 1u << ggl::dpad_button::LEFT;
+			break;
+
+		case gesture::SWIPE_RIGHT:
+			dpad_state_ = 1u << ggl::dpad_button::RIGHT;
+			break;
+
+		case gesture::SWIPE_UP:
+			dpad_state_ = 1u << ggl::dpad_button::DOWN;
+			break;
+
+		case gesture::SWIPE_DOWN:
+			dpad_state_ = 1u << ggl::dpad_button::UP;
+			break;
+	}
 }
