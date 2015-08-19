@@ -254,7 +254,7 @@ player::draw() const
 	// trail
 
 	if (state_ == state::EXTENDING || state_ == state::EXTENDING_IDLE) {
-		static const int TRAIL_RADIUS = 2;
+		static const int TRAIL_RADIUS = 1;
 
 		glColor4f(1, 1, 0, 1);
 
@@ -290,10 +290,10 @@ player::draw() const
 
 				vec2s nm = ns + ne;
 
-				short d = static_cast<float>(TRAIL_RADIUS)/dot(ns, nm);
+				int d = dot(ns, nm);
 
-				vec2s p0 = vec2s(v1)*CELL_SIZE + nm*d;
-				vec2s p1 = vec2s(v1)*CELL_SIZE - nm*d;
+				vec2s p0 = vec2s(v1)*CELL_SIZE + nm*TRAIL_RADIUS/d;
+				vec2s p1 = vec2s(v1)*CELL_SIZE - nm*TRAIL_RADIUS/d;
 
 				va.push_back({ p0.x, p0.y });
 				va.push_back({ p1.x, p1.y });
