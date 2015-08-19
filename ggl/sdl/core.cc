@@ -18,7 +18,6 @@ core::core(app& a, int width, int height, const char *caption, bool fullscreen)
 : ggl::core { a }
 , width_ { width }
 , height_ { height }
-, dpad_state_ { 0 }
 {
 	if (SDL_Init(SDL_INIT_VIDEO) < 0)
 		panic("SDL_Init: %s", SDL_GetError());
@@ -83,17 +82,17 @@ core::poll_events()
 
 			case SDL_MOUSEBUTTONDOWN:
 				if (event.button.button == SDL_BUTTON_LEFT)
-					app_.on_pointer_down(event.button.x, event.button.y);
+					pointer_down_event_.notify(event.button.x, event.button.y);
 				break;
 
 			case SDL_MOUSEBUTTONUP:
 				if (event.button.button == SDL_BUTTON_LEFT)
-					app_.on_pointer_up(event.button.x, event.button.y);
+					pointer_up_event_.notify(event.button.x, event.button.y);
 				break;
 
 			case SDL_MOUSEMOTION:
 				if (event.motion.state & SDL_BUTTON_LMASK)
-					app_.on_pointer_move(event.motion.x, event.motion.y);
+					pointer_motion_event_.notify(event.motion.x, event.motion.y);
 				break;
 		}
 	}
@@ -106,27 +105,27 @@ core::on_key_down(int keysym)
 {
 	switch (keysym) {
 		case SDLK_UP:
-			dpad_state_ |= DPAD_UP;
+			dpad_button_down_event_.notify(DPAD_UP);
 			break;
 
 		case SDLK_DOWN:
-			dpad_state_ |= DPAD_DOWN;
+			dpad_button_down_event_.notify(DPAD_DOWN);
 			break;
 
 		case SDLK_LEFT:
-			dpad_state_ |= DPAD_LEFT;
+			dpad_button_down_event_.notify(DPAD_LEFT);
 			break;
 
 		case SDLK_RIGHT:
-			dpad_state_ |= DPAD_RIGHT;
+			dpad_button_down_event_.notify(DPAD_RIGHT);
 			break;
 
 		case SDLK_LCTRL:
-			dpad_state_ |= DPAD_BUTTON1;
+			dpad_button_down_event_.notify(DPAD_BUTTON1);
 			break;
 
 		case SDLK_SPACE:
-			dpad_state_ |= DPAD_BUTTON2;
+			dpad_button_down_event_.notify(DPAD_BUTTON2);
 			break;
 	}
 }
@@ -136,27 +135,27 @@ core::on_key_up(int keysym)
 {
 	switch (keysym) {
 		case SDLK_UP:
-			dpad_state_ &= ~DPAD_UP;
+			dpad_button_up_event_.notify(DPAD_UP);
 			break;
 
 		case SDLK_DOWN:
-			dpad_state_ &= ~DPAD_DOWN;
+			dpad_button_up_event_.notify(DPAD_DOWN);
 			break;
 
 		case SDLK_LEFT:
-			dpad_state_ &= ~DPAD_LEFT;
+			dpad_button_up_event_.notify(DPAD_LEFT);
 			break;
 
 		case SDLK_RIGHT:
-			dpad_state_ &= ~DPAD_RIGHT;
+			dpad_button_up_event_.notify(DPAD_RIGHT);
 			break;
 
 		case SDLK_LCTRL:
-			dpad_state_ &= ~DPAD_BUTTON1;
+			dpad_button_up_event_.notify(DPAD_BUTTON1);
 			break;
 
 		case SDLK_SPACE:
-			dpad_state_ &= ~DPAD_BUTTON2;
+			dpad_button_up_event_.notify(DPAD_BUTTON2);
 			break;
 	}
 }

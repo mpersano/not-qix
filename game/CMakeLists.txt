@@ -47,6 +47,7 @@ endif()
 
 set(GAME_SOURCES
 	main.cc
+	gesture_detector.cc
 	level.cc
 	game.cc
 	foe.cc
