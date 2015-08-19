@@ -21,9 +21,6 @@ public:
 	int get_viewport_height() const override
 	{ return height_; }
 
-	unsigned get_dpad_state() const override
-	{ return 0; }
-
 	std::unique_ptr<ggl::asset> get_asset(const std::string& path) const override;
 
 	float now() const override;

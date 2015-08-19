@@ -114,26 +114,23 @@ core::handle_input(AInputEvent *event)
 {
 	switch (AInputEvent_getType(event)) {
 		case AINPUT_EVENT_TYPE_MOTION:
+			{
+			const int x = static_cast<int>(AMotionEvent_getX(event, 0));
+			const int y = static_cast<int>(AMotionEvent_getY(event, 0));
+
 			switch (AMotionEvent_getAction(event)) {
 				case AMOTION_EVENT_ACTION_DOWN:
-					{
-					const float x = AMotionEvent_getX(event, 0);
-					const float y = AMotionEvent_getY(event, 0);
-					// XXX: something here
-					}
+					pointer_down_event_.notify(x, y);
 					return 1;
 
 				case AMOTION_EVENT_ACTION_UP:
-					// XXX: something here
+					pointer_up_event_.notify(x, y);
 					return 1;
 
 				case AMOTION_EVENT_ACTION_MOVE:
-					{
-					const float x = AMotionEvent_getX(event, 0);
-					const float y = AMotionEvent_getY(event, 0);
-					// XXX something here
-					}
+					pointer_motion_event_.notify(x, y);
 					return 1;
+			}
 			}
 			break;
 
