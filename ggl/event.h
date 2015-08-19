@@ -34,20 +34,27 @@ public:
 class event_connection
 {
 public:
-	event_connection(disconnectable_event& owner);
+	event_connection(disconnectable_event *e);
 	~event_connection();
 
+	void set_event(disconnectable_event *e);
+
 private:
-	disconnectable_event& owner_;
+	disconnectable_event *event_;
 };
 
 template <typename HandlerType>
 class event : public connectable_event<HandlerType>, public disconnectable_event
 {
 public:
+	~event()
+	{
+		disconnect_all();
+	}
+
 	event_connection_ptr connect(const HandlerType& handler) override
 	{
-		event_connection_ptr conn(new event_connection { *this });
+		event_connection_ptr conn(new event_connection { this });
 		connections_.push_back({ handler, conn.get() });
 		return conn;
 	}
@@ -70,6 +77,14 @@ public:
 	}
 
 private:
+	void disconnect_all()
+	{
+		for (auto& c : connections_)
+			c.conn->set_event(nullptr);
+
+		connections_.clear();
+	}
+
 	struct connection_desc
 	{
 		HandlerType handler;

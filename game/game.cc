@@ -28,15 +28,14 @@ player::reset()
 }
 
 void
-player::move(direction dir, bool button_pressed)
+player::move(direction dir)
 {
 	switch (state_) {
 		case state::IDLE:
-			if (button_pressed) {
+			move_slide(dir);
+
+			if (state_ != state::SLIDING)
 				move_extend(dir);
-			} else {
-				move_slide(dir);
-			}
 			break;
 
 		case state::EXTENDING_IDLE:
@@ -620,9 +619,9 @@ game::draw_border() const
 }
 
 void
-game::move(direction dir, bool button_pressed)
+game::move(direction dir)
 {
-	player_.move(dir, button_pressed);
+	player_.move(dir);
 }
 
 void

@@ -9,14 +9,7 @@ namespace ggl {
 
 class asset;
 
-enum {
-	DPAD_UP = 1,
-	DPAD_DOWN = 2,
-	DPAD_LEFT = 4,
-	DPAD_RIGHT = 8,
-	DPAD_BUTTON1 = 16,
-	DPAD_BUTTON2 = 32,
-};
+enum dpad_button { UP, DOWN, LEFT, RIGHT, BUTTON1, BUTTON2 };
 
 class core
 {
@@ -33,12 +26,11 @@ public:
 
 	virtual float now() const = 0;
 
-	using dpad_button_event_handler = std::function<void(int)>;
+	using dpad_button_event_handler = std::function<void(dpad_button)>;
+	using pointer_event_handler = std::function<void(int, int)>;
 
 	connectable_event<dpad_button_event_handler>& get_dpad_button_down_event();
 	connectable_event<dpad_button_event_handler>& get_dpad_button_up_event();
-
-	using pointer_event_handler = std::function<void(int, int)>;
 
 	connectable_event<pointer_event_handler>& get_pointer_down_event();
 	connectable_event<pointer_event_handler>& get_pointer_up_event();

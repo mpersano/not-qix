@@ -105,27 +105,27 @@ core::on_key_down(int keysym)
 {
 	switch (keysym) {
 		case SDLK_UP:
-			dpad_button_down_event_.notify(DPAD_UP);
+			dpad_button_down_event_.notify(dpad_button::UP);
 			break;
 
 		case SDLK_DOWN:
-			dpad_button_down_event_.notify(DPAD_DOWN);
+			dpad_button_down_event_.notify(dpad_button::DOWN);
 			break;
 
 		case SDLK_LEFT:
-			dpad_button_down_event_.notify(DPAD_LEFT);
+			dpad_button_down_event_.notify(dpad_button::LEFT);
 			break;
 
 		case SDLK_RIGHT:
-			dpad_button_down_event_.notify(DPAD_RIGHT);
+			dpad_button_down_event_.notify(dpad_button::RIGHT);
 			break;
 
 		case SDLK_LCTRL:
-			dpad_button_down_event_.notify(DPAD_BUTTON1);
+			dpad_button_down_event_.notify(dpad_button::BUTTON1);
 			break;
 
 		case SDLK_SPACE:
-			dpad_button_down_event_.notify(DPAD_BUTTON2);
+			dpad_button_down_event_.notify(dpad_button::BUTTON2);
 			break;
 	}
 }
@@ -135,27 +135,27 @@ core::on_key_up(int keysym)
 {
 	switch (keysym) {
 		case SDLK_UP:
-			dpad_button_up_event_.notify(DPAD_UP);
+			dpad_button_up_event_.notify(dpad_button::UP);
 			break;
 
 		case SDLK_DOWN:
-			dpad_button_up_event_.notify(DPAD_DOWN);
+			dpad_button_up_event_.notify(dpad_button::DOWN);
 			break;
 
 		case SDLK_LEFT:
-			dpad_button_up_event_.notify(DPAD_LEFT);
+			dpad_button_up_event_.notify(dpad_button::LEFT);
 			break;
 
 		case SDLK_RIGHT:
-			dpad_button_up_event_.notify(DPAD_RIGHT);
+			dpad_button_up_event_.notify(dpad_button::RIGHT);
 			break;
 
 		case SDLK_LCTRL:
-			dpad_button_up_event_.notify(DPAD_BUTTON1);
+			dpad_button_up_event_.notify(dpad_button::BUTTON1);
 			break;
 
 		case SDLK_SPACE:
-			dpad_button_up_event_.notify(DPAD_BUTTON2);
+			dpad_button_up_event_.notify(dpad_button::BUTTON2);
 			break;
 	}
 }

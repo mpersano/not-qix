@@ -25,8 +25,8 @@ private:
 	void update_game();
 	void update_effects();
 
-	void on_dpad_button_down(int button);
-	void on_dpad_button_up(int button);
+	void on_dpad_button_down(ggl::dpad_button button);
+	void on_dpad_button_up(ggl::dpad_button button);
 	void on_gesture(gesture g);
 
 	game game_;

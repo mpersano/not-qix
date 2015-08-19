@@ -67,17 +67,17 @@ in_game_state::update()
 void
 in_game_state::update_game()
 {
-	if (dpad_state_ & ggl::DPAD_UP)
-		game_.move(direction::UP, dpad_state_ & ggl::DPAD_BUTTON1);
+	if (dpad_state_ & (1u << static_cast<int>(ggl::dpad_button::UP)))
+		game_.move(direction::UP);
 
-	if (dpad_state_ & ggl::DPAD_DOWN)
-		game_.move(direction::DOWN, dpad_state_ & ggl::DPAD_BUTTON1);
+	if (dpad_state_ & (1u << static_cast<int>(ggl::dpad_button::DOWN)))
+		game_.move(direction::DOWN);
 
-	if (dpad_state_ & ggl::DPAD_LEFT)
-		game_.move(direction::LEFT, dpad_state_ & ggl::DPAD_BUTTON1);
+	if (dpad_state_ & (1u << static_cast<int>(ggl::dpad_button::LEFT)))
+		game_.move(direction::LEFT);
 
-	if (dpad_state_ & ggl::DPAD_RIGHT)
-		game_.move(direction::RIGHT, dpad_state_ & ggl::DPAD_BUTTON1);
+	if (dpad_state_ & (1u << static_cast<int>(ggl::dpad_button::RIGHT)))
+		game_.move(direction::RIGHT);
 
 	game_.update();
 }
@@ -96,15 +96,15 @@ in_game_state::update_effects()
 }
 
 void
-in_game_state::on_dpad_button_down(int button)
+in_game_state::on_dpad_button_down(ggl::dpad_button button)
 {
-	dpad_state_ |= button;
+	dpad_state_ |= (1u << static_cast<int>(button));
 }
 
 void
-in_game_state::on_dpad_button_up(int button)
+in_game_state::on_dpad_button_up(ggl::dpad_button button)
 {
-	dpad_state_ &= ~button;
+	dpad_state_ &= ~(1u << static_cast<int>(button));
 }
 
 void
