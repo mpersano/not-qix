@@ -55,7 +55,7 @@ to_pixel_type(png_byte png_color_type)
 void
 png_read_fn(png_structp png_ptr, png_bytep data, png_size_t length)
 {
-	if (reinterpret_cast<ggl::asset *>(png_get_io_ptr(png_ptr))->read(data, length) != length)
+	if (reinterpret_cast<asset *>(png_get_io_ptr(png_ptr))->read(data, length) != length)
 		png_error(png_ptr, "read error");
 }
 

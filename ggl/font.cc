@@ -13,7 +13,7 @@
 
 namespace ggl {
 
-glyph::glyph(const ggl::texture *tex, int left, int top, int advance_x, int u, int v, int width, int height)
+glyph::glyph(const texture *tex, int left, int top, int advance_x, int u, int v, int width, int height)
 : tex { tex }
 , width { width }
 , height { height }

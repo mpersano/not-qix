@@ -2,7 +2,7 @@
 
 namespace ggl {
 
-ggl::core *g_core;
+core *g_core;
 
 core::core(app& a)
 : app_ { a }

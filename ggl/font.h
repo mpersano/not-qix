@@ -13,9 +13,9 @@ class texture;
 
 struct glyph
 {
-	glyph(const ggl::texture *tex, int left, int top, int advance_x, int u, int v, int width, int height);
+	glyph(const texture *tex, int left, int top, int advance_x, int u, int v, int width, int height);
 
-	const ggl::texture *tex;
+	const texture *tex;
 	int width, height;
 	int left, top, advance_x;
 	float u0, u1, v0, v1;

@@ -4,7 +4,7 @@
 
 namespace ggl {
 
-sprite::sprite(const ggl::texture *tex, int left, int top, int width, int height)
+sprite::sprite(const texture *tex, int left, int top, int width, int height)
 : tex { tex }
 , width { width }
 , height { height }
@@ -88,7 +88,7 @@ sprite::draw(float x0, float y0, float x1, float y1) const
 
 	tex->bind();
 
-	(ggl::vertex_array_texcoord<GLfloat, 2, GLfloat, 2>
+	(vertex_array_texcoord<GLfloat, 2, GLfloat, 2>
 		{ { x0, y0, u0, v1 },
 		  { x1, y0, u1, v1 },
 		  { x0, y1, u0, v0 },
