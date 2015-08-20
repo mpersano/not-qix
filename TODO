@@ -1,36 +1,47 @@
 TODO
 ----
 * android port: handle pause/resume
-* android port: scale viewport
-* gesture detection
-  * tap
-  * swipe
-* gesture controls
-* scrolling: better easing function
 * gui elements
   * percentage
     v effect class
-    * better border/font rendering
+    * better border
+    * font with gradient
+  * remaining players
   * time
+  * virtual dpad
 * game states
   * level intro
   * in-game
   * level outro
   * game over
-* boss
+* sphere boss
   * spawn homing missiles
   * homing missile animation
   * spawn minion state
-* miniboss: change motion
+  * change size according to area covered
+  * when firing: change shooting direction
+* spider boss
+* miniboss: change direction
 * power ups
+* effects
+  * explosion
+  * lightning
+  * +percentage
+  * "danger!"
+? shaders
+  * shader wrappers
+  * shader parser
+* scrolling: better easing function
+* rendering
+  ? flat shaded 3d
 * assets
   * player sprite
     * extending
     * sliding
   * explosion sprite
-? shaders
-  * shader wrappers
-  * shader parser
+* menu system
+* music
+* sound fx
 
 BUGS
 ----
@@ -51,3 +62,4 @@ v after each grid update, work out line loop representing outline.
 v foes, first iteration: bouncing sphere
   v sphere vs. grid collision
   v sphere vs. line collision
+v gesture detection: swipe
