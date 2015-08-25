@@ -9,7 +9,7 @@ struct glyph : sprite_base
 {
 	glyph(wchar_t code, int left, int top, int advance_x, pixmap *pm);
 
-	void serialize(file_writer& fw) const;
+	void serialize(FILE *out, const rect& rc, int border) const override;
 
 	wchar_t code_;
 	int left_, top_, advance_x_;

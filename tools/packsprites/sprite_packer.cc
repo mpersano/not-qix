@@ -4,31 +4,14 @@
 #include <algorithm>
 
 #include "panic.h"
+#include "rect.h"
 #include "sprite.h"
 #include "sprite_packer.h"
 
-struct rect
+namespace {
+
+struct node
 {
-	rect(int left, int top, int width, int height)
-	: left_(left), top_(top), width_(width), height_(height)
-	{ }
-
-	int left_, top_, width_, height_;
-
-	std::pair<rect, rect> split_vert(int c) const
-	{
-		assert(c < width_);
-		return std::pair<rect, rect>(rect(left_, top_, c, height_), rect(left_ + c, top_, width_ - c, height_));
-	}
-
-	std::pair<rect, rect> split_horiz(int r)
-	{
-		assert(r < height_);
-		return std::pair<rect, rect>(rect(left_, top_, width_, r), rect(left_, top_ + r, width_, height_ - r));
-	}
-};
-
-struct node {
 	node(const rect& rc)
 	: rc_(rc), border_(0), left_(0), right_(0), sprite_(0)
 	{ }
@@ -90,19 +73,14 @@ node::insert_sprite(sprite_base *sp, int border)
 	}
 }
 
-static bool
+bool
 sprite_cmp(sprite_base *a, sprite_base *b)
 {
 	return b->width()*b->height() < a->width()*a->height();
 }
 
 void
-pack_sprites(std::vector<sprite_base *>& sprites, pixmap::type color_type, int border, const char *sheet_name, size_t width, size_t height)
-{
-}
-
-void
-sprite_packer::write_sprite_sheet(pixmap& pm, const node *root)
+write_sprite_sheet(pixmap& pm, const node *root)
 {
 	if (root->left_) {
 		write_sprite_sheet(pm, root->left_);
@@ -131,7 +109,7 @@ sprite_packer::write_sprite_sheet(pixmap& pm, const node *root)
 }
 
 void
-sprite_packer::write_sprite_sheet(const char *name, pixmap::type color_type, const node *root)
+write_sprite_sheet(const char *name, pixmap::type color_type, const node *root)
 {
 	assert(root->rc_.top_ == 0 && root->rc_.left_ == 0);
 
@@ -140,21 +118,28 @@ sprite_packer::write_sprite_sheet(const char *name, pixmap::type color_type, con
 	pm.save(name);
 }
 
+} // (anonymous namespace)
+
 void
-sprite_packer::pack(std::vector<sprite_base *>& sprites, const char *sheet_name, pixmap::type color_type)
+pack_sprites(std::vector<sprite_base *>& sprites,
+		const char *sheet_name,
+		int sheet_width, int sheet_height,
+		int border,
+		pixmap::type color_type,
+		const char *texture_path_base)
 {
 	const size_t num_sprites = sprites.size();
 
 	std::sort(sprites.begin(), sprites.end(), sprite_cmp);
 
-	node *root = new node(rect(0, 0, sheet_width_, sheet_height_));
+	node *root = new node(rect(0, 0, sheet_width, sheet_height));
 
 	for (auto it = sprites.begin(); it != sprites.end(); it++) {
 		sprite_base *sp = *it;
 
-		assert(sp->width() <= sheet_width_ && sp->height() <= sheet_height_);
+		assert(sp->width() <= sheet_width && sp->height() <= sheet_height);
 
-		if (!root->insert_sprite(sp, border_))
+		if (!root->insert_sprite(sp, border))
 			panic("sprite sheet too small!\n");
 	}
 
@@ -164,20 +149,24 @@ sprite_packer::pack(std::vector<sprite_base *>& sprites, const char *sheet_name,
 	char name[80];
 	sprintf(name, "%s.spr", sheet_name);
 
-	file_writer out(name);
+	FILE *out = fopen(name, "w");
+	if (!out)
+		panic("failed to open %s for writing: %s\n", sheet_name, strerror(errno));
 
-	out.write_uint16(num_sprites);
+
+	fprintf(out, "<spritesheet>\n");
+	fprintf(out, "  <texture path=\"%s/%s.png\" />\n", texture_path_base, sheet_name);
+	fprintf(out, "  <sprites>\n");
 
 	root->for_each_sprite(
-		[&] (const rect& rc, int border, const sprite_base *sp) {
-			sp->serialize(out);
+		[&] (const rect& rc, int border, const sprite_base *sp)
+		{ sp->serialize(out, rc, border); });
 
-			out.write_uint16(rc.left_ + border);
-			out.write_uint16(rc.top_ + border);
-			out.write_uint16(sp->width());
-			out.write_uint16(sp->height());
-		});
+	fprintf(out, "  </sprites>\n");
+	fprintf(out, "</spritesheet>\n");
 	}
+
+	// write texture
 
 	{
 	char name[80];
@@ -186,22 +175,4 @@ sprite_packer::pack(std::vector<sprite_base *>& sprites, const char *sheet_name,
 	printf("writing %s\n", name);
 	write_sprite_sheet(name, color_type, root);
 	}
-}
-
-sprite_packer::sprite_packer()
-: sheet_width_(256), sheet_height_(256)
-, border_(0)
-{ }
-
-void
-sprite_packer::set_border(size_t border)
-{
-	border_ = border;
-}
-
-void
-sprite_packer::set_sheet_size(size_t width, size_t height)
-{
-	sheet_width_ = width;
-	sheet_height_ = height;
 }

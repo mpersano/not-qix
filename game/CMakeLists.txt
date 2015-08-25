@@ -91,12 +91,12 @@ if (NOT ANDROID)
 		COMMAND mkdir -p ${FONT_DIR})
 
 	add_custom_command(TARGET game POST_BUILD
-		COMMAND ${PACKFONT_COMMAND} -w 256 -h 256 -s 20 -g 2 ${CMAKE_SOURCE_DIR}/assets/fonts/font.ttf small x20-x7e
+		COMMAND ${PACKFONT_COMMAND} -w 256 -h 256 -s 20 -g 2 -t fonts ${CMAKE_SOURCE_DIR}/assets/fonts/font.ttf small x20-x7e
 		WORKING_DIRECTORY ${FONT_DIR}
 		DEPENDS ${PACKFONT_COMMAND})
 
 	add_custom_command(TARGET game POST_BUILD
-		COMMAND ${PACKFONT_COMMAND} -w 256 -h 256 -s 12 -g 2 ${CMAKE_SOURCE_DIR}/assets/fonts/font.ttf tiny x20-x7e
+		COMMAND ${PACKFONT_COMMAND} -w 256 -h 256 -s 12 -g 2 -t fonts ${CMAKE_SOURCE_DIR}/assets/fonts/font.ttf tiny x20-x7e
 		WORKING_DIRECTORY ${FONT_DIR}
 		DEPENDS ${PACKFONT_COMMAND})
 
@@ -106,7 +106,7 @@ if (NOT ANDROID)
 		COMMAND mkdir -p ${SPRITE_DIR})
 
 	add_custom_command(TARGET game POST_BUILD
-		COMMAND ${PACKSPRITES_COMMAND} -w 256 -h 256 sprites ${CMAKE_SOURCE_DIR}/assets/sprites
+		COMMAND ${PACKSPRITES_COMMAND} -w 256 -h 256 -t sprites sprites ${CMAKE_SOURCE_DIR}/assets/sprites
 		WORKING_DIRECTORY ${SPRITE_DIR}
 		DEPENDS ${PACKSPRITES_COMMAND})
 endif()

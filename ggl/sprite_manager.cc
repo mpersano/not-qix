@@ -1,3 +1,5 @@
+#include <tinyxml.h>
+
 #include <ggl/panic.h>
 #include <ggl/core.h>
 #include <ggl/asset.h>
@@ -19,28 +21,46 @@ sprite_manager::get(const std::string& name) const
 }
 
 void
-sprite_manager::load_sprite_sheet(const std::string& name)
+sprite_manager::load_sprite_sheet(const std::string& path)
 {
-	auto a = g_core->get_asset(name + ".spr");
+	auto asset = g_core->get_asset(path);
 
-	int num_sprites = a->read_uint16();
-	(void)a->read_uint8(); // # of sheets
+	std::vector<char> xml(asset->size());
+	asset->read(&xml[0], asset->size());
 
-	for (int i = 0; i < num_sprites; i++) {
-		std::string sprite_name = a->read_string();
+	TiXmlDocument doc;
+	doc.Parse(&xml[0]);
 
-		int sheet_index = a->read_uint8();
+	TiXmlElement *root_el = doc.RootElement();
 
-		int left = a->read_uint16();
-		int top = a->read_uint16();
-		int width = a->read_uint16();
-		int height = a->read_uint16();
+	// texture
 
-		char texture_path[80];
-		sprintf(texture_path, "%s.%03d.png", name.c_str(), sheet_index);
+	const ggl::texture *tex;
 
-		auto sp = std::unique_ptr<sprite>(new sprite(get_texture(texture_path), left, top, width, height));
-		sprite_map_.insert(std::make_pair(sprite_name, std::move(sp)));
+	if (TiXmlElement *texture_el = root_el->FirstChildElement("texture")) {
+		tex = res::get_texture(texture_el->Attribute("path"));
+	}
+
+	// sprites
+
+	if (TiXmlElement *glyphs_el = root_el->FirstChildElement("sprites")) {
+		for (TiXmlNode *node = glyphs_el->FirstChild(); node; node = node->NextSibling()) {
+			TiXmlElement *el = node->ToElement();
+			if (!el)
+				continue;
+
+			// XXX: error checking
+
+			std::string name = el->Attribute("name");
+
+			int x = atoi(el->Attribute("x"));
+			int y = atoi(el->Attribute("y"));
+			int w = atoi(el->Attribute("w"));
+			int h = atoi(el->Attribute("h"));
+
+			auto sp = std::unique_ptr<sprite>(new sprite(tex, x, y, w, h));
+			sprite_map_.insert(std::make_pair(name, std::move(sp)));
+		}
 	}
 }
 

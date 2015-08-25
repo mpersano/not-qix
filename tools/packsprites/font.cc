@@ -1,6 +1,7 @@
 #include <algorithm>
 #include <cmath>
 
+#include "rect.h"
 #include "panic.h"
 #include "font.h"
 
@@ -13,12 +14,12 @@ glyph::glyph(wchar_t code, int left, int top, int advance_x, pixmap *pm)
 { }
 
 void
-glyph::serialize(file_writer& fw) const
+glyph::serialize(FILE *out, const rect& rc, int border) const
 {
-	fw.write_uint16(code_);
-	fw.write_uint8(left_);
-	fw.write_uint8(top_);
-	fw.write_uint8(advance_x_);
+	fprintf(out, "    <glyph x=\"%d\" y=\"%d\" w=\"%d\" h=\"%d\" code=\"%d\" left=\"%d\" top=\"%d\" advancex=\"%d\" />\n",
+		rc.left_ + border, rc.top_ + border,
+		width(), height(),
+		code_, left_, top_, advance_x_);
 }
 
 class ft_library

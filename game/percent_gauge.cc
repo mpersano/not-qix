@@ -19,8 +19,8 @@ percent_gauge::percent_gauge(game& g, int viewport_height)
 , viewport_height_ { viewport_height }
 , position_top_ { true }
 , cur_value_ { 0 }
-, large_font_ { ggl::res::get_font("fonts/small") }
-, small_font_ { ggl::res::get_font("fonts/tiny") }
+, large_font_ { ggl::res::get_font("fonts/small.spr") }
+, small_font_ { ggl::res::get_font("fonts/tiny.spr") }
 , updating_ { false }
 , update_tics_ { 0 }
 {
@@ -148,7 +148,6 @@ percent_gauge::draw_frame() const
 void
 percent_gauge::draw_digits() const
 {
-
 	const int BIG_DIGIT_WIDTH = 20;
 	const int SMALL_DIGIT_WIDTH = 16;
 

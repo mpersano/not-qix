@@ -59,8 +59,9 @@ main(int argc, char *argv[])
 	int border = 2;
 	int sheet_width = 256;
 	int sheet_height = 256;
+	std::string texture_path_base = ".";
 
-	while ((c = getopt(argc, argv, "b:w:h:1")) != EOF) {
+	while ((c = getopt(argc, argv, "b:w:h:t:")) != EOF) {
 		switch (c) {
 			case 'b':
 				border = atoi(optarg);
@@ -73,6 +74,10 @@ main(int argc, char *argv[])
 			case 'h':
 				sheet_height = atoi(optarg);
 				break;
+
+			case 't':
+				texture_path_base = optarg;
+				break;
 		}
 	}
 
@@ -84,8 +89,10 @@ main(int argc, char *argv[])
 
 	load_sprites(dir_name);
 
-	sprite_packer packer;
-	packer.set_border(border);
-	packer.set_sheet_size(sheet_width, sheet_height);
-	packer.pack(sprites, sheet_name, pixmap::RGB_ALPHA);
+	pack_sprites(sprites,
+			sheet_name,
+			sheet_width, sheet_height,
+			border,
+			pixmap::RGB_ALPHA,
+			texture_path_base.c_str());
 }

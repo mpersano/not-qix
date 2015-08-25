@@ -3,6 +3,8 @@
 #include <algorithm>
 #include <stdarg.h>
 
+#include <tinyxml.h>
+
 #include <ggl/panic.h>
 #include <ggl/core.h>
 #include <ggl/asset.h>
@@ -12,6 +14,15 @@
 #include <ggl/font.h>
 
 namespace ggl {
+
+namespace {
+
+void
+glyphs_from_xml_node(TiXmlNode *glyphs_node)
+{
+}
+
+} // (anonymous namespace)
 
 glyph::glyph(const texture *tex, int left, int top, int advance_x, int u, int v, int width, int height)
 : tex { tex }
@@ -34,29 +45,49 @@ glyph::glyph(const texture *tex, int left, int top, int advance_x, int u, int v,
 	v1 = v0 - dv;
 }
 
-font::font(const std::string& path_base)
+font::font(const std::string& path)
 {
+	auto asset = g_core->get_asset(path);
+
+	std::vector<char> xml(asset->size());
+	asset->read(&xml[0], asset->size());
+
+	TiXmlDocument doc;
+	doc.Parse(&xml[0]);
+
+	TiXmlElement *root_el = doc.RootElement();
+
+	// texture
+
+	if (TiXmlElement *texture_el = root_el->FirstChildElement("texture")) {
+		tex = res::get_texture(texture_el->Attribute("path"));
+	}
+
+	// glyphs
+
 	std::fill(std::begin(glyph_map_), std::end(glyph_map_), nullptr);
 
-	auto font_asset = g_core->get_asset(path_base + ".spr");
+	if (TiXmlElement *glyphs_el = root_el->FirstChildElement("sprites")) {
+		for (TiXmlNode *node = glyphs_el->FirstChild(); node; node = node->NextSibling()) {
+			TiXmlElement *el = node->ToElement();
+			if (!el)
+				continue;
 
-	unsigned num_glyphs = font_asset->read_uint16();
+			// XXX: error checking
 
-	tex = res::get_texture(path_base + ".png");
+			wchar_t code = atoi(el->Attribute("code"));
 
-	for (unsigned i = 0; i < num_glyphs; i++) {
-		wchar_t code = font_asset->read_uint16();
+			int x = atoi(el->Attribute("x"));
+			int y = atoi(el->Attribute("y"));
+			int w = atoi(el->Attribute("w"));
+			int h = atoi(el->Attribute("h"));
 
-		int left = static_cast<int8_t>(font_asset->read_uint8());
-		int top = static_cast<int8_t>(font_asset->read_uint8());
-		int advance_x = static_cast<int8_t>(font_asset->read_uint8());
+			int left = atoi(el->Attribute("left"));
+			int top = atoi(el->Attribute("top"));
+			int advance_x = atoi(el->Attribute("advancex"));
 
-		const int u = font_asset->read_uint16();
-		const int v = font_asset->read_uint16();
-		const int width = font_asset->read_uint16();
-		const int height = font_asset->read_uint16();
-
-		glyph_map_[code] = new glyph { tex, left, top, advance_x, u, v, width, height };
+			glyph_map_[code] = new glyph { tex, left, top, advance_x, x, y, w, h };
+		}
 	}
 }
 

@@ -1,9 +1,11 @@
 #pragma once
 
+#include <cstdio>
 #include <vector>
 
-#include "file_writer.h"
 #include "pixmap.h"
+
+class rect;
 
 struct sprite_base
 {
@@ -16,7 +18,7 @@ struct sprite_base
 	size_t height() const
 	{ return pm_->get_height(); }
 
-	virtual void serialize(file_writer& fw) const = 0;
+	virtual void serialize(FILE *out, const rect& rc, int border) const = 0;
 
 	pixmap *pm_;
 };

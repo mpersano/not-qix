@@ -37,10 +37,11 @@ main(int argc, char *argv[])
 	int sheet_width = 256;
 	int sheet_height = 256;
 	int outline_radius = 2;
+	std::string texture_path_base = ".";
 
 	int c;
 
-	while ((c = getopt(argc, argv, "b:s:w:h:g:1")) != EOF) {
+	while ((c = getopt(argc, argv, "b:s:w:h:g:t:")) != EOF) {
 		switch (c) {
 			case 'b':
 				border = atoi(optarg);
@@ -57,11 +58,14 @@ main(int argc, char *argv[])
 			case 'h':
 				sheet_height = atoi(optarg);
 				break;
-			
+
 			case 'g':
 				outline_radius = atoi(optarg);
 				break;
-						
+
+			case 't':
+				texture_path_base = optarg;
+				break;
 		}
 	}
 
@@ -90,9 +94,10 @@ main(int argc, char *argv[])
 		}
 	}
 
-	// pack_sprites(sprites, pixmap::GRAY_ALPHA, border, sheet_name, sheet_width, sheet_height);
-	sprite_packer packer;
-	packer.set_border(border);
-	packer.set_sheet_size(sheet_width, sheet_height);
-	packer.pack(sprites, sheet_name, pixmap::GRAY_ALPHA);
+	pack_sprites(sprites,
+			sheet_name,
+			sheet_width, sheet_height,
+			border,
+			pixmap::GRAY_ALPHA,
+			texture_path_base.c_str());
 }

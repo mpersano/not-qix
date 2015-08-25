@@ -3,7 +3,8 @@ find_package(ZLIB REQUIRED)
 include_directories(
 	${ZLIB_INCLUDE_DIR}
 	${PNG_INCLUDE_DIR}
-	${CMAKE_SOURCE_DIR})
+	${CMAKE_SOURCE_DIR}
+	${TINYXML_INCLUDE_DIR})
 
 if (ANDROID)
 	include_directories(
@@ -21,7 +22,6 @@ set(GGL_SOURCES
 	panic.cc
 	event.cc
 	core.cc
-	asset.cc
 	texture.cc
 	font.cc
 	image.cc

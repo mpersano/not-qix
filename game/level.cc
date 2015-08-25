@@ -79,7 +79,7 @@ level_from_xml_node(TiXmlNode *level_node)
 			const char *value = e->Value();
 
 			if (strcmp(value, "foreground") == 0) {
-				fg_path  = e->Attribute("path");
+				fg_path = e->Attribute("path");
 			} else if (strcmp(value, "background") == 0) {
 				bg_path = e->Attribute("path");
 			} else if (strcmp(value, "mask") == 0) {

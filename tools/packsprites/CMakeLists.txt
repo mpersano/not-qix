@@ -6,8 +6,8 @@ include_directories(
 	${FREETYPE_INCLUDE_DIRS})
 
 set(COMMON_SOURCES
-	file_writer.cc
 	font.cc
+	rect.cc
 	panic.cc
 	pixmap.cc
 	sprite.cc

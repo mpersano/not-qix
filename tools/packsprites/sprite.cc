@@ -1,5 +1,6 @@
 #include <cstring>
 
+#include "rect.h"
 #include "sprite.h"
 
 sprite::sprite(const char *name, pixmap *pm)
@@ -8,7 +9,10 @@ sprite::sprite(const char *name, pixmap *pm)
 { }
 
 void
-sprite::serialize(file_writer& fw) const
+sprite::serialize(FILE *out, const rect& rc, int border) const
 {
-	fw.write_string(name_.c_str());
+	fprintf(out, "    <sprite x=\"%d\" y=\"%d\" w=\"%d\" h=\"%d\" name=\"%s\" />\n",
+		rc.left_ + border, rc.top_ + border,
+		width(), height(),
+		name_.c_str());
 }
