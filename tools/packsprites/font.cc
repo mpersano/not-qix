@@ -2,6 +2,7 @@
 #include <cmath>
 
 #include "rect.h"
+#include "rgb.h"
 #include "panic.h"
 #include "font.h"
 
@@ -71,7 +72,7 @@ font::set_char_size(int size)
 }
 
 glyph *
-font::render_glyph(wchar_t code, int outline_radius)
+font::render_glyph(wchar_t code, int outline_radius, const color_fn& inner_color, const color_fn& outline_color)
 {
 	if ((FT_Load_Char(face_, code, FT_LOAD_RENDER)) != 0)
 		panic("FT_Load_Char");
@@ -86,23 +87,27 @@ font::render_glyph(wchar_t code, int outline_radius)
 	const int dest_height = src_height + 2*outline_radius;
 	const int dest_width = src_width + 2*outline_radius;
 
-	pixmap *pm = new pixmap(dest_width, dest_height, pixmap::GRAY_ALPHA);
+	std::vector<float> gray(dest_width*dest_height), alpha(dest_width*dest_height);
 
 	// copy grayscale channel
+	// XXX: don't really need this step
 
-	const uint8_t *q = bitmap->buffer;
+	{
+	const uint8_t *p = bitmap->buffer;
+	float *q = &gray[outline_radius*dest_width + outline_radius];
 
 	for (int i = 0; i < src_height; i++) {
-		uint16_t *p = reinterpret_cast<uint16_t *>(pm->get_bits()) + (outline_radius + i)*dest_width + outline_radius;
-
 		for (int j = 0; j < src_width; j++) {
-			uint8_t v = *q++;
-			*p++ = v;
+			*q++ = static_cast<float>(*p++)/255.;
 		}
+
+		q += 2*outline_radius;
+	}
 	}
 
-	// apply dilation morphological filter to alpha channel
+	// create outline with dilation morphological filter
 
+	{
 	float kernel[2*outline_radius + 1][2*outline_radius + 1];
 
 	for (int i = 0; i < 2*outline_radius + 1; i++) {
@@ -121,26 +126,48 @@ font::render_glyph(wchar_t code, int outline_radius)
 		}
 	}
 
-	uint16_t *p = reinterpret_cast<uint16_t *>(pm->get_bits());
+	float *p = &alpha[0];
 
 	for (int i = 0; i < dest_height; i++) {
 		for (int j = 0; j < dest_width; j++) {
-			uint8_t v = 0;
+			float v = 0;
 
 			for (int dr = -outline_radius; dr <= outline_radius; dr++) {
 				for (int dc = -outline_radius; dc <= outline_radius; dc++) {
-					int r = i + dr - outline_radius;
-					int c = j + dc - outline_radius;
+					int r = i + dr;
+					int c = j + dc;
 
-					if (r >= 0 && r < src_height && c >= 0 && c < src_width) {
+					if (r >= 0 && r < dest_height  && c >= 0 && c < dest_width) {
 						const float w = kernel[dr + outline_radius][dc + outline_radius];
-						v = std::max(v, static_cast<uint8_t>(w*bitmap->buffer[r*src_width + c]));
+						v = std::max(v, w*gray[r*dest_width + c]);
 					}
 				}
 			}
 
-			*p++ |= static_cast<uint16_t >(v) << 8;
+			*p++ = v;
 		}
+	}
+	}
+
+	pixmap *pm = new pixmap(dest_width, dest_height, pixmap::RGB_ALPHA);
+
+	// initialize pixmap, add some color
+
+	{
+	uint32_t *p = reinterpret_cast<uint32_t *>(pm->get_bits());
+
+	for (int i = 0; i < dest_height; i++) {
+		const float t = static_cast<float>(i)/dest_height; // XXX: erm not really, should sub outline radius for inner color
+
+		rgb<int> fg_color = inner_color(t);
+		rgb<int> bg_color = outline_color(t);
+
+		for (int j = 0; j < dest_width; j++) {
+			rgb<int> c = bg_color + (fg_color - bg_color)*gray[i*dest_width + j];
+			int a = static_cast<int>(255*alpha[i*dest_width + j]);
+			*p++ = c.r + (c.g << 8) + (c.b << 16) + (a << 24);
+		}
+	}
 	}
 
 	const FT_Glyph_Metrics *metrics = &slot->metrics;

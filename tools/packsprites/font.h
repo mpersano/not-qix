@@ -3,6 +3,7 @@
 #include <ft2build.h>
 #include FT_FREETYPE_H
 
+#include "rgb.h"
 #include "sprite_base.h"
 
 struct glyph : sprite_base
@@ -15,6 +16,14 @@ struct glyph : sprite_base
 	int left_, top_, advance_x_;
 };
 
+class color_fn
+{
+public:
+	virtual ~color_fn() = default;
+
+	virtual rgb<int> operator()(float t) const = 0;
+};
+
 class font
 {
 public:
@@ -22,7 +31,7 @@ public:
 	virtual ~font();
 
 	void set_char_size(int size);
-	glyph *render_glyph(const wchar_t code, int outline_radius);
+	glyph *render_glyph(const wchar_t code, int outline_radius, const color_fn& inner_color, const color_fn& outline_color);
 
 private:
 	FT_Face face_;
