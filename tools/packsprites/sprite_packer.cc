@@ -101,27 +101,8 @@ pack_sprites(std::vector<sprite_base *>& sprites, pixmap::type color_type, int b
 {
 }
 
-class sprite_packer_impl : public sprite_packer
-{
-public:
-	void write_sprite_sheet(pixmap& pm, const node *root);
-	void write_sprite_sheet(const char *name, pixmap::type color_type, const node *root);
-};
-
-class single_sheet_packer : public sprite_packer_impl
-{
-public:
-	void pack(std::vector<sprite_base *>& sprites, const char *sheet_name, pixmap::type color_type);
-};
-
-class multi_sheet_packer : public sprite_packer_impl
-{
-public:
-	void pack(std::vector<sprite_base *>& sprites, const char *sheet_name, pixmap::type color_type);
-};
-
 void
-sprite_packer_impl::write_sprite_sheet(pixmap& pm, const node *root)
+sprite_packer::write_sprite_sheet(pixmap& pm, const node *root)
 {
 	if (root->left_) {
 		write_sprite_sheet(pm, root->left_);
@@ -150,24 +131,24 @@ sprite_packer_impl::write_sprite_sheet(pixmap& pm, const node *root)
 }
 
 void
-sprite_packer_impl::write_sprite_sheet(const char *name, pixmap::type color_type, const node *root)
+sprite_packer::write_sprite_sheet(const char *name, pixmap::type color_type, const node *root)
 {
 	assert(root->rc_.top_ == 0 && root->rc_.left_ == 0);
-	
+
 	pixmap pm(root->rc_.width_, root->rc_.height_, color_type);
 	write_sprite_sheet(pm, root);
 	pm.save(name);
 }
 
 void
-single_sheet_packer::pack(std::vector<sprite_base *>& sprites, const char *sheet_name, pixmap::type color_type)
+sprite_packer::pack(std::vector<sprite_base *>& sprites, const char *sheet_name, pixmap::type color_type)
 {
 	const size_t num_sprites = sprites.size();
 
 	std::sort(sprites.begin(), sprites.end(), sprite_cmp);
 
 	node *root = new node(rect(0, 0, sheet_width_, sheet_height_));
-	
+
 	for (auto it = sprites.begin(); it != sprites.end(); it++) {
 		sprite_base *sp = *it;
 
@@ -190,7 +171,7 @@ single_sheet_packer::pack(std::vector<sprite_base *>& sprites, const char *sheet
 	root->for_each_sprite(
 		[&] (const rect& rc, int border, const sprite_base *sp) {
 			sp->serialize(out);
-	
+
 			out.write_uint16(rc.left_ + border);
 			out.write_uint16(rc.top_ + border);
 			out.write_uint16(sp->width());
@@ -207,70 +188,9 @@ single_sheet_packer::pack(std::vector<sprite_base *>& sprites, const char *sheet
 	}
 }
 
-void
-multi_sheet_packer::pack(std::vector<sprite_base *>& sprites, const char *sheet_name, pixmap::type color_type)
-{
-	const size_t num_sprites = sprites.size();
-
-	std::vector<node *> trees;
-
-	while (sprites.size()) {
-		std::sort(sprites.begin(), sprites.end(), sprite_cmp);
-
-		node *root = new node(rect(0, 0, sheet_width_, sheet_height_));
-
-		std::vector<sprite_base *>::iterator it = sprites.begin();
-		
-		while (it != sprites.end()) {
-			sprite_base *sp = *it;
-
-			assert(sp->width() <= sheet_width_ && sp->height() <= sheet_height_);
-
-			if (root->insert_sprite(sp, border_))
-				it = sprites.erase(it);
-			else
-				++it;
-		}
-
-		trees.push_back(root);
-	}
-
-	// write sprite sheets
-
-	char name[80];
-	sprintf(name, "%s.spr", sheet_name);
-
-	file_writer out(name);
-
-	out.write_uint16(num_sprites);
-	out.write_uint8(trees.size());
-
-	for (size_t i = 0; i < trees.size(); i++) {
-		char name[80];
-
-		sprintf(name, "%s.%03lu.png", sheet_name, i);
-		printf("writing %s\n", name);
-		write_sprite_sheet(name, color_type, trees[i]);
-
-		trees[i]->for_each_sprite(
-			[&] (const rect& rc, int border, const sprite_base *sp) {
-				sp->serialize(out);
-		
-				out.write_uint8(i);
-				out.write_uint16(rc.left_ + border);
-				out.write_uint16(rc.top_ + border);
-				out.write_uint16(sp->width());
-				out.write_uint16(sp->height());
-			});
-	}
-}
-
 sprite_packer::sprite_packer()
 : sheet_width_(256), sheet_height_(256)
 , border_(0)
-{ }
-
-sprite_packer::~sprite_packer()
 { }
 
 void
@@ -284,13 +204,4 @@ sprite_packer::set_sheet_size(size_t width, size_t height)
 {
 	sheet_width_ = width;
 	sheet_height_ = height;
-}
-
-sprite_packer *
-sprite_packer::make(bool multi)
-{
-	if (multi)
-		return new multi_sheet_packer;
-	else
-		return new single_sheet_packer;
 }

@@ -37,7 +37,6 @@ main(int argc, char *argv[])
 	int sheet_width = 256;
 	int sheet_height = 256;
 	int outline_radius = 2;
-	bool multi = true;
 
 	int c;
 
@@ -62,11 +61,7 @@ main(int argc, char *argv[])
 			case 'g':
 				outline_radius = atoi(optarg);
 				break;
-			
-			case '1':
-				multi = false;
-				break;
-				
+						
 		}
 	}
 
@@ -96,8 +91,8 @@ main(int argc, char *argv[])
 	}
 
 	// pack_sprites(sprites, pixmap::GRAY_ALPHA, border, sheet_name, sheet_width, sheet_height);
-	sprite_packer *packer = sprite_packer::make(multi);
-	packer->set_border(border);
-	packer->set_sheet_size(sheet_width, sheet_height);
-	packer->pack(sprites, sheet_name, pixmap::GRAY_ALPHA);
+	sprite_packer packer;
+	packer.set_border(border);
+	packer.set_sheet_size(sheet_width, sheet_height);
+	packer.pack(sprites, sheet_name, pixmap::GRAY_ALPHA);
 }
