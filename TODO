@@ -28,9 +28,6 @@ TODO
   * lightning
   * +percentage
   * "danger!"
-? shaders
-  * shader wrappers
-  * shader parser
 * scrolling: better easing function
 * rendering
   ? flat shaded 3d
@@ -42,6 +39,14 @@ TODO
 * menu system
 * music
 * sound fx
+* font packer
+  * use different colors for glyph outline/interior
+  * gradients
+  * drop shadows
+    * blur
+    * distance
+    * opacity
+* declarative animation system
 
 BUGS
 ----
