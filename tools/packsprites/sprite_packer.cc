@@ -3,6 +3,8 @@
 
 #include <algorithm>
 
+#include <tinyxml.h>
+
 #include "panic.h"
 #include "rect.h"
 #include "sprite.h"
@@ -146,24 +148,38 @@ pack_sprites(std::vector<sprite_base *>& sprites,
 	// write sprite sheets
 
 	{
-	char name[80];
-	sprintf(name, "%s.spr", sheet_name);
+	TiXmlDocument doc;
 
-	FILE *out = fopen(name, "w");
-	if (!out)
-		panic("failed to open %s for writing: %s\n", sheet_name, strerror(errno));
+	auto* decl = new TiXmlDeclaration( "1.0", "", "" );
+	doc.LinkEndChild(decl);
 
+	auto *spritesheet = new TiXmlElement("spritesheet");
+	doc.LinkEndChild(spritesheet);
 
-	fprintf(out, "<spritesheet>\n");
-	fprintf(out, "  <texture path=\"%s/%s.png\" />\n", texture_path_base, sheet_name);
-	fprintf(out, "  <sprites>\n");
+	auto *texture = new TiXmlElement("texture");
+	texture->SetAttribute("path", std::string(texture_path_base) + "/" + std::string(sheet_name) + std::string(".png"));
+	spritesheet->LinkEndChild(texture);
+
+	auto *sprites = new TiXmlElement("sprites");
 
 	root->for_each_sprite(
 		[&] (const rect& rc, int border, const sprite_base *sp)
-		{ sp->serialize(out, rc, border); });
+		{
+			auto *el = new TiXmlElement("sprite");
 
-	fprintf(out, "  </sprites>\n");
-	fprintf(out, "</spritesheet>\n");
+			el->SetAttribute("x", rc.left_ + border);
+			el->SetAttribute("y", rc.top_ + border);
+			el->SetAttribute("w", sp->width());
+			el->SetAttribute("h", sp->height());
+
+			sp->serialize(el);
+
+			sprites->LinkEndChild(el);
+		});
+
+	spritesheet->LinkEndChild(sprites);
+
+	doc.SaveFile(std::string(sheet_name) + ".spr");
 	}
 
 	// write texture

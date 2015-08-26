@@ -1,6 +1,8 @@
 #include <algorithm>
 #include <cmath>
 
+#include <tinyxml.h>
+
 #include "rect.h"
 #include "rgb.h"
 #include "panic.h"
@@ -124,12 +126,12 @@ glyph::glyph(wchar_t code, int left, int top, int advance_x, pixmap *pm)
 { }
 
 void
-glyph::serialize(FILE *out, const rect& rc, int border) const
+glyph::serialize(TiXmlElement *el) const
 {
-	fprintf(out, "    <glyph x=\"%d\" y=\"%d\" w=\"%d\" h=\"%d\" code=\"%d\" left=\"%d\" top=\"%d\" advancex=\"%d\" />\n",
-		rc.left_ + border, rc.top_ + border,
-		width(), height(),
-		code_, left_, top_, advance_x_);
+	el->SetAttribute("code", code_);
+	el->SetAttribute("left", left_);
+	el->SetAttribute("top", top_);
+	el->SetAttribute("advancex", advance_x_);
 }
 
 class ft_library

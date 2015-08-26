@@ -8,7 +8,7 @@ struct sprite : sprite_base
 {
 	sprite(const char *name, pixmap *pm);
 
-	void serialize(FILE *out, const rect& rc, int border) const override;
+	void serialize(TiXmlElement *el) const override;
 
 	std::string name_;
 };
