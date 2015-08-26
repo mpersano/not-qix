@@ -31,7 +31,14 @@ public:
 	virtual ~font();
 
 	void set_char_size(int size);
-	glyph *render_glyph(const wchar_t code, int outline_radius, const color_fn& inner_color, const color_fn& outline_color);
+
+	glyph *render_glyph(
+			const wchar_t code,
+			int outline_radius,
+			const color_fn& inner_color,
+			const color_fn& outline_color,
+			int shadow_dx, int shadow_dy,
+			float shadow_opacity);
 
 private:
 	FT_Face face_;

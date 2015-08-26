@@ -131,6 +131,9 @@ main(int argc, char *argv[])
 	int sheet_width = 256;
 	int sheet_height = 256;
 	int outline_radius = 2;
+	int shadow_dx = 2;
+	int shadow_dy = 2;
+	float shadow_opacity = .2;
 	std::string texture_path_base = ".";
 
 	std::unique_ptr<color_fn> inner_color { new flat_color_fn { rgb<int> { 255, 255, 255 } } };
@@ -138,7 +141,7 @@ main(int argc, char *argv[])
 
 	int c;
 
-	while ((c = getopt(argc, argv, "b:s:w:h:g:t:i:o:")) != EOF) {
+	while ((c = getopt(argc, argv, "b:s:w:h:g:t:i:o:S:d:e:")) != EOF) {
 		switch (c) {
 			case 'b':
 				border = atoi(optarg);
@@ -171,6 +174,18 @@ main(int argc, char *argv[])
 			case 'o':
 				outline_color = std::move(parse_color_fn(optarg));
 				break;
+
+			case 'S':
+				shadow_opacity = atof(optarg);
+				break;
+
+			case 'd':
+				shadow_dx = atoi(optarg);
+				break;
+
+			case 'e':
+				shadow_dy = atoi(optarg);
+				break;
 		}
 	}
 
@@ -192,9 +207,9 @@ main(int argc, char *argv[])
 			*dash = '\0';
 
 			for (int j = parse_int(range); j <= parse_int(dash + 1); j++)
-				sprites.push_back(f.render_glyph(j, outline_radius, *inner_color.get(), *outline_color.get()));
+				sprites.push_back(f.render_glyph(j, outline_radius, *inner_color.get(), *outline_color.get(), shadow_dx, shadow_dy, shadow_opacity));
 		} else {
-			sprites.push_back(f.render_glyph(parse_int(range), outline_radius, *inner_color.get(), *outline_color.get()));
+			sprites.push_back(f.render_glyph(parse_int(range), outline_radius, *inner_color.get(), *outline_color.get(), shadow_dx, shadow_dy, shadow_opacity));
 		}
 	}
 

@@ -44,3 +44,10 @@ struct rgb
 
 	T r, g, b;
 };
+
+template <typename S, typename T>
+const rgb<T>
+operator*(S s, const rgb<T>& c)
+{
+	return rgb<T> { static_cast<T>(c.r*s), static_cast<T>(c.g*s), static_cast<T>(c.b*s) };
+}
