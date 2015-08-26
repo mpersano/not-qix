@@ -125,11 +125,11 @@ pixmap::resize(size_t new_width, size_t new_height)
 #endif
 
 void
-pixmap::save(const char *path) const
+pixmap::save(const std::string& path) const
 {
 	FILE *fp;
 
-	if ((fp = fopen(path, "wb")) == NULL)
+	if ((fp = fopen(path.c_str(), "wb")) == NULL)
 		panic("fopen %s for write failed: %s", strerror(errno));
 
 	png_structp png_ptr;

@@ -131,8 +131,8 @@ main(int argc, char *argv[])
 	int sheet_width = 256;
 	int sheet_height = 256;
 	int outline_radius = 2;
-	int shadow_dx = 2;
-	int shadow_dy = 2;
+	int shadow_dx = 0;
+	int shadow_dy = 0;
 	float shadow_opacity = .2;
 	std::string texture_path_base = ".";
 

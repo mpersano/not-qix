@@ -1,5 +1,6 @@
 #pragma once
 
+#include <string>
 #include <stdint.h>
 
 class pixmap
@@ -34,7 +35,7 @@ public:
 
 	static pixmap *load(const char *path);
 
-	void save(const char *path) const;
+	void save(const std::string& path) const;
 
 protected:
 	bool row_is_empty(int row) const;

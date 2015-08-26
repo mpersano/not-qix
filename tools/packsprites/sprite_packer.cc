@@ -111,7 +111,7 @@ write_sprite_sheet(pixmap& pm, const node *root)
 }
 
 void
-write_sprite_sheet(const char *name, pixmap::type color_type, const node *root)
+write_sprite_sheet(const std::string& name, pixmap::type color_type, const node *root)
 {
 	assert(root->rc_.top_ == 0 && root->rc_.left_ == 0);
 
@@ -124,11 +124,11 @@ write_sprite_sheet(const char *name, pixmap::type color_type, const node *root)
 
 void
 pack_sprites(std::vector<sprite_base *>& sprites,
-		const char *sheet_name,
+		const std::string& sheet_name,
 		int sheet_width, int sheet_height,
 		int border,
 		pixmap::type color_type,
-		const char *texture_path_base)
+		const std::string& texture_path_base)
 {
 	const size_t num_sprites = sprites.size();
 
@@ -157,7 +157,7 @@ pack_sprites(std::vector<sprite_base *>& sprites,
 	doc.LinkEndChild(spritesheet);
 
 	auto *texture = new TiXmlElement("texture");
-	texture->SetAttribute("path", std::string(texture_path_base) + "/" + std::string(sheet_name) + std::string(".png"));
+	texture->SetAttribute("path", texture_path_base + "/" + sheet_name + ".png");
 	spritesheet->LinkEndChild(texture);
 
 	auto *sprites = new TiXmlElement("sprites");
@@ -183,12 +183,5 @@ pack_sprites(std::vector<sprite_base *>& sprites,
 	}
 
 	// write texture
-
-	{
-	char name[80];
-	sprintf(name, "%s.png", sheet_name);
-
-	printf("writing %s\n", name);
-	write_sprite_sheet(name, color_type, root);
-	}
+	write_sprite_sheet(sheet_name + ".png", color_type, root);
 }
