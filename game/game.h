@@ -20,7 +20,7 @@ public:
 	player(game& g);
 
 	void reset();
-	void move(direction dir);
+	void move(direction dir, bool button);
 	void update();
 
 	void draw() const;
@@ -51,7 +51,7 @@ public:
 	game(int width, int height);
 
 	void reset(const level *l);
-	void move(direction dir);
+	void move(direction dir, bool button);
 	void update();
 	void draw() const;
 	void fill_grid(const std::vector<vec2i>& contour);

@@ -67,19 +67,27 @@ in_game_state::update()
 void
 in_game_state::update_game()
 {
-	if (dpad_state_ & (1u << static_cast<int>(ggl::dpad_button::UP)))
-		game_.move(direction::UP);
+	bool button = dpad_button_pressed(ggl::dpad_button::BUTTON1);
 
-	if (dpad_state_ & (1u << static_cast<int>(ggl::dpad_button::DOWN)))
-		game_.move(direction::DOWN);
+	if (dpad_button_pressed(ggl::dpad_button::UP))
+		game_.move(direction::UP, button);
 
-	if (dpad_state_ & (1u << static_cast<int>(ggl::dpad_button::LEFT)))
-		game_.move(direction::LEFT);
+	if (dpad_button_pressed(ggl::dpad_button::DOWN))
+		game_.move(direction::DOWN, button);
 
-	if (dpad_state_ & (1u << static_cast<int>(ggl::dpad_button::RIGHT)))
-		game_.move(direction::RIGHT);
+	if (dpad_button_pressed(ggl::dpad_button::LEFT))
+		game_.move(direction::LEFT, button);
+
+	if (dpad_button_pressed(ggl::dpad_button::RIGHT))
+		game_.move(direction::RIGHT, button);
 
 	game_.update();
+}
+
+bool
+in_game_state::dpad_button_pressed(ggl::dpad_button button) const
+{
+	return dpad_state_ & (1u << static_cast<int>(button));
 }
 
 void

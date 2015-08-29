@@ -28,18 +28,19 @@ player::reset()
 }
 
 void
-player::move(direction dir)
+player::move(direction dir, bool button)
 {
 	switch (state_) {
 		case state::IDLE:
 			move_slide(dir);
 
-			if (state_ != state::SLIDING)
+			if (state_ != state::SLIDING && button)
 				move_extend(dir);
 			break;
 
 		case state::EXTENDING_IDLE:
-			move_extend(dir);
+			if (button)
+				move_extend(dir);
 			break;
 	}
 }
@@ -619,9 +620,9 @@ game::draw_border() const
 }
 
 void
-game::move(direction dir)
+game::move(direction dir, bool button)
 {
-	player_.move(dir);
+	player_.move(dir, button);
 }
 
 void

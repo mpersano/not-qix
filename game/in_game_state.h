@@ -29,6 +29,8 @@ private:
 	void on_dpad_button_up(ggl::dpad_button button);
 	void on_gesture(gesture g);
 
+	bool dpad_button_pressed(ggl::dpad_button button) const;
+
 	game game_;
 
 	unsigned dpad_state_;
