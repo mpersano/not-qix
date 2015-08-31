@@ -10,11 +10,15 @@ link_directories(
 	${CMAKE_BINARY_DIR}/ggl
 	${CMAKE_BINARY_DIR}/png)
 
+# XXX fix this later
+find_library(LUA52_LIBRARY NAMES lua5.2 PATHS /usr/lib)
+
 set(GAME_LIBRARIES
 	ggl
 	${PNG_LIBRARY}
 	${ZLIB_LIBRARIES}
-	${TINYXML_LIBRARY})
+	${TINYXML_LIBRARY}
+	${LUA52_LIBRARY})
 
 if (ANDROID)
 	include_directories(
@@ -50,7 +54,9 @@ set(GAME_SOURCES
 	gesture_detector.cc
 	level.cc
 	game.cc
+	script_interface.cc
 	foe.cc
+	phys_foe.cc
 	boss.cc
 	miniboss.cc
 	in_game_state.cc
@@ -77,13 +83,16 @@ if (NOT ANDROID)
 	add_custom_command(TARGET game POST_BUILD
 		COMMAND mkdir -p ${DATA_DIR})
 
-	# copy images/data
+	# copy images/data/scripts
 	
 	add_custom_command(TARGET game POST_BUILD
 		COMMAND cp -r ${CMAKE_SOURCE_DIR}/assets/images ${DATA_DIR})
 
 	add_custom_command(TARGET game POST_BUILD
 		COMMAND cp -r ${CMAKE_SOURCE_DIR}/assets/data ${DATA_DIR})
+
+	add_custom_command(TARGET game POST_BUILD
+		COMMAND cp -r ${CMAKE_SOURCE_DIR}/assets/scripts ${DATA_DIR})
 
 	# pack fonts
 

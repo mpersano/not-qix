@@ -1,6 +1,7 @@
 #pragma once
 
-#include "foe.h"
+#include "script_interface.h"
+#include "phys_foe.h"
 
 namespace ggl {
 class sprite;
@@ -48,4 +49,5 @@ private:
 
 	const ggl::sprite *core_sprite_;
 	const ggl::sprite *spike_sprite_;
+	std::unique_ptr<script_thread> script_thread_;
 };

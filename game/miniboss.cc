@@ -42,7 +42,7 @@ miniboss::update()
 		}
 	}
 
-	move();
+	update_position();
 
 	return true;
 }

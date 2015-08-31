@@ -12,6 +12,7 @@
 
 #include "level.h"
 #include "in_game_state.h"
+#include "script_interface.h"
 
 namespace {
 
@@ -36,7 +37,9 @@ private:
 };
 
 game_app::game_app()
-{ }
+{
+	init_script_interface();
+}
 
 void
 game_app::init(int viewport_width, int viewport_height)

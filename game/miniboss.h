@@ -1,6 +1,6 @@
 #pragma once
 
-#include "foe.h"
+#include "phys_foe.h"
 
 namespace ggl {
 class sprite;

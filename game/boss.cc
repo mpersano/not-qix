@@ -146,8 +146,11 @@ boss::boss(game& g)
 , miniboss_spawned_ { 0 }
 , core_sprite_ { ggl::res::get_sprite("boss-core.png") }
 , spike_sprite_ { ggl::res::get_sprite("boss-spike.png") }
+, script_thread_ { create_script_thread("scripts/boss.lua") }
 {
 	set_state(state::CHASING);
+
+	script_thread_->call("init", this);
 }
 
 void
@@ -160,7 +163,9 @@ boss::set_state(state next_state)
 bool
 boss::update()
 {
-	move();
+	update_position();
+
+	script_thread_->call("update", this);
 
 	++state_tics_;
 
