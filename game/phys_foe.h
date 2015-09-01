@@ -10,6 +10,8 @@ public:
 	bool intersects(const vec2i& from, const vec2i& to) const override;
 
 	void update_position();
+	void rotate_to_player();
+	void set_speed(float speed);
 
 	vec2f get_position() const;
 

@@ -68,6 +68,26 @@ phys_foe::update_position()
 	} while (collided);
 }
 
+void
+phys_foe::rotate_to_player()
+{
+	vec2f n { -dir_.y, dir_.x };
+
+	float da = .025f*dot(n, normalized(vec2f(game_.get_player_world_position()) - pos_));
+
+	const float c = cosf(da);
+	const float s = sinf(da);
+
+	vec2f next_dir { dot(dir_, vec2f { c, -s }), dot(dir_, vec2f { s, c }) };
+	dir_ = next_dir;
+}
+
+void
+phys_foe::set_speed(float speed)
+{
+	speed_ = speed;
+}
+
 bool
 phys_foe::intersects(const vec2i& from, const vec2i& to) const
 {

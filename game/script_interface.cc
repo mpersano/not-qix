@@ -1,6 +1,8 @@
 #include <memory>
 #include <cassert>
 
+#include "phys_foe.h"
+#include "boss.h"
 #include "script_interface.h"
 
 //
@@ -17,12 +19,6 @@
 //
 
 namespace {
-
-const char *const interface_functions[] {
-	"init",
-	"update"
-	// ... more stuff here
-};
 
 void
 dump_lua_stack(lua_State *l)
@@ -70,6 +66,78 @@ dup_table(lua_State *l)
 	}
 }
 
+//
+// exported functions
+//
+
+// foe
+
+int
+foe_update_position(lua_State *state)
+{
+	reinterpret_cast<phys_foe *>(lua_touserdata(state, -1))->update_position();
+	return 0;
+}
+
+int
+foe_rotate_to_player(lua_State *state)
+{
+	reinterpret_cast<phys_foe *>(lua_touserdata(state, -1))->rotate_to_player();
+	return 0;
+}
+
+int
+foe_set_speed(lua_State *state)
+{
+	reinterpret_cast<phys_foe *>(lua_touserdata(state, -2))->set_speed(lua_tonumber(state, -1));
+	return 0;
+}
+
+// boss
+
+int
+boss_rotate_spike_to_player(lua_State *state)
+{
+	reinterpret_cast<boss *>(lua_touserdata(state, -1))->rotate_spike_to_player();
+	return 0;
+}
+
+int
+boss_rotate_spike(lua_State *state)
+{
+	reinterpret_cast<boss *>(lua_touserdata(state, -2))->rotate_spike(lua_tonumber(state, -1));
+	return 0;
+}
+
+int
+boss_set_spike_dispersion(lua_State *state)
+{
+	reinterpret_cast<boss *>(lua_touserdata(state, -2))->set_spike_dispersion(lua_tonumber(state, -1));
+	return 0;
+}
+
+int
+boss_fire_bullet(lua_State *state)
+{
+	reinterpret_cast<boss *>(lua_touserdata(state, -1))->fire_bullet();
+	return 0;
+}
+
+const std::pair<const char *, lua_CFunction> exported_functions[] {
+	{ "foe_update_position", foe_update_position },
+	{ "foe_rotate_to_player", foe_rotate_to_player },
+	{ "foe_set_speed", foe_set_speed },
+	{ "boss_rotate_spike_to_player", boss_rotate_spike_to_player },
+	{ "boss_rotate_spike", boss_rotate_spike },
+	{ "boss_set_spike_dispersion", boss_set_spike_dispersion },
+	{ "boss_fire_bullet", boss_fire_bullet },
+};
+
+const char *const script_interface_functions[] {
+	"init",
+	"update"
+};
+
 class script_interface
 {
 public:
@@ -102,6 +170,10 @@ script_interface::script_interface()
 	// active threads (to avoid gc)
 	lua_newtable(lua_state_);
 	lua_setglobal(lua_state_, "_threadtable");
+
+	// register functions
+	for (auto& func : exported_functions)
+		lua_register(lua_state_, func.first, func.second);
 }
 
 script_interface::~script_interface()
@@ -153,7 +225,7 @@ script_interface::create_script_thread(const std::string& path)
 		lua_getglobal(lua_state_, "_scriptfuncs");
 		lua_newtable(lua_state_);
 
-		for (auto func : interface_functions) {
+		for (auto func : script_interface_functions) {
 			lua_getglobal(lua_state_, func);
 
 			if (!lua_isnil(lua_state_, -1)) {

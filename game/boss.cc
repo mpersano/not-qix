@@ -143,122 +143,45 @@ bullet::intersects(const vec2i& from, const vec2i& to) const
 boss::boss(game& g)
 : phys_foe { g, vec2f { 100, 100 }, normalized(vec2f { 1.5f, .5f }), BOSS_SPEED, BOSS_RADIUS }
 , spike_angle_ { 0 }
+, spike_dispersion_ { 0 }
 , miniboss_spawned_ { 0 }
 , core_sprite_ { ggl::res::get_sprite("boss-core.png") }
 , spike_sprite_ { ggl::res::get_sprite("boss-spike.png") }
 , script_thread_ { create_script_thread("scripts/boss.lua") }
 {
-	set_state(state::CHASING);
-
 	script_thread_->call("init", this);
-}
-
-void
-boss::set_state(state next_state)
-{
-	state_ = next_state;
-	state_tics_ = 0;
 }
 
 bool
 boss::update()
 {
-	update_position();
-
 	script_thread_->call("update", this);
-
-	++state_tics_;
-
-	switch (state_) {
-		case state::CHASING:
-			update_chasing();
-			break;
-
-		case state::PRE_FIRING:
-			update_pre_firing();
-			break;
-
-		case state::FIRING:
-			update_firing();
-			break;
-
-		case state::POST_FIRING:
-			update_post_firing();
-			break;
-	}
-
-	// XXX: fix this
-	if (miniboss_spawned_ == 0) {
-		auto minion = std::unique_ptr<foe> {
-				new miniboss {
-					game_,
-					this,
-					pos_,
-					normalized(vec2f { 1.f, -.5f }) } };
-
-		game_.add_foe(std::move(minion));
-
-		++miniboss_spawned_;
-	}
-
 	return true;
 }
 
 void
-boss::update_chasing()
+boss::rotate_spike(float da)
 {
-	chase_player();
-
-	spike_angle_ += .025f;
-
-	if (state_tics_ >= MIN_CHASE_TICS) {
-		if (rand()%16 == 0)
-			set_state(state::PRE_FIRING);
-	}
+	spike_angle_ += da;
 }
 
 void
-boss::update_pre_firing()
+boss::set_spike_dispersion(float t)
 {
-	chase_player();
-
-	aim_player();
-
-	speed_ = exp_tween<float>()(BOSS_SPEED, 0, static_cast<float>(state_tics_)/PRE_FIRING_TICS);
-
-	if (state_tics_ >= PRE_FIRING_TICS)
-		set_state(state::FIRING);
+	spike_dispersion_ = t;
 }
 
 void
-boss::update_firing()
+boss::fire_bullet()
 {
-	if (state_tics_%30 == 0) {
-		const float a = spike_angle_;
-		const vec2f p = pos_ + vec2f { cosf(a), sinf(a) }*SPIKE_RADIUS;
-		vec2f d = normalized(p - pos_);
-		game_.add_foe(std::unique_ptr<foe>(new bullet { game_, p, d }));
-	}
-
-	aim_player();
-
-	if (state_tics_ >= FIRING_TICS)
-		set_state(state::POST_FIRING);
+	const float a = spike_angle_;
+	const vec2f p = pos_ + vec2f { cosf(a), sinf(a) }*SPIKE_RADIUS;
+	vec2f d = normalized(p - pos_);
+	game_.add_foe(std::unique_ptr<foe>(new bullet { game_, p, d }));
 }
 
 void
-boss::update_post_firing()
-{
-	chase_player();
-
-	speed_ = exp_tween<float>()(BOSS_SPEED, 0, 1.f - static_cast<float>(state_tics_)/POST_FIRING_TICS);
-
-	if (state_tics_ >= POST_FIRING_TICS)
-		set_state(state::CHASING);
-}
-
-void
-boss::aim_player()
+boss::rotate_spike_to_player()
 {
 	const vec2f d = vec2f(game_.get_player_world_position()) - pos_;
 	const vec2f n = normalized(vec2f { -d.y, d.x });
@@ -271,20 +194,6 @@ boss::aim_player()
 }
 
 void
-boss::chase_player()
-{
-	vec2f n { -dir_.y, dir_.x };
-
-	float da = .025f*dot(n, normalized(vec2f(game_.get_player_world_position()) - pos_));
-
-	const float c = cosf(da);
-	const float s = sinf(da);
-
-	vec2f next_dir { dot(dir_, vec2f { c, -s }), dot(dir_, vec2f { s, c }) };
-	dir_ = next_dir;
-}
-
-void
 boss::draw() const
 {
 	draw_core();
@@ -294,9 +203,9 @@ boss::draw() const
 void
 boss::draw_core() const
 {
+#if 1
 	core_sprite_->draw(pos_.x, pos_.y, ggl::sprite::horiz_align::CENTER, ggl::sprite::vert_align::CENTER);
-
-#if 0
+#else
 	static const int NUM_SEGS = 13;
 
 	float a = 0;
@@ -317,43 +226,13 @@ boss::draw_core() const
 void
 boss::draw_spikes() const
 {
-	switch (state_) {
-		case state::CHASING:
-			{
-			const float da = 2.f*M_PI/NUM_SPIKES;
-			float a = spike_angle_;
+	const float da = 2.f*M_PI/NUM_SPIKES;
 
-			for (int i = 0; i < NUM_SPIKES; i++) {
-				draw_spike(a);
-				a += da;
-			}
-			}
-			break;
+	for (size_t i = 0; i <= NUM_SPIKES/2; i++)
+		draw_spike(spike_angle_ + exp_tween<float>()(i*da, 0, spike_dispersion_));
 
-		case state::PRE_FIRING:
-		case state::POST_FIRING:
-			{
-			float t;
-
-			if (state_ == state::PRE_FIRING)
-				t = static_cast<float>(state_tics_)/PRE_FIRING_TICS;
-			else
-				t = 1.f - static_cast<float>(state_tics_)/POST_FIRING_TICS;
-
-			const float da = 2.f*M_PI/NUM_SPIKES;
-
-			for (size_t i = 0; i <= NUM_SPIKES/2; i++)
-				draw_spike(spike_angle_ + exp_tween<float>()(i*da, 0, t));
-
-			for (size_t i = 0; i < NUM_SPIKES/2; i++)
-				draw_spike(spike_angle_ - exp_tween<float>()((i + 1)*da, 0, t));
-			}
-			break;
-
-		case state::FIRING:
-			draw_spike(spike_angle_);
-			break;
-	}
+	for (size_t i = 0; i < NUM_SPIKES/2; i++)
+		draw_spike(spike_angle_ - exp_tween<float>()((i + 1)*da, 0, spike_dispersion_));
 }
 
 void

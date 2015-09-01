@@ -20,32 +20,21 @@ public:
 
 	void on_miniboss_killed();
 
+	void rotate_spike_to_player();
+	void rotate_spike(float a);
+	void set_spike_dispersion(float t);
+	void fire_bullet();
+
 private:
-	enum class state { CHASING, PRE_FIRING, FIRING, POST_FIRING } state_;
-
-	void set_state(state next_state);
-
-	void update_chasing();
-	void update_pre_firing();
-	void update_firing();
-	void update_post_firing();
-
-	void chase_player();
-	void aim_player();
-
 	void draw_core() const;
 	void draw_spikes() const;
 	void draw_spike(float a) const;
 
-	int state_tics_;
 	static const int NUM_SPIKES = 7;
 	float spike_angle_;
-	int miniboss_spawned_;
+	float spike_dispersion_; // 0 to 1
 
-	static const int MIN_CHASE_TICS = 360;
-	static const int PRE_FIRING_TICS = 90;
-	static const int FIRING_TICS = 180;
-	static const int POST_FIRING_TICS = 90;
+	int miniboss_spawned_;
 
 	const ggl::sprite *core_sprite_;
 	const ggl::sprite *spike_sprite_;
