@@ -12,7 +12,6 @@
 
 namespace {
 
-const float BOSS_SPEED = 2;
 const float BOSS_RADIUS = 30;
 const float SPIKE_RADIUS = 36;
 
@@ -89,7 +88,6 @@ bullet::draw() const
 
 	glDisable(GL_TEXTURE_2D);
 	glDisable(GL_BLEND);
-
 #endif
 }
 
@@ -141,7 +139,7 @@ bullet::intersects(const vec2i& from, const vec2i& to) const
 //
 
 boss::boss(game& g)
-: phys_foe { g, vec2f { 100, 100 }, normalized(vec2f { 1.5f, .5f }), BOSS_SPEED, BOSS_RADIUS }
+: phys_foe { g, vec2f { 100, 100 }, normalized(vec2f { 1.5f, .5f }), 0, BOSS_RADIUS }
 , spike_angle_ { 0 }
 , spike_dispersion_ { 0 }
 , miniboss_spawned_ { 0 }
@@ -185,8 +183,6 @@ boss::rotate_spike_to_player()
 {
 	const vec2f d = vec2f(game_.get_player_world_position()) - pos_;
 	const vec2f n = normalized(vec2f { -d.y, d.x });
-
-	// rotate spike towards player
 
 	const float a = spike_angle_;
 	vec2f u { cosf(a), sinf(a) };
