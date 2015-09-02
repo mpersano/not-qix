@@ -1,5 +1,6 @@
 #include <algorithm>
 #include <cmath>
+#include <array>
 
 #include <tinyxml.h>
 
@@ -33,6 +34,8 @@ struct image
 
 	void copy(const image<T>& other, int dr, int dc);
 
+	void blur(int radius);
+
 	image&
 	operator*=(float s)
 	{
@@ -65,11 +68,71 @@ image<T>::copy(const image<T>& other, int dr, int dc)
 }
 
 template <typename T>
+void
+image<T>::blur(int radius)
+{
+	std::vector<float> kernel(2*radius + 1);
+
+	for (int i = 0; i < kernel.size(); i++) {
+		float f = i - radius;
+		kernel[i] = expf(-f*f/30.);
+	}
+
+	float s = std::accumulate(std::begin(kernel), std::end(kernel), 0.f);
+
+	std::transform(
+		std::begin(kernel),
+		std::end(kernel),
+		std::begin(kernel),
+		[=](float v) { return v/s; });
+
+	// blur horizontally to temp
+
+	std::vector<T> temp(width*height);
+
+	for (int i = 0; i < height; i++) {
+		T *src = &data[i*width];
+		T *dest = &temp[i*width];
+
+		for (int j = 0; j < width; j++) {
+			T s = 0;
+
+			for (int k = 0; k < kernel.size(); k++) {
+				if (j + k - radius < 0 || j + k - radius >= width)
+					continue;
+				s += kernel[k]*src[k - radius];
+			}
+
+			*dest++ = s;
+			++src;
+		}
+	}
+
+	// blur vertically from temp
+
+	for (int i = 0; i < height; i++) {
+		T *src = &temp[i*width];
+		T *dest = &data[i*width];
+
+		for (int j = 0; j < width; j++) {
+			T s = 0;
+
+			for (int k = 0; k < kernel.size(); k++) {
+				if (i + k - radius < 0 || i + k - radius >= height)
+					continue;
+				s += kernel[k]*src[(k - radius)*width];
+			}
+
+			*dest++ = s;
+			++src;
+		}
+	}
+}
+
+template <typename T>
 image<T>
 dilate(const image<T>& im, int radius)
 {
-	// would be faster with two passes, but I don't care
-
 	float kernel[2*radius + 1][2*radius + 1];
 
 	for (int i = 0; i < 2*radius + 1; i++) {
@@ -189,7 +252,8 @@ font::render_glyph(
 		const color_fn& inner_color,
 		const color_fn& outline_color,
 		int shadow_dx, int shadow_dy,
-		float shadow_opacity)
+		float shadow_opacity,
+		int shadow_blur_radius)
 {
 	if ((FT_Load_Char(face_, code, FT_LOAD_RENDER)) != 0)
 		panic("FT_Load_Char");
@@ -208,17 +272,17 @@ font::render_glyph(
 	int offset_y = outline_radius;
 
 	if (shadow_dx < 0) {
-		dest_width += -shadow_dx;
-		offset_x += -shadow_dx;
+		dest_width += -shadow_dx + shadow_blur_radius;
+		offset_x += -shadow_dx + shadow_blur_radius;
 	} else if (shadow_dx > 0) {
-		dest_width += shadow_dx;
+		dest_width += shadow_dx + shadow_blur_radius;
 	}
 
 	if (shadow_dy < 0) {
-		dest_height += -shadow_dy;
-		offset_y += -shadow_dy;
+		dest_height += -shadow_dy + shadow_blur_radius;
+		offset_y += -shadow_dy + shadow_blur_radius;
 	} else if (shadow_dy > 0) {
-		dest_height += shadow_dy;
+		dest_height += shadow_dy + shadow_blur_radius;
 	}
 
 	// copy grayscale channel
@@ -235,6 +299,7 @@ font::render_glyph(
 	image<float> shadow(dest_width, dest_height);
 	shadow.copy(alpha, shadow_dy, shadow_dx);
 	shadow *= shadow_opacity;
+	shadow.blur(shadow_blur_radius);
 
 	// initialize pixmap, adding some color
 
@@ -268,11 +333,16 @@ font::render_glyph(
 
 			*dest++ = color.r + (color.g << 8) + (color.b << 16) + (a << 24);
 #else
+#if 0
 			rgb<int> color = c1 + (c0 - c1)*(*src_lum++);
 
 			int a = static_cast<int>(255*(*src_alpha++));
 
 			*dest++ = color.r + (color.g << 8) + (color.b << 16) + (a << 24);
+#else
+			int s = 255*(*src_shadow++);
+			*dest++ = s << 24;
+#endif
 #endif
 		}
 	}

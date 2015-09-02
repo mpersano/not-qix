@@ -134,6 +134,7 @@ main(int argc, char *argv[])
 	int shadow_dx = 0;
 	int shadow_dy = 0;
 	float shadow_opacity = .2;
+	int shadow_blur_radius = 0;
 	std::string texture_path_base = ".";
 
 	std::unique_ptr<color_fn> inner_color { new flat_color_fn { rgb<int> { 255, 255, 255 } } };
@@ -141,7 +142,7 @@ main(int argc, char *argv[])
 
 	int c;
 
-	while ((c = getopt(argc, argv, "b:s:w:h:g:t:i:o:S:d:e:")) != EOF) {
+	while ((c = getopt(argc, argv, "b:s:w:h:g:t:i:o:S:d:e:B:")) != EOF) {
 		switch (c) {
 			case 'b':
 				border = atoi(optarg);
@@ -179,6 +180,10 @@ main(int argc, char *argv[])
 				shadow_opacity = atof(optarg);
 				break;
 
+			case 'B':
+				shadow_blur_radius = atoi(optarg);
+				break;
+
 			case 'd':
 				shadow_dx = atoi(optarg);
 				break;
@@ -207,9 +212,27 @@ main(int argc, char *argv[])
 			*dash = '\0';
 
 			for (int j = parse_int(range); j <= parse_int(dash + 1); j++)
-				sprites.push_back(f.render_glyph(j, outline_radius, *inner_color.get(), *outline_color.get(), shadow_dx, shadow_dy, shadow_opacity));
+				sprites.push_back(
+					f.render_glyph(
+						j,
+						outline_radius,
+						*inner_color.get(),
+						*outline_color.get(),
+						shadow_dx,
+						shadow_dy,
+						shadow_opacity,
+						shadow_blur_radius));
 		} else {
-			sprites.push_back(f.render_glyph(parse_int(range), outline_radius, *inner_color.get(), *outline_color.get(), shadow_dx, shadow_dy, shadow_opacity));
+			sprites.push_back(
+				f.render_glyph(
+					parse_int(range),
+					outline_radius,
+					*inner_color.get(),
+					*outline_color.get(),
+					shadow_dx,
+					shadow_dy,
+					shadow_opacity,
+					shadow_blur_radius));
 		}
 	}
 

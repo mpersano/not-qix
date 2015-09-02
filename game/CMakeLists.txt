@@ -100,12 +100,12 @@ if (NOT ANDROID)
 		COMMAND mkdir -p ${FONT_DIR})
 
 	add_custom_command(TARGET game POST_BUILD
-		COMMAND ${PACKFONT_COMMAND} -w 256 -h 256 -s 20 -g 2 -t fonts ${CMAKE_SOURCE_DIR}/assets/fonts/font.ttf small x20-x7e
+		COMMAND ${PACKFONT_COMMAND} -w 512 -h 256 -s 20 -g 2 -t fonts -d 2 -e 2 -S .6 -i ff0000-ffff00-ffffff -o 800000-808000-808080 -B 4 ${CMAKE_SOURCE_DIR}/assets/fonts/font.ttf small x20-x7e
 		WORKING_DIRECTORY ${FONT_DIR}
 		DEPENDS ${PACKFONT_COMMAND})
 
 	add_custom_command(TARGET game POST_BUILD
-		COMMAND ${PACKFONT_COMMAND} -w 256 -h 256 -s 12 -g 2 -t fonts ${CMAKE_SOURCE_DIR}/assets/fonts/font.ttf tiny x20-x7e
+		COMMAND ${PACKFONT_COMMAND} -w 512 -h 256 -s 12 -g 2 -t fonts -d 2 -e 2 -S .6 -i ff0000-ffff00-ffffff -o 800000-808000-808080 -B 4 ${CMAKE_SOURCE_DIR}/assets/fonts/font.ttf tiny x20-x7e
 		WORKING_DIRECTORY ${FONT_DIR}
 		DEPENDS ${PACKFONT_COMMAND})
 

@@ -38,7 +38,8 @@ public:
 			const color_fn& inner_color,
 			const color_fn& outline_color,
 			int shadow_dx, int shadow_dy,
-			float shadow_opacity);
+			float shadow_opacity,
+			int shadow_blur_radius);
 
 private:
 	FT_Face face_;
