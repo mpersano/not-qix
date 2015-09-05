@@ -138,8 +138,8 @@ bullet::intersects(const vec2i& from, const vec2i& to) const
 //  b o s s
 //
 
-boss::boss(game& g)
-: phys_foe { g, vec2f { 100, 100 }, normalized(vec2f { 1.5f, .5f }), 0, BOSS_RADIUS }
+boss::boss(game& g, const vec2f& pos)
+: phys_foe { g, pos, normalized(vec2f { 1.5f, .5f }), 0, BOSS_RADIUS }
 , spike_angle_ { 0 }
 , spike_dispersion_ { 0 }
 , miniboss_spawned_ { 0 }

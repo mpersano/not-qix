@@ -42,6 +42,9 @@ phys_foe::update_position()
 
 	const auto& border = game_.border;
 
+	const int height = game_.grid_rows*CELL_SIZE;
+	const int width = game_.grid_cols*CELL_SIZE;
+
 	bool collided;
 
 	do {
@@ -51,21 +54,42 @@ phys_foe::update_position()
 			const vec2f v0 = border[i]*CELL_SIZE;
 			const vec2f v1 = border[(i + 1)%border.size()]*CELL_SIZE;
 
-			vec2f c = seg_closest_point(v0, v1, pos_);
-			vec2f d = pos_ - c;
-
-			float dist = length(d);
-
-			if (dist < radius_) {
-				static const float FUDGE = 2.;
-				pos_ += ((radius_ - dist) + FUDGE)*normalized(d);
-				vec2f n = normalized(pos_ - c);
-				dir_ -= 2.f*dot(dir_, n)*n;
-
+			if (collide_against_edge(v0, v1))
 				collided = true;
-			}
 		}
+
+		if (collide_against_edge({ 0, 0 }, { 0, height }))
+			collided = true;
+
+		if (collide_against_edge({ 0, height }, { width, height }))
+			collided = true;
+
+		if (collide_against_edge({ width, height }, { width, 0 }))
+			collided = true;
+
+		if (collide_against_edge({ width, 0 }, { 0, 0 }))
+			collided = true;
 	} while (collided);
+}
+
+bool
+phys_foe::collide_against_edge(const vec2f& v0, const vec2f& v1)
+{
+	vec2f c = seg_closest_point(v0, v1, pos_);
+	vec2f d = pos_ - c;
+
+	float dist = length(d);
+
+	if (dist < radius_) {
+		static const float FUDGE = 2.;
+		pos_ += ((radius_ - dist) + FUDGE)*normalized(d);
+		vec2f n = normalized(pos_ - c);
+		dir_ -= 2.f*dot(dir_, n)*n;
+
+		return true;
+	}
+
+	return false;
 }
 
 void

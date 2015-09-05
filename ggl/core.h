@@ -4,12 +4,11 @@
 
 #include <ggl/event.h>
 #include <ggl/app.h>
+#include <ggl/dpad_button.h>
 
 namespace ggl {
 
 class asset;
-
-enum dpad_button { UP, DOWN, LEFT, RIGHT, BUTTON1, BUTTON2 };
 
 class core
 {

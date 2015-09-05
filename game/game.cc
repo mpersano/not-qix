@@ -3,374 +3,22 @@
 #include <cassert>
 
 #include <ggl/gl.h>
+#include <ggl/dpad_button.h>
 #include <ggl/texture.h>
 #include <ggl/vertex_array.h>
 #include <ggl/resources.h>
 
+#include "util.h"
 #include "tween.h"
 #include "level.h"
 #include "boss.h"
 #include "game.h"
 
-//
-//  p l a y e r
-//
+namespace {
 
-player::player(game& g)
-: game_ { g }
-{ }
+const int BORDER_RADIUS = 1;
 
-void
-player::reset()
-{
-	pos_ = vec2i { 0, 0 };
-	set_state(state::IDLE);
 }
-
-void
-player::move(direction dir, bool button)
-{
-	switch (state_) {
-		case state::IDLE:
-			move_slide(dir);
-
-			if (state_ != state::SLIDING && button)
-				move_extend(dir);
-			break;
-
-		case state::EXTENDING_IDLE:
-			if (button)
-				move_extend(dir);
-			break;
-	}
-}
-
-void
-player::move_extend(direction dir)
-{
-	const int grid_cols = game_.grid_cols;
-	const int grid_rows = game_.grid_rows;
-
-	auto *p = &game_.grid[pos_.y*grid_cols + pos_.x];
-
-	auto extend_to = [&](const vec2i& where)
-		{
-			auto it = std::find(std::begin(extend_trail_), std::end(extend_trail_), where);
-
-			if (it == extend_trail_.end() || it + 1 == extend_trail_.end()) {
-				next_pos_ = where;
-
-				if (extend_trail_.empty() || extend_trail_.back() != where)
-					extend_trail_.push_back(pos_);
-
-				set_state(state::EXTENDING);
-			}
-		};
-
-	switch (dir) {
-		case direction::UP:
-			if (pos_.y < grid_rows) {
-				if (pos_.x > 0 && pos_.x < grid_cols && !p[0] && !p[-1]) {
-					extend_to(pos_ + vec2i { 0, 1 });
-				}
-			}
-			break;
-
-		case direction::DOWN:
-			if (pos_.y > 0) {
-				if (pos_.x > 0 && pos_.x < grid_cols && !p[-grid_cols] && !p[-grid_cols - 1]) {
-					extend_to(pos_ + vec2i { 0, -1 });
-				}
-			}
-			break;
-
-		case direction::LEFT:
-			if (pos_.x > 0) {
-				if (pos_.y > 0 && pos_.y < grid_rows && !p[-grid_cols - 1] && !p[-1]) {
-					extend_to(pos_ + vec2i { -1, 0 });
-				}
-			}
-			break;
-
-		case direction::RIGHT:
-			if (pos_.x < grid_cols) {
-				if (pos_.y > 0 && pos_.y < grid_rows && !p[-grid_cols] && !p[0]) {
-					extend_to(pos_ + vec2i { 1, 0 });
-				}
-			}
-			break;
-	}
-}
-
-void
-player::move_slide(direction dir)
-{
-	const int grid_cols = game_.grid_cols;
-	const int grid_rows = game_.grid_rows;
-
-	auto *p = &game_.grid[pos_.y*grid_cols + pos_.x];
-
-	switch (dir) {
-		case direction::UP:
-			if (pos_.y < grid_rows) {
-				if ((pos_.x == 0 || p[-1]) != (pos_.x == grid_cols || p[0])) {
-					next_pos_ = pos_ + vec2i { 0, 1 };
-					set_state(state::SLIDING);
-				}
-			}
-			break;
-
-		case direction::DOWN:
-			if (pos_.y > 0) {
-				if ((pos_.x == 0 || p[-grid_cols - 1]) != (pos_.x == grid_cols || p[-grid_cols])) {
-					next_pos_ = pos_ + vec2i { 0, -1 };
-					set_state(state::SLIDING);
-				}
-			}
-			break;
-
-		case direction::LEFT:
-			if (pos_.x > 0) {
-				if ((pos_.y == 0 || p[-grid_cols - 1]) != (pos_.y == grid_rows || p[-1])) {
-					next_pos_ = pos_ + vec2i { -1, 0 };
-					set_state(state::SLIDING);
-				}
-			}
-			break;
-
-		case direction::RIGHT:
-			if (pos_.x < grid_cols) {
-				if ((pos_.y == 0 || p[-grid_cols]) != (pos_.y == grid_rows || p[0])) {
-					next_pos_ = pos_ + vec2i { 1, 0 };
-					set_state(state::SLIDING);
-				}
-			}
-			break;
-	}
-}
-
-void
-player::update()
-{
-	const int grid_cols = game_.grid_cols;
-	const int grid_rows = game_.grid_rows;
-
-	switch (state_) {
-		case state::IDLE:
-			break;
-
-		case state::EXTENDING_IDLE:
-			check_foe_collisions();
-			break;
-
-		case state::SLIDING:
-			if (++state_tics_ >= SLIDE_TICS) {
-				pos_ = next_pos_;
-				state_ = state::IDLE;
-			}
-			break;
-
-		case state::EXTENDING:
-			if (++state_tics_ >= SLIDE_TICS) {
-				pos_ = next_pos_;
-
-				if (!extend_trail_.empty() && extend_trail_.back() == pos_)
-					extend_trail_.pop_back();
-
-				if (extend_trail_.empty()) {
-					state_ = state::IDLE;
-				} else {
-					auto *p = &game_.grid[pos_.y*grid_cols + pos_.x];
-
-					if (pos_.x == 0 ||
-					    pos_.x == grid_cols ||
-					    pos_.y == 0 ||
-					    pos_.y == grid_rows ||
-					    p[0] ||
-					    p[-1] ||
-					    p[-grid_cols] ||
-					    p[-grid_cols - 1]) {
-						extend_trail_.push_back(pos_);
-						game_.fill_grid(extend_trail_);
-
-						extend_trail_.clear();
-						state_ = state::IDLE;
-					} else {
-						state_ = state::EXTENDING_IDLE;
-					}
-				}
-			}
-			check_foe_collisions();
-			break;
-	}
-}
-
-void
-player::check_foe_collisions()
-{
-	if (extend_trail_.size() > 1) {
-		auto& foes = game_.foes;
-
-		auto it = std::find_if(
-				std::begin(foes),
-				std::end(foes),
-				[this](std::unique_ptr<foe>& f)
-					{
-						for (size_t i = 0; i < extend_trail_.size() - 1; i++) {
-							const vec2i v0 = extend_trail_[i]*CELL_SIZE;
-							const vec2i v1 = extend_trail_[i + 1]*CELL_SIZE;
-
-							if (f->intersects(v0, v1))
-								return true;
-						}
-
-						if (f->intersects(extend_trail_.back()*CELL_SIZE, get_position()))
-								return true;
-
-						return false;
-					});
-
-		if (it != std::end(foes)) {
-			printf("collision!\n");
-
-			pos_ = extend_trail_.front();
-			extend_trail_.clear();
-			state_ = state::IDLE;
-		}
-	}
-}
-
-void
-player::set_state(state next_state)
-{
-	state_ = next_state;
-	state_tics_ = 0;
-}
-
-void
-player::draw() const
-{
-	glDisable(GL_TEXTURE_2D);
-
-	// trail
-
-	if (state_ == state::EXTENDING || state_ == state::EXTENDING_IDLE) {
-		static const int TRAIL_RADIUS = 1;
-
-		glColor4f(1, 1, 0, 1);
-
-		if (extend_trail_.size() > 1) {
-			ggl::vertex_array_flat<GLshort, 2> va;
-
-			// first
-			{
-				auto& v0 = extend_trail_[0];
-				auto& v1 = extend_trail_[1];
-
-				vec2s d = v1 - v0;
-				vec2s n { -d.y, d.x };
-
-				vec2s p0 = vec2s(v0)*CELL_SIZE + n*TRAIL_RADIUS;
-				vec2s p1 = vec2s(v0)*CELL_SIZE - n*TRAIL_RADIUS;
-
-				va.push_back({ p0.x, p0.y });
-				va.push_back({ p1.x, p1.y });
-			}
-
-			// middle
-			for (size_t i = 1; i < extend_trail_.size() - 1; i++) {
-				auto& v0 = extend_trail_[i - 1];
-				auto& v1 = extend_trail_[i];
-				auto& v2 = extend_trail_[i + 1];
-
-				vec2s ds = v1 - v0;
-				vec2s ns { -ds.y, ds.x };
-
-				vec2s de = v2 - v1;
-				vec2s ne { -de.y, de.x };
-
-				vec2s nm = ns + ne;
-
-				int d = dot(ns, nm);
-
-				vec2s p0 = vec2s(v1)*CELL_SIZE + nm*TRAIL_RADIUS/d;
-				vec2s p1 = vec2s(v1)*CELL_SIZE - nm*TRAIL_RADIUS/d;
-
-				va.push_back({ p0.x, p0.y });
-				va.push_back({ p1.x, p1.y });
-			}
-
-			// last
-			{
-				auto& v0 = extend_trail_[extend_trail_.size() - 1];
-				auto& v1 = extend_trail_[extend_trail_.size() - 2];
-
-				vec2s d = v0 - v1;
-				vec2s n { -d.y, d.x };
-
-				vec2s p0 = vec2s(v0)*CELL_SIZE + n*TRAIL_RADIUS;
-				vec2s p1 = vec2s(v0)*CELL_SIZE - n*TRAIL_RADIUS;
-
-				va.push_back({ p0.x, p0.y });
-				va.push_back({ p1.x, p1.y });
-			}
-
-			va.draw(GL_TRIANGLE_STRIP);
-		}
-
-		// last bit
-
-		vec2s v0 = extend_trail_.back()*CELL_SIZE;
-		vec2s v1 = get_position();
-
-		short x0 = std::min(v0.x - TRAIL_RADIUS, v1.x - TRAIL_RADIUS);
-		short x1 = std::max(v0.x + TRAIL_RADIUS, v1.x + TRAIL_RADIUS);
-
-		short y0 = std::min(v0.y - TRAIL_RADIUS, v1.y - TRAIL_RADIUS);
-		short y1 = std::max(v0.y + TRAIL_RADIUS, v1.y + TRAIL_RADIUS);
-
-		(ggl::vertex_array_flat<GLshort, 2>
-			{ { x0, y0 }, { x1, y0 },
-			  { x0, y1 }, { x1, y1 } }).draw(GL_TRIANGLE_STRIP);
-	}
-
-	// head
-
-	auto pos = vec2s(get_position());
-	const short radius = 10;
-
-	glColor4f(0, 1, 1, 1);
-
-	(ggl::vertex_array_flat<GLshort, 2>
-		{ { pos.x, pos.y },
-		  { static_cast<short>(pos.x - radius), pos.y },
-		  { pos.x, static_cast<short>(pos.y + radius) },
-		  { static_cast<short>(pos.x + radius), pos.y },
-		  { pos.x, static_cast<short>(pos.y - radius) },
-		  { static_cast<short>(pos.x - radius), pos.y } }).draw(GL_TRIANGLE_FAN);
-}
-
-const vec2i
-player::get_position() const
-{
-	switch (state_) {
-		case state::IDLE:
-		case state::EXTENDING_IDLE:
-			return pos_*CELL_SIZE;
-
-		case state::SLIDING:
-		case state::EXTENDING:
-			{
-			int d = CELL_SIZE*state_tics_/SLIDE_TICS;
-			return pos_*CELL_SIZE + (next_pos_ - pos_)*d;
-			}
-	}
-}
-
-
-//
-//  g a m e
-//
 
 static const float SCROLL_T = .2f;
 
@@ -395,11 +43,12 @@ game::reset(const level *l)
 	scrolling_ = false;
 	cover_percent_ = 0u;
 
-	initialize_vas();
+	initialize_background();
 
-	player_.reset();
+	state_ = state::SELECTING_START_AREA;
+	reset_start_area();
 
-	foes.push_back(std::unique_ptr<foe> { new boss { *this } });
+	prev_dpad_state_ = 0;
 }
 
 void
@@ -411,14 +60,71 @@ game::draw() const
 	glTranslatef(offs.x, offs.y, 0);
 
 	draw_background();
+
+	switch (state_) {
+		case state::SELECTING_START_AREA:
+			draw_selecting_start_area();
+			break;
+
+		case state::PLAYING:
+			draw_playing();
+			break;
+	}
+
+	glPopMatrix();
+}
+
+void
+game::draw_selecting_start_area() const
+{
+	short x0 = start_area_.first.x*CELL_SIZE;
+	short x1 = start_area_.second.x*CELL_SIZE;
+
+	short y0 = start_area_.first.y*CELL_SIZE;
+	short y1 = start_area_.second.y*CELL_SIZE;
+
+	glColor4f(1, 1, 1, .5);
+
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+	(ggl::vertex_array_flat<GLshort, 2>
+		{ { x0, y0 }, { x1, y0 },
+		  { x0, y1 }, { x1, y1 } }).draw(GL_TRIANGLE_STRIP);
+
+	glDisable(GL_BLEND);
+
+	glColor4f(1, 1, 1, 1);
+
+	short x00 = x0 - BORDER_RADIUS;
+	short x01 = x0 + BORDER_RADIUS;
+
+	short x10 = x1 - BORDER_RADIUS;
+	short x11 = x1 + BORDER_RADIUS;
+
+	short y00 = y0 - BORDER_RADIUS;
+	short y01 = y0 + BORDER_RADIUS;
+
+	short y10 = y1 - BORDER_RADIUS;
+	short y11 = y1 + BORDER_RADIUS;
+
+	(ggl::vertex_array_flat<GLshort, 2>
+		{ { x00, y00 }, { x01, y01 },
+		  { x11, y00 }, { x10, y01 },
+		  { x11, y11 }, { x10, y10 },
+		  { x00, y11 }, { x01, y10 },
+		  { x00, y00 }, { x01, y01 } }).draw(GL_TRIANGLE_STRIP);
+}
+
+void
+game::draw_playing() const
+{
 	draw_border();
 
 	for (auto& foe : foes)
 		foe->draw();
 
 	player_.draw();
-
-	glPopMatrix();
 }
 
 vec2f
@@ -432,15 +138,7 @@ game::get_offset() const
 }
 
 void
-game::initialize_vas()
-{
-	initialize_border();
-	initialize_background_vas();
-	initialize_border_va();
-}
-
-void
-game::initialize_background_vas()
+game::initialize_background()
 {
 	auto& tex = cur_level_->fg_texture;
 
@@ -498,26 +196,27 @@ game::initialize_background_vas()
 void
 game::initialize_border()
 {
+	//
+	//  find border verts
+	//
+
 	border.clear();
 
-	int coord = std::distance(std::begin(grid), std::find(std::begin(grid), std::end(grid), 0));
-	assert(coord < grid_rows*grid_cols);
+	vec2i start_pos = player_.get_grid_position();
 
-	vec2i start_pos { coord%grid_cols, coord/grid_cols };
-
-	vec2i pos = start_pos;
+	vec2i pos = start_pos, prev_pos = start_pos;
 
 	auto try_move = [&](const vec2i& d)
 		{
-			auto next = pos + d;
+			auto next_pos = pos + d;
 
-			if (border.empty() || dot(border.back() - pos, next - pos) <= 0) {
+			if (prev_pos == pos || dot(prev_pos - pos, next_pos - pos) <= 0) {
 				// only push new verts if direction changed
-				if (border.empty() || dot(border.back() - pos, next - pos) == 0) {
+				if (prev_pos != pos && dot(prev_pos - pos, next_pos - pos) == 0)
 					border.push_back(pos);
-				}
 
-				pos = next;
+				prev_pos = pos;
+				pos = next_pos;
 				return true;
 			}
 
@@ -528,7 +227,7 @@ game::initialize_border()
 		{
 			auto *p = &grid[pos.y*grid_cols + pos.x];
 			return pos.y < grid_rows &&
-				(pos.x == 0 || p[-1]) != (pos.x == grid_cols || p[0]) &&
+				p[-1] != p[0] &&
 				try_move({ 0, 1 });
 		};
 
@@ -536,7 +235,7 @@ game::initialize_border()
 		{
 			auto *p = &grid[pos.y*grid_cols + pos.x];
 			return pos.x < grid_cols &&
-				(pos.y == 0 || p[-grid_cols]) != (pos.y == grid_rows || p[0]) &&
+				p[-grid_cols] != p[0] &&
 				try_move({ 1, 0 });
 		};
 
@@ -544,7 +243,7 @@ game::initialize_border()
 		{
 			auto *p = &grid[pos.y*grid_cols + pos.x];
 			return pos.y > 0 &&
-				(pos.x == 0 || p[-grid_cols - 1]) != (pos.x == grid_cols || p[-grid_cols]) &&
+				p[-grid_cols - 1] != p[-grid_cols] &&
 				try_move({ 0, -1 });
 		};
 
@@ -552,20 +251,20 @@ game::initialize_border()
 		{
 			auto *p = &grid[pos.y*grid_cols + pos.x];
 			return pos.x > 0 &&
-				(pos.y == 0 || p[-grid_cols - 1]) != (pos.y == grid_rows || p[-1]) &&
+				p[-grid_cols - 1] != p[-1] &&
 				try_move({ -1, 0 });
 		};
 
 	do {
 		// tee-hee.
 		move_up() || move_left() || move_down() || move_right() || (assert(0), false);
-	} while (pos != start_pos);
-}
+	} while (border.empty() || pos != border.front());
 
-void
-game::initialize_border_va()
-{
-	static const int BORDER_RADIUS = 1;
+	printf("%lu verts\n", border.size());
+
+	//
+	// border vertex array
+	//
 
 	assert(!border.empty());
 
@@ -620,15 +319,77 @@ game::draw_border() const
 }
 
 void
-game::move(direction dir, bool button)
+game::start_playing()
 {
-	player_.move(dir, button);
+	for (int r = start_area_.first.y; r < start_area_.second.y; r++) {
+		auto *row = &grid[r*grid_cols];
+		std::fill(row + start_area_.first.x, row + start_area_.second.x, 1);
+	}
+
+	player_.reset(start_area_.first); // needs to be called before initialize_border
+
+	initialize_border();
+	initialize_background();
+
+	update_cover_percent();
+
+	const vec2f boss_pos { 30, 30 }; // XXX: pick initial boss position
+
+	foes.push_back(std::unique_ptr<foe> { new boss { *this, boss_pos } });
+
+	state_ = state::PLAYING;
 }
 
 void
-game::update()
+game::update(unsigned dpad_state)
+{
+	switch (state_) {
+		case state::SELECTING_START_AREA:
+			update_selecting_start_area(dpad_state);
+			break;
+
+		case state::PLAYING:
+			update_playing(dpad_state);
+			break;
+	}
+
+	prev_dpad_state_ = dpad_state;
+}
+
+void
+game::update_selecting_start_area(unsigned dpad_state)
+{
+	if ((dpad_state & (1u << ggl::BUTTON1)) && (prev_dpad_state_ & (1u << ggl::BUTTON1))) {
+		start_playing();
+	} else {
+		if (--start_area_tics_ == 0)
+			reset_start_area();
+	}
+}
+
+void
+game::update_playing(unsigned dpad_state)
 {
 	// player
+
+	auto dpad_button_pressed = [=](ggl::dpad_button button)
+		{
+			return dpad_state & (1u << button);
+		};
+
+	bool button = dpad_button_pressed(ggl::BUTTON1);
+
+	if (dpad_button_pressed(ggl::UP))
+		player_.move(direction::UP, button);
+
+	if (dpad_button_pressed(ggl::DOWN))
+		player_.move(direction::DOWN, button);
+
+	if (dpad_button_pressed(ggl::LEFT))
+		player_.move(direction::LEFT, button);
+
+	if (dpad_button_pressed(ggl::RIGHT))
+		player_.move(direction::RIGHT, button);
 
 	player_.update();
 
@@ -772,12 +533,19 @@ game::fill_grid(const std::vector<vec2i>& contour)
 		}
 	}
 
-	// vertex arrays
+	// update vertex arrays
 
-	initialize_vas();
+	initialize_border();
+	initialize_background();
 
 	// update cover percent
 
+	update_cover_percent();
+}
+
+void
+game::update_cover_percent()
+{
 	unsigned cover = 0;
 
 	for (size_t i = 0; i < grid_rows*grid_cols; i++) {
@@ -811,4 +579,26 @@ void
 game::add_foe(std::unique_ptr<foe> f)
 {
 	foes.push_back(std::move(f));
+}
+
+void
+game::set_player_grid_position(const vec2i& p)
+{
+	player_.set_grid_position(p);
+}
+
+void
+game::reset_start_area()
+{
+	static const int BORDER = 8;
+
+	const vec2i v0 = offset_/CELL_SIZE;
+	const vec2i v1 { std::min(grid_cols, v0.x + viewport_width_/CELL_SIZE), std::min(grid_rows, v0.y + viewport_height_/CELL_SIZE) };
+
+	vec2i from { rand(v0.x + BORDER, v1.x - BORDER), rand(v0.y + BORDER, v1.y - BORDER) };
+	vec2i to { rand(from.x + 1, v1.x - BORDER + 1), rand(from.y + 1, v1.y - BORDER + 1) };
+
+	start_area_ = std::make_pair(from, to);
+
+	start_area_tics_ = 5;
 }

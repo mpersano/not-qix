@@ -1,6 +1,6 @@
 #pragma once
 
-#include "effect.h"
+#include "widget.h"
 
 namespace ggl {
 class font;
@@ -8,7 +8,7 @@ class font;
 
 class game;
 
-class percent_gauge : public effect
+class percent_gauge : public widget
 {
 public:
 	percent_gauge(game& g, int viewport_height);

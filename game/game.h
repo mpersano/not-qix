@@ -8,42 +8,8 @@
 #include <ggl/vertex_array.h>
 
 #include "foe.h"
+#include "player.h"
 #include "level.h"
-
-enum class direction { UP, DOWN, LEFT, RIGHT };
-
-class game;
-
-class player : private ggl::noncopyable
-{
-public:
-	player(game& g);
-
-	void reset();
-	void move(direction dir, bool button);
-	void update();
-
-	void draw() const;
-	const vec2i get_position() const;
-
-private:
-	void move_slide(direction dir);
-	void move_extend(direction dir);
-
-	enum class state { IDLE, SLIDING, EXTENDING_IDLE, EXTENDING };
-
-	void set_state(state next_state);
-
-	void check_foe_collisions();
-
-	static const int SLIDE_TICS = 3;
-
-	game& game_;
-	vec2i pos_, next_pos_;
-	std::vector<vec2i> extend_trail_;
-	state state_;
-	int state_tics_;
-};
 
 class game : private ggl::noncopyable
 {
@@ -51,8 +17,8 @@ public:
 	game(int width, int height);
 
 	void reset(const level *l);
-	void move(direction dir, bool button);
-	void update();
+
+	void update(unsigned dpad_state);
 	void draw() const;
 	void fill_grid(const std::vector<vec2i>& contour);
 
@@ -63,21 +29,35 @@ public:
 
 	void add_foe(std::unique_ptr<foe> f);
 
+	void set_player_grid_position(const vec2i& p);
+
 	std::vector<int> grid;
 	int grid_rows, grid_cols;
 	std::vector<vec2i> border;
 	std::list<std::unique_ptr<foe>> foes;
 
 private:
+	enum class state { SELECTING_START_AREA, PLAYING };
+
 	vec2f get_offset() const;
+
+	void draw_selecting_start_area() const;
+	void draw_playing() const;
+
+	void update_selecting_offset(unsigned dpad_state);
+	void update_selecting_start_area(unsigned dpad_state);
+	void update_playing(unsigned dpad_state);
+
 	void draw_background() const;
 	void draw_border() const;
 	void draw_foes() const;
 
-	void initialize_vas();
 	void initialize_border();
-	void initialize_background_vas();
-	void initialize_border_va();
+	void initialize_background();
+	void update_cover_percent();
+
+	void reset_start_area();
+	void start_playing();
 
 	int viewport_width_, viewport_height_;
 	vec2i offset_, next_offset_;
@@ -89,6 +69,12 @@ private:
 	static const int SCROLL_TICS = 30;
 
 	unsigned cover_percent_;
+
+	state state_;
+
+	std::pair<vec2i, vec2i> start_area_;
+	int start_area_tics_;
+	unsigned prev_dpad_state_;
 
 	ggl::vertex_array_texcoord<GLshort, 2, GLfloat, 2> background_filled_va_;
 	ggl::vertex_array_texcoord<GLshort, 2, GLfloat, 2> background_unfilled_va_;

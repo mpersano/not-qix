@@ -10,7 +10,7 @@ class sprite;
 class boss : public phys_foe
 {
 public:
-	boss(game& g);
+	boss(game& g, const vec2f& pos);
 
 	void draw() const override;
 	bool update() override;

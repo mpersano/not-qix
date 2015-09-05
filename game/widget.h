@@ -1,9 +1,9 @@
 #pragma once
 
-class effect
+class widget
 {
 public:
-	virtual ~effect() = default;
+	virtual ~widget() = default;
 
 	virtual bool update() = 0;
 	virtual void draw() const = 0;

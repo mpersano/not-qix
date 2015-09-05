@@ -13,7 +13,9 @@ in_game_state::in_game_state(int width, int height)
 
 	game_.reset(g_levels[0].get());
 
-	effects_.push_back(std::unique_ptr<effect>(new percent_gauge { game_, height }));
+#if 0
+	widgets_.push_back(std::unique_ptr<widget>(new percent_gauge { game_, height }));
+#endif
 }
 
 void
@@ -53,7 +55,7 @@ in_game_state::draw() const
 {
 	game_.draw();
 
-	for (auto& p : effects_)
+	for (auto& p : widgets_)
 		p->draw();
 }
 
@@ -61,43 +63,23 @@ void
 in_game_state::update()
 {
 	update_game();
-	update_effects();
+	update_widgets();
 }
 
 void
 in_game_state::update_game()
 {
-	bool button = dpad_button_pressed(ggl::dpad_button::BUTTON1);
-
-	if (dpad_button_pressed(ggl::dpad_button::UP))
-		game_.move(direction::UP, button);
-
-	if (dpad_button_pressed(ggl::dpad_button::DOWN))
-		game_.move(direction::DOWN, button);
-
-	if (dpad_button_pressed(ggl::dpad_button::LEFT))
-		game_.move(direction::LEFT, button);
-
-	if (dpad_button_pressed(ggl::dpad_button::RIGHT))
-		game_.move(direction::RIGHT, button);
-
-	game_.update();
-}
-
-bool
-in_game_state::dpad_button_pressed(ggl::dpad_button button) const
-{
-	return dpad_state_ & (1u << static_cast<int>(button));
+	game_.update(dpad_state_);
 }
 
 void
-in_game_state::update_effects()
+in_game_state::update_widgets()
 {
-	auto it = effects_.begin();
+	auto it = widgets_.begin();
 
-	while (it != effects_.end()) {
+	while (it != widgets_.end()) {
 		if (!(*it)->update())
-			it = effects_.erase(it);
+			it = widgets_.erase(it);
 		else
 			++it;
 	}
@@ -120,19 +102,19 @@ in_game_state::on_gesture(gesture g)
 {
 	switch (g) {
 		case gesture::SWIPE_LEFT:
-			dpad_state_ = 1u << ggl::dpad_button::LEFT;
+			dpad_state_ = 1u << ggl::LEFT;
 			break;
 
 		case gesture::SWIPE_RIGHT:
-			dpad_state_ = 1u << ggl::dpad_button::RIGHT;
+			dpad_state_ = 1u << ggl::RIGHT;
 			break;
 
 		case gesture::SWIPE_UP:
-			dpad_state_ = 1u << ggl::dpad_button::DOWN;
+			dpad_state_ = 1u << ggl::DOWN;
 			break;
 
 		case gesture::SWIPE_DOWN:
-			dpad_state_ = 1u << ggl::dpad_button::UP;
+			dpad_state_ = 1u << ggl::UP;
 			break;
 	}
 }

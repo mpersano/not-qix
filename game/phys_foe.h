@@ -15,6 +15,9 @@ public:
 
 	vec2f get_position() const;
 
+private:
+	bool collide_against_edge(const vec2f& v0, const vec2f& v1);
+
 protected:
 	vec2f pos_;
 	vec2f dir_;
