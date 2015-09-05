@@ -202,7 +202,7 @@ script_interface::create_script_thread(const std::string& path)
 		// load it
 
 		if (luaL_loadfile(lua_state_, path.c_str())) {
-			fprintf(stderr, "failed to parse %s: %s\n", lua_tostring(lua_state_, -1));
+			fprintf(stderr, "failed to parse %s: %s\n", path.c_str(), lua_tostring(lua_state_, -1));
 			lua_pop(lua_state_, 1);
 			return nullptr;
 		}
