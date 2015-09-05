@@ -47,6 +47,9 @@ to_pixel_type(png_byte png_color_type)
 		case PNG_COLOR_TYPE_RGBA:
 			return pixel_type::RGB_ALPHA;
 
+		case PNG_COLOR_TYPE_PALETTE:
+			return pixel_type::RGB;
+
 		default:
 			panic("invalid PNG color type: %x", png_color_type);
 	}
@@ -98,9 +101,11 @@ image::image(const std::string& path)
 		panic("invalid PNG bit depth");
 	}
 
+	int color_type = png_get_color_type(png_ptr, info_ptr);
+
 	width = png_get_image_width(png_ptr, info_ptr);
 	height = png_get_image_height(png_ptr, info_ptr);
-	type = to_pixel_type(png_get_color_type(png_ptr, info_ptr));
+	type = to_pixel_type(color_type);
 
 	data.resize(width*height*pixel_size());
 
@@ -109,9 +114,28 @@ image::image(const std::string& path)
 	uint8_t *dest = &data[0];
 	const unsigned stride = row_stride();
 
-	for (unsigned i = 0; i < height; i++) {
-		std::copy(rows[i], rows[i] + stride, dest);
-		dest += stride;
+	if (color_type == PNG_COLOR_TYPE_PALETTE) {
+		int palette_size;
+		png_colorp palette;
+
+		png_get_PLTE(png_ptr, info_ptr, &palette, &palette_size);
+
+		for (unsigned i = 0; i < height; i++) {
+			auto *src = rows[i];
+
+			for (unsigned j = 0; j < width; j++) {
+				auto *color = &palette[*src++];
+
+				*dest++ = color->red;
+				*dest++ = color->green;
+				*dest++ = color->blue;
+			}
+		}
+	} else {
+		for (unsigned i = 0; i < height; i++) {
+			std::copy(rows[i], rows[i] + stride, dest);
+			dest += stride;
+		}
 	}
 
 	png_destroy_read_struct(&png_ptr, &info_ptr, 0);
