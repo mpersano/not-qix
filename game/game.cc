@@ -18,64 +18,51 @@ namespace {
 
 const int BORDER_RADIUS = 1;
 
-}
-
-static const float SCROLL_T = .2f;
-
-game::game(int width, int height)
-: viewport_width_ { width }
-, viewport_height_ { height }
-, player_ { *this }
-{ }
-
-void
-game::reset(const level *l)
+class start_select_state : public game_state
 {
-	cur_level_ = l;
+public:
+	start_select_state(game& g);
 
-	grid_rows = cur_level_->grid_rows;
-	grid_cols = cur_level_->grid_cols;
+	void draw() const override;
+	void update(unsigned dpad_state);
 
-	grid.resize(grid_rows*grid_cols);
-	std::fill(std::begin(grid), std::end(grid), 0);
+private:
+	void start_playing();
+	void reset_start_area();
 
-	offset_ = vec2i { 0, 0 };
-	scrolling_ = false;
-	cover_percent_ = 0u;
+	std::pair<vec2i, vec2i> start_area_;
+	int start_area_tics_;
+	unsigned prev_dpad_state_;
+};
 
-	initialize_background();
+class playing_state : public game_state
+{
+public:
+	playing_state(game& g);
 
-	state_ = state::SELECTING_START_AREA;
+	void draw() const override;
+	void update(unsigned dpad_state);
+
+private:
+	bool scrolling_;
+
+	int scroll_tics_;
+	vec2i prev_offset_, next_offset_; // when scrolling
+};
+
+//
+//  s t a r t _ s e l e c t _ s t a t e
+//
+
+start_select_state::start_select_state(game& g)
+: game_state { g }
+, prev_dpad_state_ { 0 }
+{
 	reset_start_area();
-
-	prev_dpad_state_ = 0;
 }
 
 void
-game::draw() const
-{
-	glPushMatrix();
-
-	auto offs = get_offset();
-	glTranslatef(offs.x, offs.y, 0);
-
-	draw_background();
-
-	switch (state_) {
-		case state::SELECTING_START_AREA:
-			draw_selecting_start_area();
-			break;
-
-		case state::PLAYING:
-			draw_playing();
-			break;
-	}
-
-	glPopMatrix();
-}
-
-void
-game::draw_selecting_start_area() const
+start_select_state::draw() const
 {
 	short x0 = start_area_.first.x*CELL_SIZE;
 	short x1 = start_area_.second.x*CELL_SIZE;
@@ -117,28 +104,184 @@ game::draw_selecting_start_area() const
 }
 
 void
-game::draw_playing() const
+start_select_state::update(unsigned dpad_state)
 {
-	draw_border();
-
-	for (auto& foe : foes)
-		foe->draw();
-
-	player_.draw();
-}
-
-vec2f
-game::get_offset() const
-{
-	if (!scrolling_) {
-		return offset_;
-	} else {
-		return quadratic_tween<vec2f>()(vec2f(offset_), vec2f(next_offset_), static_cast<float>(scroll_tics_)/SCROLL_TICS);
+	if ((dpad_state & (1u << ggl::BUTTON1)) && (prev_dpad_state_ & (1u << ggl::BUTTON1))) {
+		start_playing();
+		return;
 	}
+
+	if (--start_area_tics_ == 0)
+		reset_start_area();
+
+	prev_dpad_state_ = dpad_state;
 }
 
 void
-game::initialize_background()
+start_select_state::start_playing()
+{
+	game_.reset_player(start_area_.first);
+	game_.fill_grid(start_area_.first, start_area_.second);
+
+	game_.add_boss();
+
+	game_.set_state(std::unique_ptr<game_state>(new playing_state { game_ }));
+}
+
+void
+start_select_state::reset_start_area()
+{
+	static const int BORDER = 8;
+
+	const int screen_cols = game_.viewport_width/CELL_SIZE;
+	const int screen_rows = game_.viewport_height/CELL_SIZE;
+
+	const vec2i v0 = game_.offset/CELL_SIZE;
+
+	const vec2i v1 {
+		std::min(game_.grid_cols, v0.x + screen_cols),
+		std::min(game_.grid_rows, v0.y + screen_rows) };
+
+	vec2i from { rand(v0.x + BORDER, v1.x - BORDER), rand(v0.y + BORDER, v1.y - BORDER) };
+	vec2i to { rand(from.x + 1, v1.x - BORDER + 1), rand(from.y + 1, v1.y - BORDER + 1) };
+
+	start_area_ = std::make_pair(from, to);
+
+	start_area_tics_ = 5;
+}
+
+//
+//  p l a y i n g _ s t a t e
+//
+
+playing_state::playing_state(game& g)
+: game_state { g }
+{ }
+
+void
+playing_state::draw() const
+{
+	game_.draw_border();
+	game_.draw_foes();
+	game_.draw_player();
+}
+
+void
+playing_state::update(unsigned dpad_state)
+{
+	game_.update_player(dpad_state);
+	game_.update_foes();
+
+	// scrolling
+
+	if (scrolling_) {
+		static const int SCROLL_TICS = 30;
+
+		if (++scroll_tics_ >= SCROLL_TICS) {
+			game_.offset = next_offset_;
+			scrolling_ = false;
+		} else {
+			game_.offset = quadratic_tween<vec2f>()(vec2f(prev_offset_), vec2f(next_offset_), static_cast<float>(scroll_tics_)/SCROLL_TICS);
+		}
+	} else {
+		static const int SCROLL_DIST = 100;
+
+		auto w = game_.viewport_width;
+		auto h = game_.viewport_height;
+
+		vec2i pos = game_.get_player_screen_position();
+
+		if (pos.x < .2*w) {
+			if (game_.offset.x < 0) {
+				next_offset_.x = std::min(0, game_.offset.x + SCROLL_DIST);
+				next_offset_.y = game_.offset.y;
+
+				prev_offset_ = game_.offset;
+
+				scroll_tics_ = 0;
+				scrolling_ = true;
+			}
+		} else if (pos.x > .8*w) {
+			if (game_.offset.x + game_.grid_cols*CELL_SIZE > w) {
+				next_offset_.x = std::max(w - game_.grid_cols*CELL_SIZE, game_.offset.x - SCROLL_DIST);
+				next_offset_.y = game_.offset.y;
+
+				prev_offset_ = game_.offset;
+
+				scroll_tics_ = 0;
+				scrolling_ = true;
+			}
+		}
+
+		if (pos.y < .2*h) {
+			if (game_.offset.y < 0) {
+				next_offset_.x = game_.offset.x;
+				next_offset_.y = std::min(0, game_.offset.y + SCROLL_DIST);
+
+				prev_offset_ = game_.offset;
+
+				scroll_tics_ = 0;
+				scrolling_ = true;
+			}
+		} else if (pos.y > .8*h) {
+			if (game_.offset.y + game_.grid_rows*CELL_SIZE > h) {
+				next_offset_.x = game_.offset.x;
+				next_offset_.y = std::max(h - game_.grid_rows*CELL_SIZE, game_.offset.y - SCROLL_DIST);
+
+				prev_offset_ = game_.offset;
+
+				scroll_tics_ = 0;
+				scrolling_ = true;
+			}
+		}
+	}
+}
+
+} // (anonymous namespace)
+
+game_state::game_state(game& g)
+: game_ { g }
+{ }
+
+game::game(int width, int height)
+: viewport_width { width }
+, viewport_height { height }
+, player_ { *this }
+{ }
+
+void
+game::reset(const level *l)
+{
+	cur_level_ = l;
+
+	grid_rows = cur_level_->grid_rows;
+	grid_cols = cur_level_->grid_cols;
+
+	grid.resize(grid_rows*grid_cols);
+	std::fill(std::begin(grid), std::end(grid), 0);
+
+	offset = vec2i { 0, 0 };
+	cover_percent_ = 0u;
+
+	update_background();
+
+	set_state(std::unique_ptr<game_state>(new start_select_state(*this)));
+}
+
+void
+game::draw() const
+{
+	glPushMatrix();
+	glTranslatef(offset.x, offset.y, 0);
+
+	draw_background();
+	state_->draw();
+
+	glPopMatrix();
+}
+
+void
+game::update_background()
 {
 	auto& tex = cur_level_->fg_texture;
 
@@ -194,7 +337,7 @@ game::initialize_background()
 }
 
 void
-game::initialize_border()
+game::update_border()
 {
 	//
 	//  find border verts
@@ -319,139 +462,9 @@ game::draw_border() const
 }
 
 void
-game::start_playing()
-{
-	for (int r = start_area_.first.y; r < start_area_.second.y; r++) {
-		auto *row = &grid[r*grid_cols];
-		std::fill(row + start_area_.first.x, row + start_area_.second.x, 1);
-	}
-
-	player_.reset(start_area_.first); // needs to be called before initialize_border
-
-	initialize_border();
-	initialize_background();
-
-	update_cover_percent();
-
-	const vec2f boss_pos { 30, 30 }; // XXX: pick initial boss position
-
-	foes.push_back(std::unique_ptr<foe> { new boss { *this, boss_pos } });
-
-	state_ = state::PLAYING;
-}
-
-void
 game::update(unsigned dpad_state)
 {
-	switch (state_) {
-		case state::SELECTING_START_AREA:
-			update_selecting_start_area(dpad_state);
-			break;
-
-		case state::PLAYING:
-			update_playing(dpad_state);
-			break;
-	}
-
-	prev_dpad_state_ = dpad_state;
-}
-
-void
-game::update_selecting_start_area(unsigned dpad_state)
-{
-	if ((dpad_state & (1u << ggl::BUTTON1)) && (prev_dpad_state_ & (1u << ggl::BUTTON1))) {
-		start_playing();
-	} else {
-		if (--start_area_tics_ == 0)
-			reset_start_area();
-	}
-}
-
-void
-game::update_playing(unsigned dpad_state)
-{
-	// player
-
-	auto dpad_button_pressed = [=](ggl::dpad_button button)
-		{
-			return dpad_state & (1u << button);
-		};
-
-	bool button = dpad_button_pressed(ggl::BUTTON1);
-
-	if (dpad_button_pressed(ggl::UP))
-		player_.move(direction::UP, button);
-
-	if (dpad_button_pressed(ggl::DOWN))
-		player_.move(direction::DOWN, button);
-
-	if (dpad_button_pressed(ggl::LEFT))
-		player_.move(direction::LEFT, button);
-
-	if (dpad_button_pressed(ggl::RIGHT))
-		player_.move(direction::RIGHT, button);
-
-	player_.update();
-
-	// foes
-
-	auto it = std::begin(foes);
-
-	while (it != std::end(foes)) {
-		if (!(*it)->update())
-			it = foes.erase(it);
-		else
-			++it;
-	}
-
-	// scrolling
-
-	if (scrolling_) {
-		if (++scroll_tics_ >= SCROLL_TICS) {
-			offset_ = next_offset_;
-			scrolling_ = false;
-		}
-	} else {
-		static const int SCROLL_DIST = 100;
-
-		vec2i pos = get_player_screen_position();
-
-		if (pos.x < .2*viewport_width_) {
-			if (offset_.x < 0) {
-				next_offset_.x = std::min(0, offset_.x + SCROLL_DIST);
-				next_offset_.y = offset_.y;
-
-				scroll_tics_ = 0;
-				scrolling_ = true;
-			}
-		} else if (pos.x > .8*viewport_width_) {
-			if (offset_.x + grid_cols*CELL_SIZE > viewport_width_) {
-				next_offset_.x = std::max(viewport_width_ - grid_cols*CELL_SIZE, offset_.x - SCROLL_DIST);
-				next_offset_.y = offset_.y;
-
-				scroll_tics_ = 0;
-				scrolling_ = true;
-			}
-		}
-
-		if (pos.y < .2*viewport_height_) {
-			if (offset_.y < 0) {
-				next_offset_.x = offset_.x;
-				next_offset_.y = std::min(0, offset_.y + SCROLL_DIST);
-
-				scroll_tics_ = 0;
-				scrolling_ = true;
-			}
-		} else if (pos.y > .8*viewport_height_) {
-			if (offset_.y + grid_rows*CELL_SIZE > viewport_height_) {
-				next_offset_.x = offset_.x;
-				next_offset_.y = std::max(viewport_height_ - grid_rows*CELL_SIZE, offset_.y - SCROLL_DIST);
-
-				scroll_tics_ = 0;
-				scrolling_ = true;
-			}
-		}
-	}
+	state_->update(dpad_state);
 }
 
 void
@@ -533,13 +546,21 @@ game::fill_grid(const std::vector<vec2i>& contour)
 		}
 	}
 
-	// update vertex arrays
+	update_border();
+	update_background();
+	update_cover_percent();
+}
 
-	initialize_border();
-	initialize_background();
+void
+game::fill_grid(const vec2i& bottom_left, const vec2i& top_right)
+{
+	for (int r = bottom_left.y; r < top_right.y; r++) {
+		auto *row = &grid[r*grid_cols];
+		std::fill(row + bottom_left.x, row + top_right.x, 1);
+	}
 
-	// update cover percent
-
+	update_border();
+	update_background();
 	update_cover_percent();
 }
 
@@ -566,7 +587,7 @@ game::get_cover_percent() const
 vec2i
 game::get_player_screen_position() const
 {
-	return player_.get_position() + offset_;
+	return player_.get_position() + offset;
 }
 
 vec2i
@@ -582,23 +603,73 @@ game::add_foe(std::unique_ptr<foe> f)
 }
 
 void
-game::set_player_grid_position(const vec2i& p)
+game::add_boss()
 {
-	player_.set_grid_position(p);
+	const vec2f boss_pos { 30, 30 }; // XXX: pick initial boss position
+
+	add_foe(std::unique_ptr<foe> { new boss { *this, boss_pos } });
 }
 
 void
-game::reset_start_area()
+game::set_state(std::unique_ptr<game_state> next_state)
 {
-	static const int BORDER = 8;
+	state_ = std::move(next_state);
+}
 
-	const vec2i v0 = offset_/CELL_SIZE;
-	const vec2i v1 { std::min(grid_cols, v0.x + viewport_width_/CELL_SIZE), std::min(grid_rows, v0.y + viewport_height_/CELL_SIZE) };
+void
+game::draw_foes() const
+{
+	for (auto& foe : foes)
+		foe->draw();
+}
 
-	vec2i from { rand(v0.x + BORDER, v1.x - BORDER), rand(v0.y + BORDER, v1.y - BORDER) };
-	vec2i to { rand(from.x + 1, v1.x - BORDER + 1), rand(from.y + 1, v1.y - BORDER + 1) };
+void
+game::draw_player() const
+{
+	player_.draw();
+}
 
-	start_area_ = std::make_pair(from, to);
+void
+game::update_foes()
+{
+	auto it = std::begin(foes);
 
-	start_area_tics_ = 5;
+	while (it != std::end(foes)) {
+		if (!(*it)->update())
+			it = foes.erase(it);
+		else
+			++it;
+	}
+
+}
+
+void
+game::reset_player(const vec2i& pos)
+{
+	player_.reset(pos);
+}
+
+void
+game::update_player(unsigned dpad_state)
+{
+	auto dpad_button_pressed = [=](ggl::dpad_button button)
+		{
+			return dpad_state & (1u << button);
+		};
+
+	bool button = dpad_button_pressed(ggl::BUTTON1);
+
+	if (dpad_button_pressed(ggl::UP))
+		player_.move(direction::UP, button);
+
+	if (dpad_button_pressed(ggl::DOWN))
+		player_.move(direction::DOWN, button);
+
+	if (dpad_button_pressed(ggl::LEFT))
+		player_.move(direction::LEFT, button);
+
+	if (dpad_button_pressed(ggl::RIGHT))
+		player_.move(direction::RIGHT, button);
+
+	player_.update();
 }
