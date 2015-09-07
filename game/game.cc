@@ -18,6 +18,22 @@ namespace {
 
 const int BORDER_RADIUS = 1;
 
+class offset_select_state : public game_state
+{
+public:
+	offset_select_state(game& g);
+
+	void draw() const override;
+	void update(unsigned dpad_state);
+
+private:
+	static const int SCROLL_TICS = 30;
+
+	int scroll_tics_;
+	bool scroll_dir_;
+	unsigned prev_dpad_state_;
+};
+
 class start_select_state : public game_state
 {
 public:
@@ -27,11 +43,12 @@ public:
 	void update(unsigned dpad_state);
 
 private:
-	void start_playing();
+	void on_button_down();
 	void reset_start_area();
 
 	std::pair<vec2i, vec2i> start_area_;
-	int start_area_tics_;
+
+	int change_tics_;
 	unsigned prev_dpad_state_;
 };
 
@@ -50,13 +67,63 @@ private:
 	vec2i prev_offset_, next_offset_; // when scrolling
 };
 
+bool
+button_pressed(unsigned dpad_state, ggl::dpad_button button)
+{
+	return dpad_state & (1u << button);
+}
+
+//
+//  o f f s e t _ s e l e c t _ s t a t e
+//
+
+offset_select_state::offset_select_state(game& g)
+: game_state { g }
+, scroll_tics_ { SCROLL_TICS }
+, scroll_dir_ { false }
+, prev_dpad_state_ { ~0u }
+{ }
+
+void
+offset_select_state::draw() const
+{ }
+
+void
+offset_select_state::update(unsigned dpad_state)
+{
+	if (prev_dpad_state_ != ~0u &&
+	  button_pressed(dpad_state, ggl::BUTTON1) && !button_pressed(prev_dpad_state_, ggl::BUTTON1)) {
+		game_.set_state(std::unique_ptr<game_state>(new start_select_state { game_ }));
+		return;
+	}
+
+	prev_dpad_state_ = dpad_state;
+
+	if (--scroll_tics_ == 0) {
+		scroll_tics_ = SCROLL_TICS;
+		scroll_dir_ = !scroll_dir_;
+	}
+
+	vec2f from, to;
+
+	if (scroll_dir_) {
+		from = vec2f { 0, 0 };
+		to = vec2f { 0, -game_.grid_rows*CELL_SIZE + game_.viewport_height };
+	} else {
+		from = vec2f { 0, -game_.grid_rows*CELL_SIZE + game_.viewport_height };
+		to = vec2f { 0, 0 };
+	}
+
+	game_.offset = quadratic_tween<vec2f>()(from, to, static_cast<float>(scroll_tics_)/SCROLL_TICS);
+}
+
 //
 //  s t a r t _ s e l e c t _ s t a t e
 //
 
 start_select_state::start_select_state(game& g)
 : game_state { g }
-, prev_dpad_state_ { 0 }
+, prev_dpad_state_ { ~0u }
 {
 	reset_start_area();
 }
@@ -70,6 +137,8 @@ start_select_state::draw() const
 	short y0 = start_area_.first.y*CELL_SIZE;
 	short y1 = start_area_.second.y*CELL_SIZE;
 
+	// interior
+
 	glColor4f(1, 1, 1, .5);
 
 	glEnable(GL_BLEND);
@@ -80,6 +149,8 @@ start_select_state::draw() const
 		  { x0, y1 }, { x1, y1 } }).draw(GL_TRIANGLE_STRIP);
 
 	glDisable(GL_BLEND);
+
+	// border
 
 	glColor4f(1, 1, 1, 1);
 
@@ -106,19 +177,20 @@ start_select_state::draw() const
 void
 start_select_state::update(unsigned dpad_state)
 {
-	if ((dpad_state & (1u << ggl::BUTTON1)) && (prev_dpad_state_ & (1u << ggl::BUTTON1))) {
-		start_playing();
+	if (prev_dpad_state_ != ~0u &&
+	  button_pressed(dpad_state, ggl::BUTTON1) && !button_pressed(prev_dpad_state_, ggl::BUTTON1)) {
+		on_button_down();
 		return;
 	}
 
-	if (--start_area_tics_ == 0)
-		reset_start_area();
-
 	prev_dpad_state_ = dpad_state;
+
+	if (--change_tics_ == 0)
+		reset_start_area();
 }
 
 void
-start_select_state::start_playing()
+start_select_state::on_button_down()
 {
 	game_.reset_player(start_area_.first);
 	game_.fill_grid(start_area_.first, start_area_.second);
@@ -147,7 +219,7 @@ start_select_state::reset_start_area()
 
 	start_area_ = std::make_pair(from, to);
 
-	start_area_tics_ = 5;
+	change_tics_ = 5;
 }
 
 //
@@ -181,7 +253,11 @@ playing_state::update(unsigned dpad_state)
 			game_.offset = next_offset_;
 			scrolling_ = false;
 		} else {
-			game_.offset = quadratic_tween<vec2f>()(vec2f(prev_offset_), vec2f(next_offset_), static_cast<float>(scroll_tics_)/SCROLL_TICS);
+			game_.offset =
+				quadratic_tween<vec2f>()(
+					vec2f(prev_offset_),
+					vec2f(next_offset_),
+					static_cast<float>(scroll_tics_)/SCROLL_TICS);
 		}
 	} else {
 		static const int SCROLL_DIST = 100;
@@ -265,7 +341,7 @@ game::reset(const level *l)
 
 	update_background();
 
-	set_state(std::unique_ptr<game_state>(new start_select_state(*this)));
+	set_state(std::unique_ptr<game_state>(new offset_select_state(*this)));
 }
 
 void
@@ -537,14 +613,9 @@ game::fill_grid(const std::vector<vec2i>& contour)
 		}
 	}
 
-	for (auto& v : grid) {
-		switch (v) {
-			case -1: v = 0; break;
-			case 0: v = 1; break;
-			case 1: break;
-			default: assert(0);
-		}
-	}
+	// -1 --> 0
+	//  0 --> 1
+	std::transform(std::begin(grid), std::end(grid), std::begin(grid), [](int v) { return std::min(v + 1, 1); });
 
 	update_border();
 	update_background();
