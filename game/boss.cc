@@ -12,7 +12,6 @@
 
 namespace {
 
-const float BOSS_RADIUS = 30;
 const float SPIKE_RADIUS = 36;
 
 class bullet : public foe
@@ -139,7 +138,7 @@ bullet::intersects(const vec2i& from, const vec2i& to) const
 //
 
 boss::boss(game& g, const vec2f& pos)
-: phys_foe { g, pos, normalized(vec2f { 1.5f, .5f }), 0, BOSS_RADIUS }
+: phys_foe { g, pos, normalized(vec2f { 1.5f, .5f }), 0, RADIUS }
 , spike_angle_ { 0 }
 , spike_dispersion_ { 0 }
 , miniboss_spawned_ { 0 }

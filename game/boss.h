@@ -25,6 +25,8 @@ public:
 	void set_spike_dispersion(float t);
 	void fire_bullet();
 
+	static const int RADIUS = 30;
+
 private:
 	void draw_core() const;
 	void draw_spikes() const;

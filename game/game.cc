@@ -785,7 +785,44 @@ game::add_foe(std::unique_ptr<foe> f)
 void
 game::add_boss()
 {
-	const vec2f boss_pos { 30, 30 }; // XXX: pick initial boss position
+	// find initial boss position
+
+	const int screen_cols = viewport_width/CELL_SIZE;
+	const int screen_rows = viewport_height/CELL_SIZE;
+
+	const int boss_cells = 2*boss::RADIUS/CELL_SIZE;
+
+	const vec2i v0 = -offset/CELL_SIZE;
+	const vec2i v1 {
+		std::min(grid_cols, v0.x + screen_cols),
+		std::min(grid_rows, v0.y + screen_rows) };
+
+	vec2f boss_pos;
+
+	int index = 1;
+
+	for (int r = v0.y; r < v1.y - boss_cells; r++) {
+		for (int c = v0.x; c < v1.x - boss_cells; c++) {
+			bool filled = false;
+
+			for (int i = 0; i < boss_cells; i++) {
+				auto *begin = &grid[(r + i)*grid_cols + c];
+				auto *end = begin + boss_cells;
+
+				if (std::find(begin, end, 1) != end) {
+					filled = true;
+					break;
+				}
+			}
+
+			if (!filled) {
+				if (rand(0, index) == 0)
+					boss_pos = vec2f { c, r }*CELL_SIZE + vec2f { boss::RADIUS, boss::RADIUS };
+
+				++index;
+			}
+		}
+	}
 
 	add_foe(std::unique_ptr<foe> { new boss { *this, boss_pos } });
 }
