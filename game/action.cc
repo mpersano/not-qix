@@ -36,8 +36,10 @@ action_group::done() const
 void
 parallel_action_group::step()
 {
-	for (auto& p : children_)
-		p->step();
+	for (auto& p : children_) {
+		if (!p->done())
+			p->step();
+	}
 }
 
 void
