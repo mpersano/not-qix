@@ -34,13 +34,8 @@ private:
 	void init_stage_text();
 
 	image_quad portrait_;
-	vec2f portrait_pos_;
-
 	text_quad stage_text_;
-	vec2f stage_text_pos_;
-
 	text_quad name_text_;
-	vec2f name_text_pos_;
 
 	std::unique_ptr<abstract_action> action_;
 };
@@ -116,17 +111,17 @@ level_intro_state::level_intro_state(game& g)
 		(new sequential_action_group)->add(
 			(new parallel_action_group)->add(
 				new property_change_action<quadratic_tween<vec2f>>(
-					portrait_pos_,
+					portrait_.pos,
 					vec2f { w + .5f*portrait_.get_width(), .5f*h },
 					vec2f { .5f*w, .5f*h },
 					30))->add(
 				new property_change_action<quadratic_tween<vec2f>>(
-					stage_text_pos_,
+					stage_text_.pos,
 					vec2f { -.5f*stage_text_.get_width(), .5f*h + 60 },
 					vec2f { .5f*w, .5f*h + 60 },
 					30))->add(
 				new property_change_action<quadratic_tween<vec2f>>(
-					name_text_pos_,
+					name_text_.pos,
 					vec2f { -.5f*name_text_.get_width(), .5f*h - 60 },
 					vec2f { .5f*w, .5f*h - 60 },
 					30)))->add(
@@ -142,29 +137,12 @@ level_intro_state::draw() const
 
 	glEnable(GL_TEXTURE_2D);
 
-	// portrait
-
-	glPushMatrix();
-	glTranslatef(portrait_pos_.x, portrait_pos_.y, 0);
-	portrait_.draw();
-	glPopMatrix();
-
-	// stage text
-
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-	glPushMatrix();
-	glTranslatef(stage_text_pos_.x, stage_text_pos_.y, 0);
+	portrait_.draw();
 	stage_text_.draw();
-	glPopMatrix();
-
-	// name text
-
-	glPushMatrix();
-	glTranslatef(name_text_pos_.x, name_text_pos_.y, 0.f);
 	name_text_.draw();
-	glPopMatrix();
 
 	glDisable(GL_BLEND);
 

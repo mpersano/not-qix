@@ -15,12 +15,19 @@ class font;
 class quad
 {
 public:
+	quad();
 	virtual ~quad() = default;
 
 	virtual unsigned get_width() const = 0;
 	virtual unsigned get_height() const = 0;
 
-	virtual void draw() const = 0;
+	void draw() const;
+
+	vec2f pos;
+	vec2f scale;
+
+protected:
+	virtual void draw_quad() const = 0;
 };
 
 class image_quad : public quad
@@ -31,9 +38,9 @@ public:
 	unsigned get_width() const override;
 	unsigned get_height() const override;
 
-	void draw() const;
-
 private:
+	void draw_quad() const override;
+
 	const ggl::texture *tex_;
 	ggl::vertex_array_texcoord<GLfloat, 2, GLfloat, 2> va_;
 	unsigned width_, height_;
@@ -47,9 +54,9 @@ public:
 	unsigned get_width() const override;
 	unsigned get_height() const override;
 
-	void draw() const;
-
 private:
+	void draw_quad() const override;
+
 	const ggl::texture *tex_;
 	ggl::vertex_array_texcoord<GLshort, 2, GLfloat, 2> va_;
 	std::pair<vec2s, vec2s> rect_;

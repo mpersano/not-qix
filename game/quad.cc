@@ -3,6 +3,23 @@
 
 #include "quad.h"
 
+quad::quad()
+: pos { 0.f, 0.f }
+, scale { 1.f, 1.f }
+{ }
+
+void
+quad::draw() const
+{
+	glPushMatrix();
+	glTranslatef(pos.x, pos.y, 0.f);
+	glScalef(scale.x, scale.y, 1.f);
+
+	draw_quad();
+
+	glPopMatrix();
+}
+
 image_quad::image_quad(const ggl::texture *tex)
 : tex_ { tex }
 , width_ { tex_->orig_width }
@@ -36,7 +53,7 @@ image_quad::get_height() const
 }
 
 void
-image_quad::draw() const
+image_quad::draw_quad() const
 {
 	tex_->bind();
 	va_.draw(GL_TRIANGLE_STRIP);
@@ -74,9 +91,8 @@ text_quad::get_height() const
 }
 
 void
-text_quad::draw() const
+text_quad::draw_quad() const
 {
-	glPushMatrix();
 	glTranslatef(
 		-rect_.first.x - .5f*get_width(),
 		-rect_.first.y - .5f*get_height(),
@@ -84,6 +100,4 @@ text_quad::draw() const
 
 	tex_->bind();
 	va_.draw(GL_TRIANGLES);
-
-	glPopMatrix();
 }
