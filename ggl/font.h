@@ -6,6 +6,7 @@
 #include <string>
 
 #include <ggl/gl.h>
+#include <ggl/vertex_array.h>
 
 namespace ggl {
 
@@ -33,6 +34,7 @@ public:
 	unsigned get_string_width(const std::basic_string<wchar_t>& str) const;
 
 	void render(const std::basic_string<wchar_t>& str) const;
+	void render(const std::basic_string<wchar_t>& str, ggl::vertex_array_texcoord<GLshort, 2, GLfloat, 2>& va) const;
 
 	const texture *tex;
 

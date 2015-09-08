@@ -4,6 +4,7 @@
 			<foreground path="images/girl-foreground.png" />
 			<background path="images/girl-background.png" />
 			<mask path="images/girl-mask.png" />
+			<portrait path="images/girl-portrait.png" />
 		</level>
 	</levels>
 </game>

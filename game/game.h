@@ -60,10 +60,16 @@ public:
 	void set_state(std::unique_ptr<game_state> next_state);
 
 	int viewport_width, viewport_height;
+
 	std::vector<int> grid;
 	int grid_rows, grid_cols;
+
+	const level *cur_level;
+
 	std::vector<vec2i> border;
+
 	std::list<std::unique_ptr<foe>> foes;
+
 	vec2i offset;
 
 private:
@@ -73,7 +79,6 @@ private:
 	void update_background();
 	void update_cover_percent();
 
-	const level *cur_level_;
 	player player_;
 	unsigned cover_percent_;
 

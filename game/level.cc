@@ -13,9 +13,11 @@
 
 std::vector<std::unique_ptr<level>> g_levels;
 
-level::level(const std::string& fg_path, const std::string& bg_path, const std::string& mask_path)
-: fg_texture { ggl::res::get_texture(fg_path) }
+level::level(const std::string& fg_path, const std::string& bg_path, const std::string& mask_path, const std::string& portrait_path)
+: name { L"test" }
+, fg_texture { ggl::res::get_texture(fg_path) }
 , bg_texture { ggl::res::get_texture(bg_path) }
+, portrait_texture { ggl::res::get_texture(portrait_path) }
 {
 	ggl::image mask { mask_path };
 
@@ -45,11 +47,8 @@ level::level(const std::string& fg_path, const std::string& bg_path, const std::
 			auto *p = &mask_pixels[r*CELL_SIZE*row_stride + c*CELL_SIZE];
 
 			for (int i = 0; i < CELL_SIZE; i++) {
-				for (int j = 0; j < CELL_SIZE; j++) {
-					s += *p++ != 0;
-				}
-
-				p += row_stride - CELL_SIZE;
+				s += std::accumulate(p, p + CELL_SIZE, 0, [](int s, uint8_t v) { return s + !!v; });
+				p += row_stride;
 			}
 
 			silhouette[(grid_rows - r - 1)*grid_cols + c] = s;
@@ -69,7 +68,7 @@ level_from_xml_node(TiXmlNode *level_node)
 	std::unique_ptr<level> rv;
 
 	if (TiXmlElement *element = level_node->ToElement()) {
-		std::string fg_path, bg_path, mask_path;
+		std::string fg_path, bg_path, mask_path, portrait_path;
 
 		for (TiXmlNode *node = element->FirstChild(); node; node = node->NextSibling()) {
 			TiXmlElement *e = node->ToElement();
@@ -84,10 +83,12 @@ level_from_xml_node(TiXmlNode *level_node)
 				bg_path = e->Attribute("path");
 			} else if (strcmp(value, "mask") == 0) {
 				mask_path = e->Attribute("path");
+			} else if (strcmp(value, "portrait") == 0) {
+				portrait_path = e->Attribute("path");
 			}
 		}
 
-		rv.reset(new level { fg_path, bg_path, mask_path });
+		rv.reset(new level { fg_path, bg_path, mask_path, portrait_path });
 	}
 
 	return rv;

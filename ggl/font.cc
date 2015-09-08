@@ -10,7 +10,6 @@
 #include <ggl/asset.h>
 #include <ggl/texture.h>
 #include <ggl/resources.h>
-#include <ggl/vertex_array.h>
 #include <ggl/font.h>
 
 namespace ggl {
@@ -111,6 +110,17 @@ void
 font::render(const std::basic_string<wchar_t>& str) const
 {
 	vertex_array_texcoord<GLshort, 2, GLfloat, 2> va;
+	render(str, va);
+
+	glEnable(GL_TEXTURE_2D);
+	tex->bind();
+
+	va.draw(GL_TRIANGLES);
+}
+
+void
+font::render(const std::basic_string<wchar_t>& str, ggl::vertex_array_texcoord<GLshort, 2, GLfloat, 2>& va) const
+{
 	va.reserve(6*str.size());
 
 	const int y = 0;
@@ -139,11 +149,6 @@ font::render(const std::basic_string<wchar_t>& str) const
 
 		x += g->advance_x;
 	}
-
-	glEnable(GL_TEXTURE_2D);
-	tex->bind();
-
-	va.draw(GL_TRIANGLES);
 }
 
 }

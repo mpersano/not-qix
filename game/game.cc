@@ -5,11 +5,14 @@
 #include <ggl/gl.h>
 #include <ggl/dpad_button.h>
 #include <ggl/texture.h>
+#include <ggl/font.h>
 #include <ggl/vertex_array.h>
 #include <ggl/resources.h>
 
 #include "util.h"
 #include "tween.h"
+#include "quad.h"
+#include "action.h"
 #include "level.h"
 #include "boss.h"
 #include "game.h"
@@ -18,13 +21,37 @@ namespace {
 
 const int BORDER_RADIUS = 1;
 
+class level_intro_state : public game_state
+{
+public:
+	level_intro_state(game& g);
+
+	void draw() const override;
+	void update(unsigned dpad_state) override;
+
+private:
+	void init_portrait();
+	void init_stage_text();
+
+	image_quad portrait_;
+	vec2f portrait_pos_;
+
+	text_quad stage_text_;
+	vec2f stage_text_pos_;
+
+	text_quad name_text_;
+	vec2f name_text_pos_;
+
+	std::unique_ptr<abstract_action> action_;
+};
+
 class offset_select_state : public game_state
 {
 public:
 	offset_select_state(game& g);
 
 	void draw() const override;
-	void update(unsigned dpad_state);
+	void update(unsigned dpad_state) override;
 
 private:
 	static const int SCROLL_TICS = 30;
@@ -40,7 +67,7 @@ public:
 	start_select_state(game& g);
 
 	void draw() const override;
-	void update(unsigned dpad_state);
+	void update(unsigned dpad_state) override;
 
 private:
 	void on_button_down();
@@ -58,11 +85,10 @@ public:
 	playing_state(game& g);
 
 	void draw() const override;
-	void update(unsigned dpad_state);
+	void update(unsigned dpad_state) override;
 
 private:
 	bool scrolling_;
-
 	int scroll_tics_;
 	vec2i prev_offset_, next_offset_; // when scrolling
 };
@@ -71,6 +97,88 @@ bool
 button_pressed(unsigned dpad_state, ggl::dpad_button button)
 {
 	return dpad_state & (1u << button);
+}
+
+//
+//  l e v e l _ i n t r o _ s t a t e
+//
+
+level_intro_state::level_intro_state(game& g)
+: game_state { g }
+, portrait_(game_.cur_level->portrait_texture)
+, stage_text_(ggl::res::get_font("fonts/small.spr"), L"stage 1")
+, name_text_(ggl::res::get_font("fonts/tiny.spr"), L"pearl girl")
+{
+	const auto w = game_.viewport_width;
+	const auto h = game_.viewport_height;
+
+	action_.reset(
+		(new sequential_action_group)->add(
+			(new parallel_action_group)->add(
+				new property_change_action<quadratic_tween<vec2f>>(
+					portrait_pos_,
+					vec2f { w + .5f*portrait_.get_width(), .5f*h },
+					vec2f { .5f*w, .5f*h },
+					30))->add(
+				new property_change_action<quadratic_tween<vec2f>>(
+					stage_text_pos_,
+					vec2f { -.5f*stage_text_.get_width(), .5f*h + 60 },
+					vec2f { .5f*w, .5f*h + 60 },
+					30))->add(
+				new property_change_action<quadratic_tween<vec2f>>(
+					name_text_pos_,
+					vec2f { -.5f*name_text_.get_width(), .5f*h - 60 },
+					vec2f { .5f*w, .5f*h - 60 },
+					30)))->add(
+			new delay_action(60)));
+
+	action_->set_properties();
+}
+
+void
+level_intro_state::draw() const
+{
+	glColor4f(1, 1, 1, 1);
+
+	glEnable(GL_TEXTURE_2D);
+
+	// portrait
+
+	glPushMatrix();
+	glTranslatef(portrait_pos_.x, portrait_pos_.y, 0);
+	portrait_.draw();
+	glPopMatrix();
+
+	// stage text
+
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+	glPushMatrix();
+	glTranslatef(stage_text_pos_.x, stage_text_pos_.y, 0);
+	stage_text_.draw();
+	glPopMatrix();
+
+	// name text
+
+	glPushMatrix();
+	glTranslatef(name_text_pos_.x, name_text_pos_.y, 0.f);
+	name_text_.draw();
+	glPopMatrix();
+
+	glDisable(GL_BLEND);
+
+	glDisable(GL_TEXTURE_2D);
+}
+
+void
+level_intro_state::update(unsigned dpad_state)
+{
+	action_->step();
+
+	if (action_->done()) {
+		game_.set_state(std::unique_ptr<game_state>(new offset_select_state { game_ }));
+	}
 }
 
 //
@@ -208,7 +316,7 @@ start_select_state::reset_start_area()
 	const int screen_cols = game_.viewport_width/CELL_SIZE;
 	const int screen_rows = game_.viewport_height/CELL_SIZE;
 
-	const vec2i v0 = game_.offset/CELL_SIZE;
+	const vec2i v0 = -game_.offset/CELL_SIZE;
 
 	const vec2i v1 {
 		std::min(game_.grid_cols, v0.x + screen_cols),
@@ -228,6 +336,7 @@ start_select_state::reset_start_area()
 
 playing_state::playing_state(game& g)
 : game_state { g }
+, scrolling_ { false }
 { }
 
 void
@@ -328,10 +437,10 @@ game::game(int width, int height)
 void
 game::reset(const level *l)
 {
-	cur_level_ = l;
+	cur_level = l;
 
-	grid_rows = cur_level_->grid_rows;
-	grid_cols = cur_level_->grid_cols;
+	grid_rows = cur_level->grid_rows;
+	grid_cols = cur_level->grid_cols;
 
 	grid.resize(grid_rows*grid_cols);
 	std::fill(std::begin(grid), std::end(grid), 0);
@@ -341,7 +450,7 @@ game::reset(const level *l)
 
 	update_background();
 
-	set_state(std::unique_ptr<game_state>(new offset_select_state(*this)));
+	set_state(std::unique_ptr<game_state>(new level_intro_state(*this)));
 }
 
 void
@@ -359,7 +468,7 @@ game::draw() const
 void
 game::update_background()
 {
-	auto& tex = cur_level_->fg_texture;
+	auto& tex = cur_level->fg_texture;
 
 	const float du = static_cast<float>(tex->orig_width)/tex->width/grid_cols;
 	const float dv = static_cast<float>(tex->orig_height)/tex->height/grid_rows;
@@ -521,10 +630,10 @@ game::draw_background() const
 
 	glEnable(GL_TEXTURE_2D);
 
-	cur_level_->fg_texture->bind();
+	cur_level->fg_texture->bind();
 	background_filled_va_.draw(GL_TRIANGLES);
 
-	cur_level_->bg_texture->bind();
+	cur_level->bg_texture->bind();
 	background_unfilled_va_.draw(GL_TRIANGLES);
 
 	glDisable(GL_TEXTURE_2D);
@@ -642,11 +751,11 @@ game::update_cover_percent()
 
 	for (size_t i = 0; i < grid_rows*grid_cols; i++) {
 		if (grid[i]) {
-			cover += cur_level_->silhouette[i];
+			cover += cur_level->silhouette[i];
 		}
 	}
 
-	cover_percent_ = (static_cast<unsigned long long>(cover)*10000ull)/cur_level_->silhouette_pixels;
+	cover_percent_ = (static_cast<unsigned long long>(cover)*10000ull)/cur_level->silhouette_pixels;
 }
 
 unsigned

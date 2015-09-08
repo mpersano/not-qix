@@ -2,8 +2,14 @@
 
 #include <cmath>
 
+template <typename T>
+struct tween
+{
+	using type = T;
+};
+
 template <class T>
-struct linear_tween
+struct linear_tween : tween<T>
 {
 	T operator()(const T& a, const T& b, float t) const
 	{
@@ -12,7 +18,7 @@ struct linear_tween
 };
 
 template <class T>
-struct quadratic_tween
+struct quadratic_tween : tween<T>
 {
 	T operator()(const T& a, const T& b, float t) const
 	{
@@ -21,7 +27,7 @@ struct quadratic_tween
 };
 
 template <class T>
-struct in_cos_tween
+struct in_cos_tween : tween<T>
 {
 	T operator()(const T& a, const T& b, float t) const
 	{
@@ -31,7 +37,7 @@ struct in_cos_tween
 };
 
 template <class T>
-struct out_cos_tween
+struct out_cos_tween : tween<T>
 {
 	T operator()(const T& a, const T& b, float t) const
 	{
@@ -43,7 +49,7 @@ struct out_cos_tween
 // stolen from robert penner
 
 template <class T>
-struct in_back_tween
+struct in_back_tween : tween<T>
 {
 	T operator()(const T& a, const T& b, float t) const
 	{
@@ -53,7 +59,7 @@ struct in_back_tween
 };
 
 template <class T>
-struct out_bounce_tween
+struct out_bounce_tween : tween<T>
 {
 	T operator()(const T& a, const T& b, float t) const
 	{
@@ -77,7 +83,7 @@ struct out_bounce_tween
 };
 
 template <class T>
-struct exp_tween
+struct exp_tween : tween<T>
 {
 	T operator()(const T& a, const T& b, float t) const
 	{

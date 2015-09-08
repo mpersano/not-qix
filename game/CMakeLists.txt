@@ -54,6 +54,8 @@ set(GAME_SOURCES
 	gesture_detector.cc
 	level.cc
 	util.cc
+	quad.cc
+	action.cc
 	game.cc
 	player.cc
 	script_interface.cc
