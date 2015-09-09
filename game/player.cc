@@ -2,6 +2,7 @@
 #include <cassert>
 
 #include "game.h"
+#include "powerup.h"
 #include "player.h"
 
 player::player(game& g)
@@ -202,14 +203,34 @@ player::check_foe_collisions()
 						return false;
 					});
 
-		if (it != std::end(foes)) {
-			printf("collision!\n");
-
-			pos_ = extend_trail_.front();
-			extend_trail_.clear();
-			state_ = state::IDLE;
-		}
+		if (it != std::end(foes))
+			die();
 	}
+}
+
+void
+player::die()
+{
+	printf("death!\n");
+
+	int num_powerups = 5;
+
+	float da = 2.f*M_PI/num_powerups;
+	float a = .5f*da;
+
+	for (int i = 0; i < num_powerups; i++) {
+		const float c = cosf(a);
+		const float s = sinf(a);
+
+		game_.add_foe(std::unique_ptr<foe>(new powerup(game_, get_position(), vec2f { c, s })));
+
+		a += da;
+	}
+
+	pos_ = extend_trail_.front();
+	extend_trail_.clear();
+
+	state_ = state::IDLE;
 }
 
 void

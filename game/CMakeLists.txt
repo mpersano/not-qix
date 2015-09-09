@@ -63,6 +63,7 @@ set(GAME_SOURCES
 	phys_foe.cc
 	boss.cc
 	miniboss.cc
+	powerup.cc
 	in_game_state.cc
 	percent_gauge.cc)
 

@@ -25,6 +25,8 @@ public:
 	void set_grid_position(const vec2i& p);
 
 private:
+	void die();
+
 	void move_slide(direction dir);
 	void move_extend(direction dir);
 
