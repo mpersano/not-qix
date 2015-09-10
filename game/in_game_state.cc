@@ -13,9 +13,7 @@ in_game_state::in_game_state(int width, int height)
 
 	game_.reset(g_levels[0].get());
 
-#if 0
 	widgets_.push_back(std::unique_ptr<widget>(new percent_gauge { game_, height }));
-#endif
 }
 
 void

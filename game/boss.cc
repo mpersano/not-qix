@@ -224,10 +224,10 @@ boss::draw_spikes() const
 	const float da = 2.f*M_PI/NUM_SPIKES;
 
 	for (size_t i = 0; i <= NUM_SPIKES/2; i++)
-		draw_spike(spike_angle_ + exp_tween<float>()(i*da, 0, spike_dispersion_));
+		draw_spike(spike_angle_ + tween::exp(spike_dispersion_)*i*da);
 
 	for (size_t i = 0; i < NUM_SPIKES/2; i++)
-		draw_spike(spike_angle_ - exp_tween<float>()((i + 1)*da, 0, spike_dispersion_));
+		draw_spike(spike_angle_ - tween::exp(spike_dispersion_)*(i + 1)*da);
 }
 
 void

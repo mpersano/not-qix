@@ -110,20 +110,23 @@ level_intro_state::level_intro_state(game& g)
 	action_.reset(
 		(new sequential_action_group)->add(
 			(new parallel_action_group)->add(
-				new property_change_action<quadratic_tween<vec2f>>(
+				new property_change_action<vec2f>(
 					portrait_.pos,
 					vec2f { w + .5f*portrait_.get_width(), .5f*h },
 					vec2f { .5f*w, .5f*h },
+					tween::quadratic,
 					30))->add(
-				new property_change_action<quadratic_tween<vec2f>>(
+				new property_change_action<vec2f>(
 					stage_text_.pos,
 					vec2f { -.5f*stage_text_.get_width(), .5f*h + 60 },
 					vec2f { .5f*w, .5f*h + 60 },
+					tween::quadratic,
 					30))->add(
-				new property_change_action<quadratic_tween<vec2f>>(
+				new property_change_action<vec2f>(
 					name_text_.pos,
 					vec2f { -.5f*name_text_.get_width(), .5f*h - 60 },
 					vec2f { .5f*w, .5f*h - 60 },
+					tween::quadratic,
 					30)))->add(
 			new delay_action(60)));
 
@@ -200,7 +203,7 @@ offset_select_state::update(unsigned dpad_state)
 		to = vec2f { 0, 0 };
 	}
 
-	game_.offset = quadratic_tween<vec2f>()(from, to, static_cast<float>(scroll_tics_)/SCROLL_TICS);
+	game_.offset = from + (to - from)*tween::quadratic(static_cast<float>(scroll_tics_)/SCROLL_TICS);
 }
 
 //
@@ -341,10 +344,9 @@ playing_state::update(unsigned dpad_state)
 			scrolling_ = false;
 		} else {
 			game_.offset =
-				quadratic_tween<vec2f>()(
-					vec2f(prev_offset_),
-					vec2f(next_offset_),
-					static_cast<float>(scroll_tics_)/SCROLL_TICS);
+				prev_offset_ +
+				(next_offset_ - prev_offset_)*
+					tween::quadratic(static_cast<float>(scroll_tics_)/SCROLL_TICS);
 		}
 	} else {
 		static const int SCROLL_DIST = 100;
