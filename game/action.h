@@ -39,29 +39,25 @@ public:
 	{ }
 };
 
-template <class PropertyType>
+template <class PropertyType, float(*Tweener)(float)>
 class property_change_action : public timed_action
 {
 public:
-	using Tweener = std::function<float(float)>;
-
-	property_change_action(PropertyType& property, const PropertyType& from, const PropertyType& to, const Tweener& tweener, int tics)
+	property_change_action(PropertyType& property, const PropertyType& from, const PropertyType& to, int tics)
 	: timed_action(tics)
 	, from_(from)
 	, to_(to)
 	, property_(property)
-	, tweener_(tweener)
 	{ }
 
 	void set_properties() const
 	{
-		property_ = from_ + tweener_(static_cast<float>(cur_tic_)/tics_)*(to_ - from_);
+		property_ = from_ + Tweener(static_cast<float>(cur_tic_)/tics_)*(to_ - from_);
 	}
 
 private:
 	PropertyType from_, to_;
 	PropertyType& property_;
-	Tweener tweener_;
 };
 
 class action_group : public abstract_action

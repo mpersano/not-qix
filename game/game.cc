@@ -110,23 +110,20 @@ level_intro_state::level_intro_state(game& g)
 	action_.reset(
 		(new sequential_action_group)->add(
 			(new parallel_action_group)->add(
-				new property_change_action<vec2f>(
+				new property_change_action<vec2f, tween::quadratic>(
 					portrait_.pos,
 					vec2f { w + .5f*portrait_.get_width(), .5f*h },
 					vec2f { .5f*w, .5f*h },
-					tween::quadratic,
 					30))->add(
-				new property_change_action<vec2f>(
+				new property_change_action<vec2f, tween::quadratic>(
 					stage_text_.pos,
 					vec2f { -.5f*stage_text_.get_width(), .5f*h + 60 },
 					vec2f { .5f*w, .5f*h + 60 },
-					tween::quadratic,
 					30))->add(
-				new property_change_action<vec2f>(
+				new property_change_action<vec2f, tween::quadratic>(
 					name_text_.pos,
 					vec2f { -.5f*name_text_.get_width(), .5f*h - 60 },
 					vec2f { .5f*w, .5f*h - 60 },
-					tween::quadratic,
 					30)))->add(
 			new delay_action(60)));
 
