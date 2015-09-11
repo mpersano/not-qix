@@ -3,10 +3,12 @@
 #include <memory>
 #include <vector>
 #include <list>
+#include <functional>
 
 #include <ggl/noncopyable.h>
 #include <ggl/vec2.h>
 #include <ggl/vertex_array.h>
+#include <ggl/event.h>
 
 #include "foe.h"
 #include "player.h"
@@ -33,9 +35,14 @@ public:
 	game(int width, int height);
 
 	void reset(const level *l);
-
 	void update(unsigned dpad_state);
 	void draw() const;
+
+	using game_started_event_handler = std::function<void(void)>;
+	ggl::connectable_event<game_started_event_handler>& get_game_started_event();
+
+	using cover_changed_event_handler = std::function<void(unsigned)>;
+	ggl::connectable_event<cover_changed_event_handler>& get_cover_changed_event();
 
 	unsigned get_cover_percent() const;
 
@@ -57,7 +64,10 @@ public:
 	void fill_grid(const std::vector<vec2i>& contour);
 	void fill_grid(const vec2i& bottom_left, const vec2i& top_right);
 
-	void set_state(std::unique_ptr<game_state> next_state);
+	void enter_level_intro_state();
+	void enter_select_initial_offset_state();
+	void enter_select_initial_area_state();
+	void enter_playing_state(const vec2i& bottom_left, const vec2i& top_right);
 
 	int viewport_width, viewport_height;
 
@@ -73,6 +83,8 @@ public:
 	vec2i offset;
 
 private:
+	void set_state(std::unique_ptr<game_state> next_state);
+
 	void draw_background() const;
 
 	void update_border();
@@ -87,4 +99,7 @@ private:
 	ggl::vertex_array_flat<GLshort, 2> border_va_;
 
 	std::unique_ptr<game_state> state_;
+
+	ggl::event<game_started_event_handler> game_started_event_;
+	ggl::event<cover_changed_event_handler> cover_changed_event_;
 };

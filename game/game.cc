@@ -40,10 +40,10 @@ private:
 	std::unique_ptr<abstract_action> action_;
 };
 
-class offset_select_state : public game_state
+class select_initial_offset_state : public game_state
 {
 public:
-	offset_select_state(game& g);
+	select_initial_offset_state(game& g);
 
 	void draw() const override;
 	void update(unsigned dpad_state) override;
@@ -56,19 +56,18 @@ private:
 	unsigned prev_dpad_state_;
 };
 
-class start_select_state : public game_state
+class select_initial_area_state : public game_state
 {
 public:
-	start_select_state(game& g);
+	select_initial_area_state(game& g);
 
 	void draw() const override;
 	void update(unsigned dpad_state) override;
 
 private:
-	void on_button_down();
-	void reset_start_area();
+	void reset_initial_area();
 
-	std::pair<vec2i, vec2i> start_area_;
+	std::pair<vec2i, vec2i> initial_area_;
 
 	int change_tics_;
 	unsigned prev_dpad_state_;
@@ -154,16 +153,15 @@ level_intro_state::update(unsigned dpad_state)
 {
 	action_->step();
 
-	if (action_->done()) {
-		game_.set_state(std::unique_ptr<game_state>(new offset_select_state { game_ }));
-	}
+	if (action_->done())
+		game_.enter_select_initial_offset_state();
 }
 
 //
 //  o f f s e t _ s e l e c t _ s t a t e
 //
 
-offset_select_state::offset_select_state(game& g)
+select_initial_offset_state::select_initial_offset_state(game& g)
 : game_state { g }
 , scroll_tics_ { SCROLL_TICS }
 , scroll_dir_ { false }
@@ -171,15 +169,15 @@ offset_select_state::offset_select_state(game& g)
 { }
 
 void
-offset_select_state::draw() const
+select_initial_offset_state::draw() const
 { }
 
 void
-offset_select_state::update(unsigned dpad_state)
+select_initial_offset_state::update(unsigned dpad_state)
 {
 	if (prev_dpad_state_ != ~0u &&
 	  button_pressed(dpad_state, ggl::BUTTON1) && !button_pressed(prev_dpad_state_, ggl::BUTTON1)) {
-		game_.set_state(std::unique_ptr<game_state>(new start_select_state { game_ }));
+		game_.enter_select_initial_area_state();
 		return;
 	}
 
@@ -207,21 +205,21 @@ offset_select_state::update(unsigned dpad_state)
 //  s t a r t _ s e l e c t _ s t a t e
 //
 
-start_select_state::start_select_state(game& g)
+select_initial_area_state::select_initial_area_state(game& g)
 : game_state { g }
 , prev_dpad_state_ { ~0u }
 {
-	reset_start_area();
+	reset_initial_area();
 }
 
 void
-start_select_state::draw() const
+select_initial_area_state::draw() const
 {
-	short x0 = start_area_.first.x*CELL_SIZE;
-	short x1 = start_area_.second.x*CELL_SIZE;
+	short x0 = initial_area_.first.x*CELL_SIZE;
+	short x1 = initial_area_.second.x*CELL_SIZE;
 
-	short y0 = start_area_.first.y*CELL_SIZE;
-	short y1 = start_area_.second.y*CELL_SIZE;
+	short y0 = initial_area_.first.y*CELL_SIZE;
+	short y1 = initial_area_.second.y*CELL_SIZE;
 
 	// interior
 
@@ -261,33 +259,22 @@ start_select_state::draw() const
 }
 
 void
-start_select_state::update(unsigned dpad_state)
+select_initial_area_state::update(unsigned dpad_state)
 {
 	if (prev_dpad_state_ != ~0u &&
 	  button_pressed(dpad_state, ggl::BUTTON1) && !button_pressed(prev_dpad_state_, ggl::BUTTON1)) {
-		on_button_down();
+		game_.enter_playing_state(initial_area_.first, initial_area_.second);
 		return;
 	}
 
 	prev_dpad_state_ = dpad_state;
 
 	if (--change_tics_ == 0)
-		reset_start_area();
+		reset_initial_area();
 }
 
 void
-start_select_state::on_button_down()
-{
-	game_.reset_player(start_area_.first);
-	game_.fill_grid(start_area_.first, start_area_.second);
-
-	game_.add_boss();
-
-	game_.set_state(std::unique_ptr<game_state>(new playing_state { game_ }));
-}
-
-void
-start_select_state::reset_start_area()
+select_initial_area_state::reset_initial_area()
 {
 	static const int BORDER = 8;
 
@@ -303,7 +290,7 @@ start_select_state::reset_start_area()
 	vec2i from { rand(v0.x + BORDER, v1.x - BORDER), rand(v0.y + BORDER, v1.y - BORDER) };
 	vec2i to { rand(from.x + 1, v1.x - BORDER + 1), rand(from.y + 1, v1.y - BORDER + 1) };
 
-	start_area_ = std::make_pair(from, to);
+	initial_area_ = std::make_pair(from, to);
 
 	change_tics_ = 5;
 }
@@ -427,7 +414,7 @@ game::reset(const level *l)
 
 	update_background();
 
-	set_state(std::unique_ptr<game_state>(new level_intro_state(*this)));
+	enter_level_intro_state();
 }
 
 void
@@ -805,9 +792,34 @@ game::add_boss()
 }
 
 void
-game::set_state(std::unique_ptr<game_state> next_state)
+game::enter_level_intro_state()
 {
-	state_ = std::move(next_state);
+	state_ = std::unique_ptr<game_state>(new level_intro_state { *this });
+}
+
+void
+game::enter_select_initial_offset_state()
+{
+	state_ = std::unique_ptr<game_state>(new select_initial_offset_state { *this });
+}
+
+void
+game::enter_select_initial_area_state()
+{
+	state_ = std::unique_ptr<game_state>(new select_initial_area_state { *this });
+}
+
+void
+game::enter_playing_state(const vec2i& bottom_left, const vec2i& top_right)
+{
+	reset_player(bottom_left);
+	fill_grid(bottom_left, top_right);
+
+	add_boss();
+
+	game_started_event_.notify();
+
+	state_ = std::unique_ptr<game_state>(new playing_state { *this });
 }
 
 void
@@ -866,4 +878,16 @@ game::update_player(unsigned dpad_state)
 		player_.move(direction::RIGHT, button);
 
 	player_.update();
+}
+
+ggl::connectable_event<game::game_started_event_handler>&
+game::get_game_started_event()
+{
+	return game_started_event_;
+}
+
+ggl::connectable_event<game::cover_changed_event_handler>&
+game::get_cover_changed_event()
+{
+	return cover_changed_event_;
 }

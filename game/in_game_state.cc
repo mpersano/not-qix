@@ -12,8 +12,6 @@ in_game_state::in_game_state(int width, int height)
 	connect_events();
 
 	game_.reset(g_levels[0].get());
-
-	widgets_.push_back(std::unique_ptr<widget>(new percent_gauge { game_, height }));
 }
 
 void
@@ -46,6 +44,10 @@ in_game_state::connect_events()
 	gesture_conn_ =
 		gesture_detector_.get_event().connect(
 			std::bind(&in_game_state::on_gesture, this, _1));
+
+	game_started_conn_ =
+		game_.get_game_started_event().connect(
+			std::bind(&in_game_state::on_game_started, this));
 }
 
 void
@@ -115,4 +117,10 @@ in_game_state::on_gesture(gesture g)
 			dpad_state_ = 1u << ggl::UP;
 			break;
 	}
+}
+
+void
+in_game_state::on_game_started()
+{
+	widgets_.push_back(std::unique_ptr<widget>(new percent_gauge { game_, height_ }));
 }
