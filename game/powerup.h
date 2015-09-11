@@ -17,8 +17,8 @@ public:
 	{ return false; }
 
 private:
-	void update_moving();
-	void update_sliding();
+	bool update_moving();
+	bool update_sliding();
 
 	enum state { MOVING, SLIDING } state_;
 	vec2f pos_;

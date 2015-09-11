@@ -276,7 +276,7 @@ select_initial_area_state::update(unsigned dpad_state)
 void
 select_initial_area_state::reset_initial_area()
 {
-	static const int BORDER = 8;
+	static const int BORDER = 1;
 
 	const int screen_cols = game_.viewport_width/CELL_SIZE;
 	const int screen_rows = game_.viewport_height/CELL_SIZE;

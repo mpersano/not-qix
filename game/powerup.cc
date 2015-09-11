@@ -10,7 +10,7 @@
 namespace {
 
 const int RADIUS = 12;
-const float SPEED = 1.5;
+const float SPEED = .5;
 
 };
 
@@ -56,27 +56,41 @@ powerup::draw() const
 bool
 powerup::update()
 {
+	bool done = false;
+
 	switch (state_) {
 		case state::MOVING:
-			update_moving();
+			done = update_moving();
 			break;
 
 		case state::SLIDING:
-			update_sliding();
+			done = update_sliding();
 			break;
 	}
 
-	return true;
+	if (done) {
+		printf("powerup collected!\n");
+	}
+
+	return !done;
 }
 
-void
+bool
 powerup::update_moving()
 {
+	const int r0 = static_cast<int>(pos_.y/CELL_SIZE);
+	const int c0 = static_cast<int>(pos_.x/CELL_SIZE);
+
+	// covered?
+
+	if (game_(c0, r0))
+		return true;
+
 	auto next_pos = pos_ + SPEED*dir_;
 
 	// collision with filled area
 
-	const int c0 = static_cast<int>(pos_.x/CELL_SIZE);
+	const int r1 = static_cast<int>(next_pos.y/CELL_SIZE);
 	const int c1 = static_cast<int>(next_pos.x/CELL_SIZE);
 
 	if (c0 != c1) {
@@ -86,16 +100,13 @@ powerup::update_moving()
 		float ym = (next_pos.y - pos_.y)*(xm - pos_.x)/(next_pos.x - pos_.x) + pos_.y;
 		const int r = static_cast<int>(ym/CELL_SIZE);
 
-		if (game_.grid[r*game_.grid_cols + c0] != game_.grid[r*game_.grid_cols + c1]) {
+		if (game_(c0, r) != game_(c1, r)) {
 			pos_ = vec2f { xm, ym };
 			state_ = state::SLIDING;
 			dir_ = vec2f { 0, 1 };
-			return;
+			return false;
 		}
 	}
-
-	const int r0 = static_cast<int>(pos_.y/CELL_SIZE);
-	const int r1 = static_cast<int>(next_pos.y/CELL_SIZE);
 
 	if (r0 != r1) {
 		int rm = r0 < r1 ? r1 : r0;
@@ -104,11 +115,11 @@ powerup::update_moving()
 		float xm = (next_pos.x - pos_.x)*(ym - pos_.y)/(next_pos.y - pos_.y) + pos_.x;
 		const int c = static_cast<int>(xm/CELL_SIZE);
 
-		if (game_.grid[r0*game_.grid_cols + c] != game_.grid[r1*game_.grid_cols + c]) {
+		if (game_(c, r0) != game_(c, r1)) {
 			pos_ = vec2f { xm, ym };
 			state_ = state::SLIDING;
 			dir_ = vec2f { 1, 0 };
-			return;
+			return false;
 		}
 	}
 
@@ -132,60 +143,79 @@ powerup::update_moving()
 
 	if (dir_.y > 0 && pos_.y > v1.y - RADIUS)
 		dir_.y = -dir_.y;
+
+	return false;
 }
 
-void
+bool
 powerup::update_sliding()
 {
+	// caught by the player?
+
+	if (distance(pos_, vec2f(game_.get_player_world_position())) < 4.f)
+		return true;
+
 	auto next_pos = pos_ + SPEED*dir_;
 
-	// collision with filled area
-
-	const auto& grid = game_.grid;
-	const auto grid_rows = game_.grid_rows;
-	const auto grid_cols = game_.grid_cols;
-
+	const int r0 = static_cast<int>(pos_.y/CELL_SIZE);
 	const int c0 = static_cast<int>(pos_.x/CELL_SIZE);
+
+	const int r1 = static_cast<int>(next_pos.y/CELL_SIZE);
 	const int c1 = static_cast<int>(next_pos.x/CELL_SIZE);
 
-	const int r0 = static_cast<int>(pos_.y/CELL_SIZE);
-	const int r1 = static_cast<int>(next_pos.y/CELL_SIZE);
+	// collision with filled area
 
 	if (c0 != c1) {
 		int c = c0 < c1 ? c1 : c0;
 		int r = r0;
 
-		if (grid[r*grid_cols + c1] == grid[(r - 1)*grid_cols + c1]) {
+		if (game_(c1, r) == game_(c1, r - 1)) {
 			// change direction
 
 			next_pos = vec2f { c, r }*CELL_SIZE;
 
-			if (grid[r*grid_cols + c - 1] != grid[r*grid_cols + c]) {
+			if (game_(c - 1, r) != game_(c, r)) {
 				dir_ = vec2f { 0, 1 };
-			} else if (grid[(r - 1)*grid_cols + c - 1] != grid[(r - 1)*grid_cols + c]) {
+			} else if (game_(c - 1, r - 1) != game_(c, r - 1)) {
 				dir_ = vec2f { 0, -1 };
 			} else {
-				assert(0);
+				return true;
 			}
 		}
 	} else if (r0 != r1) {
 		int r = r0 < r1 ? r1 : r0;
 		int c = c0;
 
-		if (grid[r1*grid_cols + c - 1] == grid[r1*grid_cols + c]) {
+		if (game_(c - 1, r1) == game_(c, r1)) {
 			// change direction
 
 			next_pos = vec2f { c, r }*CELL_SIZE;
 
-			if (grid[r*grid_cols + c - 1] != grid[(r - 1)*grid_cols + c - 1]) {
+			if (game_(c - 1, r) != game_(c - 1, r - 1)) {
 				dir_ = vec2f { -1, 0 };
-			} else if (grid[r*grid_cols + c] != grid[(r - 2)*grid_cols + c]) {
+			} else if (game_(c, r) != game_(c, r - 1)) {
 				dir_ = vec2f { 1, 0 };
 			} else {
-				assert(0);
+				return true;
 			}
+		}
+	} else {
+		// covered?
+
+		if (dir_.x != 0.f) {
+			assert(dir_.y == 0.f);
+
+			if (game_(c0, r0) == game_(c0, r0 - 1))
+				return true;
+		} else if (dir_.y != 0.f) {
+			assert(dir_.x == 0.f);
+
+			if (game_(c0 - 1, r0) == game_(c0, r0))
+				return true;
 		}
 	}
 
 	pos_ = next_pos;
+
+	return false;
 }

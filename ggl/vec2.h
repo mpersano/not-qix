@@ -87,6 +87,13 @@ length(const vec2<T>& v)
 }
 
 template <typename T>
+inline float
+distance(const vec2<T>& u, const vec2<T>& v)
+{
+	return length(u - v);
+}
+
+template <typename T>
 inline T
 dot(const vec2<T>& u, const vec2<T>& v)
 {

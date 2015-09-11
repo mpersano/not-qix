@@ -69,7 +69,6 @@ public:
 	action_group *add(abstract_action *action);
 
 	bool done() const;
-	void reset();
 
 protected:
 	std::list<std::unique_ptr<abstract_action>> children_;

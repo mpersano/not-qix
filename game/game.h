@@ -69,6 +69,9 @@ public:
 	void enter_select_initial_area_state();
 	void enter_playing_state(const vec2i& bottom_left, const vec2i& top_right);
 
+	int operator()(int c, int r) const
+	{ return grid[r*grid_cols + c]; }
+
 	int viewport_width, viewport_height;
 
 	std::vector<int> grid;
