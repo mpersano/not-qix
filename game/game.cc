@@ -865,26 +865,7 @@ game::reset_player(const vec2i& pos)
 void
 game::update_player(unsigned dpad_state)
 {
-	auto dpad_button_pressed = [=](ggl::dpad_button button)
-		{
-			return dpad_state & (1u << button);
-		};
-
-	bool button = dpad_button_pressed(ggl::BUTTON1);
-
-	if (dpad_button_pressed(ggl::UP))
-		player_.move(direction::UP, button);
-
-	if (dpad_button_pressed(ggl::DOWN))
-		player_.move(direction::DOWN, button);
-
-	if (dpad_button_pressed(ggl::LEFT))
-		player_.move(direction::LEFT, button);
-
-	if (dpad_button_pressed(ggl::RIGHT))
-		player_.move(direction::RIGHT, button);
-
-	player_.update();
+	player_.update(dpad_state);
 }
 
 void

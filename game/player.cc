@@ -1,6 +1,8 @@
 #include <algorithm>
 #include <cassert>
 
+#include <ggl/dpad_button.h>
+
 #include "game.h"
 #include "powerup.h"
 #include "player.h"
@@ -127,8 +129,27 @@ player::move_slide(direction dir)
 }
 
 void
-player::update()
+player::update(unsigned dpad_state)
 {
+	auto dpad_button_pressed = [=](ggl::dpad_button button)
+		{
+			return dpad_state & (1u << button);
+		};
+
+	bool button = dpad_button_pressed(ggl::BUTTON1);
+
+	if (dpad_button_pressed(ggl::UP))
+		move(direction::UP, button);
+
+	if (dpad_button_pressed(ggl::DOWN))
+		move(direction::DOWN, button);
+
+	if (dpad_button_pressed(ggl::LEFT))
+		move(direction::LEFT, button);
+
+	if (dpad_button_pressed(ggl::RIGHT))
+		move(direction::RIGHT, button);
+
 	const int grid_cols = game_.grid_cols;
 	const int grid_rows = game_.grid_rows;
 
@@ -137,13 +158,19 @@ player::update()
 			break;
 
 		case state::EXTENDING_IDLE:
+			if (!button) {
+				assert(!extend_trail_.empty());
+				next_pos_ = extend_trail_.back();
+				set_state(state::EXTENDING);
+			}
+
 			check_foe_collisions();
 			break;
 
 		case state::SLIDING:
 			if (++state_tics_ >= SLIDE_TICS) {
 				pos_ = next_pos_;
-				state_ = state::IDLE;
+				set_state(state::IDLE);
 			}
 			break;
 
@@ -155,7 +182,7 @@ player::update()
 					extend_trail_.pop_back();
 
 				if (extend_trail_.empty()) {
-					state_ = state::IDLE;
+					set_state(state::IDLE);
 				} else {
 					assert(pos_.x != 0 && pos_.x != grid_cols);
 					assert(pos_.y != 0 && pos_.y != grid_rows);
@@ -167,12 +194,19 @@ player::update()
 						game_.fill_grid(extend_trail_);
 
 						extend_trail_.clear();
-						state_ = state::IDLE;
+						set_state(state::IDLE);
 					} else {
-						state_ = state::EXTENDING_IDLE;
+						if (button) {
+							state_ = state::EXTENDING_IDLE;
+						} else {
+							// move back if button not pressed
+							next_pos_ = extend_trail_.back();
+							set_state(state::EXTENDING);
+						}
 					}
 				}
 			}
+
 			check_foe_collisions();
 			break;
 	}

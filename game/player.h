@@ -15,8 +15,7 @@ public:
 	player(game& g);
 
 	void reset(const vec2i& pos);
-	void move(direction dir, bool button);
-	void update();
+	void update(unsigned dpad_state);
 
 	void draw() const;
 	const vec2i get_position() const;
@@ -27,6 +26,7 @@ public:
 private:
 	void die();
 
+	void move(direction dir, bool button);
 	void move_slide(direction dir);
 	void move_extend(direction dir);
 
