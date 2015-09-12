@@ -15,6 +15,7 @@
 #include "action.h"
 #include "level.h"
 #include "boss.h"
+#include "percent_gauge.h"
 #include "game.h"
 
 namespace {
@@ -396,7 +397,9 @@ game::game(int width, int height)
 : viewport_width { width }
 , viewport_height { height }
 , player_ { *this }
-{ }
+{
+	widgets_.push_back(std::unique_ptr<widget>(new percent_gauge(*this, viewport_height)));
+}
 
 void
 game::reset(const level *l)
@@ -427,6 +430,8 @@ game::draw() const
 	state_->draw();
 
 	glPopMatrix();
+
+	draw_hud();
 }
 
 void
@@ -614,6 +619,8 @@ void
 game::update(unsigned dpad_state)
 {
 	state_->update(dpad_state);
+
+	update_hud();
 }
 
 void
@@ -817,7 +824,7 @@ game::enter_playing_state(const vec2i& bottom_left, const vec2i& top_right)
 
 	add_boss();
 
-	game_started_event_.notify();
+	show_hud();
 
 	state_ = std::unique_ptr<game_state>(new playing_state { *this });
 }
@@ -880,14 +887,30 @@ game::update_player(unsigned dpad_state)
 	player_.update();
 }
 
-ggl::connectable_event<game::game_started_event_handler>&
-game::get_game_started_event()
+void
+game::show_hud()
 {
-	return game_started_event_;
+	for (auto& w : widgets_)
+		w->show();
 }
 
-ggl::connectable_event<game::cover_changed_event_handler>&
-game::get_cover_changed_event()
+void
+game::hide_hud()
 {
-	return cover_changed_event_;
+	for (auto& w : widgets_)
+		w->hide();
+}
+
+void
+game::update_hud()
+{
+	for (auto& w : widgets_)
+		w->update();
+}
+
+void
+game::draw_hud() const
+{
+	for (auto& w : widgets_)
+		w->draw();
 }

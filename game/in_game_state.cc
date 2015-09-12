@@ -44,45 +44,24 @@ in_game_state::connect_events()
 	gesture_conn_ =
 		gesture_detector_.get_event().connect(
 			std::bind(&in_game_state::on_gesture, this, _1));
-
-	game_started_conn_ =
-		game_.get_game_started_event().connect(
-			std::bind(&in_game_state::on_game_started, this));
 }
 
 void
 in_game_state::draw() const
 {
 	game_.draw();
-
-	for (auto& p : widgets_)
-		p->draw();
 }
 
 void
 in_game_state::update()
 {
 	update_game();
-	update_widgets();
 }
 
 void
 in_game_state::update_game()
 {
 	game_.update(dpad_state_);
-}
-
-void
-in_game_state::update_widgets()
-{
-	auto it = widgets_.begin();
-
-	while (it != widgets_.end()) {
-		if (!(*it)->update())
-			it = widgets_.erase(it);
-		else
-			++it;
-	}
 }
 
 void
@@ -117,10 +96,4 @@ in_game_state::on_gesture(gesture g)
 			dpad_state_ = 1u << ggl::UP;
 			break;
 	}
-}
-
-void
-in_game_state::on_game_started()
-{
-	widgets_.push_back(std::unique_ptr<widget>(new percent_gauge { game_, height_ }));
 }

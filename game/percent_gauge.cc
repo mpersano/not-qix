@@ -23,8 +23,21 @@ percent_gauge::percent_gauge(game& g, int viewport_height)
 , small_font_ { ggl::res::get_font("fonts/tiny.spr") }
 , updating_ { false }
 , update_tics_ { 0 }
+, hidden_ { true }
 {
-	set_state(state::INTRO);
+	set_state(state::HIDDEN);
+}
+
+void
+percent_gauge::hide()
+{
+	hidden_ = true;
+}
+
+void
+percent_gauge::show()
+{
+	hidden_ = false;
 }
 
 void
@@ -39,32 +52,42 @@ percent_gauge::update()
 {
 	switch (state_) {
 		case state::INTRO:
-			if (++state_tics_ >= INTRO_TICS) {
-				state_ = state::IDLE;
-			}
+			if (++state_tics_ >= INTRO_TICS)
+				set_state(state::IDLE);
 			break;
 
 		case state::IDLE:
-			{
-			int player_y = game_.get_player_screen_position().y;
-
-			if (position_top_) {
-				if (player_y > .7*viewport_height_) {
-					set_state(state::OUTRO);
-				}
+			if (hidden_) {
+				set_state(state::OUTRO);
 			} else {
-				if (player_y < .3*viewport_height_) {
-					set_state(state::OUTRO);
+				int player_y = game_.get_player_screen_position().y;
+
+				if (position_top_) {
+					if (player_y > .7*viewport_height_) {
+						set_state(state::OUTRO);
+					}
+				} else {
+					if (player_y < .3*viewport_height_) {
+						set_state(state::OUTRO);
+					}
 				}
-			}
 			}
 			break;
 
 		case state::OUTRO:
 			if (++state_tics_ >= OUTRO_TICS) {
-				position_top_ = !position_top_;
-				set_state(state::INTRO);
+				if (!hidden_) {
+					position_top_ = !position_top_;
+					set_state(state::INTRO);
+				} else {
+					set_state(state::HIDDEN);
+				}
 			}
+			break;
+
+		case state::HIDDEN:
+			if (!hidden_)
+				set_state(state::INTRO);
 			break;
 	}
 
@@ -99,6 +122,9 @@ int
 percent_gauge::get_base_x() const
 {
 	switch (state_) {
+		case state::HIDDEN:
+			return -WIDTH;
+
 		case state::INTRO:
 			return -WIDTH + (LEFT_MARGIN + WIDTH)*tween::quadratic(static_cast<float>(state_tics_)/INTRO_TICS);
 

@@ -13,6 +13,9 @@ class percent_gauge : public widget
 public:
 	percent_gauge(game& g, int viewport_height);
 
+	void hide() override;
+	void show() override;
+
 	bool update() override;
 	void draw() const override;
 
@@ -38,12 +41,14 @@ private:
 	bool position_top_;
 	unsigned cur_value_, next_value_;
 
-	enum state { INTRO, IDLE, OUTRO } state_;
+	enum state { HIDDEN, INTRO, IDLE, OUTRO } state_;
 	void set_state(state next_state);
 	int state_tics_;
 
 	bool updating_;
 	int update_tics_;
+
+	bool hidden_;
 
 	const ggl::font *large_font_, *small_font_;
 };

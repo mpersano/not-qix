@@ -8,7 +8,6 @@
 #include <ggl/noncopyable.h>
 #include <ggl/vec2.h>
 #include <ggl/vertex_array.h>
-#include <ggl/event.h>
 
 #include "foe.h"
 #include "player.h"
@@ -29,6 +28,8 @@ protected:
 	game& game_;
 };
 
+class widget;
+
 class game : private ggl::noncopyable
 {
 public:
@@ -37,12 +38,6 @@ public:
 	void reset(const level *l);
 	void update(unsigned dpad_state);
 	void draw() const;
-
-	using game_started_event_handler = std::function<void(void)>;
-	ggl::connectable_event<game_started_event_handler>& get_game_started_event();
-
-	using cover_changed_event_handler = std::function<void(unsigned)>;
-	ggl::connectable_event<cover_changed_event_handler>& get_cover_changed_event();
 
 	unsigned get_cover_percent() const;
 
@@ -89,20 +84,24 @@ private:
 	void set_state(std::unique_ptr<game_state> next_state);
 
 	void draw_background() const;
+	void draw_hud() const;
 
+	void update_hud();
 	void update_border();
 	void update_background();
 	void update_cover_percent();
 
+	void show_hud();
+	void hide_hud();
+
 	player player_;
 	unsigned cover_percent_;
+
+	std::vector<std::unique_ptr<widget>> widgets_;
 
 	ggl::vertex_array_texcoord<GLshort, 2, GLfloat, 2> background_filled_va_;
 	ggl::vertex_array_texcoord<GLshort, 2, GLfloat, 2> background_unfilled_va_;
 	ggl::vertex_array_flat<GLshort, 2> border_va_;
 
 	std::unique_ptr<game_state> state_;
-
-	ggl::event<game_started_event_handler> game_started_event_;
-	ggl::event<cover_changed_event_handler> cover_changed_event_;
 };
