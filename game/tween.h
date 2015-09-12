@@ -1,13 +1,11 @@
 #pragma once
 
-namespace tween {
+float linear_tween(float t);
 
-float linear(float t);
-float quadratic(float t);
-float in_cos(float t);
-float out_cos(float t);
-float in_back(float t);
-float out_bounce(float t);
-float exp(float t);
+float quadratic_tween(float t);
 
-}
+float cos_tween(float t);
+
+float in_back_tween(float t);
+
+float out_bounce_tween(float t);

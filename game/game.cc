@@ -110,17 +110,17 @@ level_intro_state::level_intro_state(game& g)
 	action_.reset(
 		(new sequential_action_group)->add(
 			(new parallel_action_group)->add(
-				new property_change_action<vec2f, tween::quadratic>(
+				new property_change_action<vec2f, quadratic_tween>(
 					portrait_.pos,
 					vec2f { w + .5f*portrait_.get_width(), .5f*h },
 					vec2f { .5f*w, .5f*h },
 					30))->add(
-				new property_change_action<vec2f, tween::quadratic>(
+				new property_change_action<vec2f, quadratic_tween>(
 					stage_text_.pos,
 					vec2f { -.5f*stage_text_.get_width(), .5f*h + 60 },
 					vec2f { .5f*w, .5f*h + 60 },
 					30))->add(
-				new property_change_action<vec2f, tween::quadratic>(
+				new property_change_action<vec2f, quadratic_tween>(
 					name_text_.pos,
 					vec2f { -.5f*name_text_.get_width(), .5f*h - 60 },
 					vec2f { .5f*w, .5f*h - 60 },
@@ -199,7 +199,7 @@ select_initial_offset_state::update(unsigned dpad_state)
 		to = vec2f { 0, 0 };
 	}
 
-	game_.offset = from + (to - from)*tween::quadratic(static_cast<float>(scroll_tics_)/SCROLL_TICS);
+	game_.offset = from + (to - from)*quadratic_tween(static_cast<float>(scroll_tics_)/SCROLL_TICS);
 }
 
 //
@@ -317,7 +317,6 @@ void
 playing_state::update(unsigned dpad_state)
 {
 	game_.update_player(dpad_state);
-	game_.update_foes();
 
 	// scrolling
 
@@ -331,7 +330,7 @@ playing_state::update(unsigned dpad_state)
 			game_.offset =
 				prev_offset_ +
 				(next_offset_ - prev_offset_)*
-					tween::quadratic(static_cast<float>(scroll_tics_)/SCROLL_TICS);
+					quadratic_tween(static_cast<float>(scroll_tics_)/SCROLL_TICS);
 		}
 	} else {
 		static const int SCROLL_DIST = 100;
@@ -431,6 +430,7 @@ game::draw() const
 
 	glPopMatrix();
 
+	draw_effects();
 	draw_hud();
 }
 
@@ -618,9 +618,11 @@ game::draw_border() const
 void
 game::update(unsigned dpad_state)
 {
-	state_->update(dpad_state);
-
+	update_foes();
 	update_hud();
+	update_effects();
+
+	state_->update(dpad_state);
 }
 
 void
@@ -751,6 +753,12 @@ void
 game::add_foe(std::unique_ptr<foe> f)
 {
 	foes.push_back(std::move(f));
+}
+
+void
+game::add_effect(std::unique_ptr<effect> e)
+{
+	effects_.push_back(std::move(e));
 }
 
 void
@@ -890,8 +898,28 @@ game::update_hud()
 }
 
 void
+game::update_effects()
+{
+	auto it = std::begin(effects_);
+
+	while (it != std::end(effects_)) {
+		if (!(*it)->update())
+			it = effects_.erase(it);
+		else
+			++it;
+	}
+}
+
+void
 game::draw_hud() const
 {
 	for (auto& w : widgets_)
 		w->draw();
+}
+
+void
+game::draw_effects() const
+{
+	for (auto& e : effects_)
+		e->draw();
 }

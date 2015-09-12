@@ -1,7 +1,6 @@
 #include <ggl/core.h>
 
 #include "level.h"
-#include "percent_gauge.h"
 #include "in_game_state.h"
 
 in_game_state::in_game_state(int width, int height)

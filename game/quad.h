@@ -25,6 +25,7 @@ public:
 
 	vec2f pos;
 	vec2f scale;
+	float alpha;
 
 protected:
 	virtual void draw_quad() const = 0;

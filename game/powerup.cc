@@ -3,14 +3,82 @@
 #include <algorithm>
 
 #include <ggl/gl.h>
+#include <ggl/resources.h>
 
 #include "game.h"
+#include "effect.h"
+#include "quad.h"
+#include "action.h"
+#include "tween.h"
 #include "powerup.h"
 
 namespace {
 
 const int RADIUS = 12;
 const float SPEED = .5;
+
+class picked_effect : public effect
+{
+public:
+	picked_effect(const vec2f& pos);
+
+	bool update() override;
+	void draw() const override;
+
+private:
+	text_quad quad_;
+	std::unique_ptr<abstract_action> action_;
+};
+
+picked_effect::picked_effect(const vec2f& pos)
+: quad_(ggl::res::get_font("fonts/tiny.spr"), L"power up!")
+{
+	action_.reset(
+		(new parallel_action_group)->add(
+			new property_change_action<vec2f, cos_tween>(
+				quad_.pos,
+				pos + vec2f { 0, 8 },
+				pos + vec2f { 0, 40 },
+				60))->add(
+			(new sequential_action_group)->add(
+				new property_change_action<float, linear_tween>(
+					quad_.alpha,
+					0,
+					1,
+					20))->add(
+				new delay_action(30))->add(
+				new property_change_action<float, linear_tween>(
+					quad_.alpha,
+					1,
+					0,
+					20))));
+
+	action_->set_properties();
+}
+
+bool
+picked_effect::update()
+{
+	action_->step();
+	return !action_->done();
+}
+
+void
+picked_effect::draw() const
+{
+	glColor4f(1, 1, 1, 1);
+
+	glEnable(GL_TEXTURE_2D);
+
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+	quad_.draw();
+
+	glDisable(GL_BLEND);
+
+	glDisable(GL_TEXTURE_2D);
+}
 
 };
 
@@ -69,6 +137,8 @@ powerup::update()
 	}
 
 	if (done) {
+		game_.add_effect(
+			std::unique_ptr<effect>(new picked_effect(pos_ + vec2f(game_.offset))));
 		printf("powerup collected!\n");
 	}
 

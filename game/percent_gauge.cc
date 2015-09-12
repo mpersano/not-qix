@@ -126,13 +126,13 @@ percent_gauge::get_base_x() const
 			return -WIDTH;
 
 		case state::INTRO:
-			return -WIDTH + (LEFT_MARGIN + WIDTH)*tween::quadratic(static_cast<float>(state_tics_)/INTRO_TICS);
+			return -WIDTH + (LEFT_MARGIN + WIDTH)*quadratic_tween(static_cast<float>(state_tics_)/INTRO_TICS);
 
 		case state::IDLE:
 			return LEFT_MARGIN;
 
 		case state::OUTRO:
-			return LEFT_MARGIN + (-WIDTH - LEFT_MARGIN)*tween::quadratic(static_cast<float>(state_tics_)/OUTRO_TICS);
+			return LEFT_MARGIN + (-WIDTH - LEFT_MARGIN)*quadratic_tween(static_cast<float>(state_tics_)/OUTRO_TICS);
 	}
 }
 
@@ -140,7 +140,7 @@ unsigned
 percent_gauge::get_value() const
 {
 	if (updating_)
-		return cur_value_ + (next_value_ - cur_value_)*tween::exp(static_cast<float>(update_tics_)/UPDATE_TICS);
+		return cur_value_ + (next_value_ - cur_value_)*quadratic_tween(static_cast<float>(update_tics_)/UPDATE_TICS);
 	else
 		return cur_value_;
 }

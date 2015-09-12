@@ -1,70 +1,13 @@
-TODO
-----
-* android port: handle pause/resume
-* gui elements
-  * percentage
-    v effect class
-    * better border
-    * font with gradient
-  * remaining players
-  * time
-  * virtual dpad
-* game states
-  * level intro
-  * in-game
-  * level outro
-  * game over
-* sphere boss
-  * spawn homing missiles
-  * homing missile animation
-  * spawn minion state
-  * change size according to area covered
-  * when firing: change shooting direction
-* spider boss
-* miniboss: change direction
-* power ups
-* effects
-  * explosion
-  * lightning
-  * +percentage
-  * "danger!"
-* scrolling: better easing function
-* rendering
-  ? flat shaded 3d
-* assets
-  * player sprite
-    * extending
-    * sliding
-  * explosion sprite
-* menu system
-* music
-* sound fx
-* font packer
-  * use different colors for glyph outline/interior
-  * gradients
-  * drop shadows
-    * blur
-    * distance
-    * opacity
-* declarative animation system
-
-BUGS
-----
-
-DONE
-----
-v basic android port
-v text rendering
-  v add font loader from kasui
-  v add font packer to build script
-v background scrolling
-v glitch returning along player trail
-v font: store 2 texuv coords instead of 4
-v after each grid update, work out line loop representing outline.
-  use this for:
-  v create triangle strip for outline rendering
-  v collision detection
-v foes, first iteration: bouncing sphere
-  v sphere vs. grid collision
-  v sphere vs. line collision
-v gesture detection: swipe
+* game
+  * powerups
+    * draw sprites
+    * assets
+      * outer sprite
+      * inner sprite
+    * spawn animation when collected
+  * move percentage gauge from in_game_state to game
+  * player
+    v return along path when button is released
+    * assets
+      * sprite animation
+  * text animation

@@ -9,6 +9,8 @@
 #include <ggl/vec2.h>
 #include <ggl/vertex_array.h>
 
+#include "widget.h"
+#include "effect.h"
 #include "foe.h"
 #include "player.h"
 #include "level.h"
@@ -27,8 +29,6 @@ public:
 protected:
 	game& game_;
 };
-
-class widget;
 
 class game : private ggl::noncopyable
 {
@@ -53,8 +53,8 @@ public:
 	void draw_foes() const;
 	void draw_player() const;
 
-	void add_boss();
 	void add_foe(std::unique_ptr<foe> f);
+	void add_effect(std::unique_ptr<effect> e);
 
 	void fill_grid(const std::vector<vec2i>& contour);
 	void fill_grid(const vec2i& bottom_left, const vec2i& top_right);
@@ -85,8 +85,11 @@ private:
 
 	void draw_background() const;
 	void draw_hud() const;
+	void draw_effects() const;
 
 	void update_hud();
+	void update_effects();
+
 	void update_border();
 	void update_background();
 	void update_cover_percent();
@@ -94,10 +97,13 @@ private:
 	void show_hud();
 	void hide_hud();
 
+	void add_boss();
+
 	player player_;
 	unsigned cover_percent_;
 
 	std::vector<std::unique_ptr<widget>> widgets_;
+	std::vector<std::unique_ptr<effect>> effects_;
 
 	ggl::vertex_array_texcoord<GLshort, 2, GLfloat, 2> background_filled_va_;
 	ggl::vertex_array_texcoord<GLshort, 2, GLfloat, 2> background_unfilled_va_;

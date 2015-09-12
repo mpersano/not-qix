@@ -6,6 +6,7 @@
 quad::quad()
 : pos { 0.f, 0.f }
 , scale { 1.f, 1.f }
+, alpha { 1.f }
 { }
 
 void
@@ -14,6 +15,8 @@ quad::draw() const
 	glPushMatrix();
 	glTranslatef(pos.x, pos.y, 0.f);
 	glScalef(scale.x, scale.y, 1.f);
+
+	glColor4f(1, 1, 1, alpha);
 
 	draw_quad();
 
