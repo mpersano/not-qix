@@ -121,7 +121,7 @@ if (NOT ANDROID)
 		COMMAND mkdir -p ${SPRITE_DIR})
 
 	add_custom_command(TARGET game POST_BUILD
-		COMMAND ${PACKSPRITES_COMMAND} -w 256 -h 256 -t sprites sprites ${CMAKE_SOURCE_DIR}/assets/sprites
+		COMMAND ${PACKSPRITES_COMMAND} -w 1024 -h 1024 -t sprites sprites ${CMAKE_SOURCE_DIR}/assets/sprites
 		WORKING_DIRECTORY ${SPRITE_DIR}
 		DEPENDS ${PACKSPRITES_COMMAND})
 endif()

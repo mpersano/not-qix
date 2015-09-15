@@ -9,6 +9,10 @@ enum class direction { UP, DOWN, LEFT, RIGHT };
 
 class game;
 
+namespace ggl {
+class sprite;
+};
+
 class player : private ggl::noncopyable
 {
 public:
@@ -37,10 +41,13 @@ private:
 	void check_foe_collisions();
 
 	static const int SLIDE_TICS = 3;
+	static const int NUM_FRAMES = 64;
 
 	game& game_;
 	vec2i pos_, next_pos_;
 	std::vector<vec2i> extend_trail_;
 	state state_;
 	int state_tics_;
+	int tic_;
+	const ggl::sprite *sprites_[NUM_FRAMES];
 };

@@ -1,6 +1,8 @@
 #include <algorithm>
 #include <cassert>
 
+#include <ggl/sprite.h>
+#include <ggl/resources.h>
 #include <ggl/dpad_button.h>
 
 #include "game.h"
@@ -9,13 +11,20 @@
 
 player::player(game& g)
 : game_ { g }
-{ }
+{
+	for (int i = 0; i < NUM_FRAMES; i++) {
+		char name[80];
+		sprintf(name, "player-%02d.png", i);
+		sprites_[i] = ggl::res::get_sprite(name);
+	}
+}
 
 void
 player::reset(const vec2i& pos)
 {
 	pos_ = pos;
 	set_state(state::IDLE);
+	tic_ = 0;
 }
 
 void
@@ -131,6 +140,8 @@ player::move_slide(direction dir)
 void
 player::update(unsigned dpad_state)
 {
+	++tic_;
+
 	auto dpad_button_pressed = [=](ggl::dpad_button button)
 		{
 			return dpad_state & (1u << button);
@@ -368,6 +379,7 @@ player::draw() const
 
 	glColor4f(0, 1, 1, 1);
 
+#if 0
 	(ggl::vertex_array_flat<GLshort, 2>
 		{ { pos.x, pos.y },
 		  { static_cast<short>(pos.x - radius), pos.y },
@@ -375,6 +387,9 @@ player::draw() const
 		  { static_cast<short>(pos.x + radius), pos.y },
 		  { pos.x, static_cast<short>(pos.y - radius) },
 		  { static_cast<short>(pos.x - radius), pos.y } }).draw(GL_TRIANGLE_FAN);
+#else
+	sprites_[tic_%NUM_FRAMES]->draw(pos.x, pos.y, ggl::sprite::horiz_align::CENTER, ggl::sprite::vert_align::CENTER);
+#endif
 }
 
 const vec2i
