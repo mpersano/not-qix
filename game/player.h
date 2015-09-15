@@ -49,5 +49,7 @@ private:
 	state state_;
 	int state_tics_;
 	int tic_;
-	const ggl::sprite *sprites_[NUM_FRAMES];
+
+	const ggl::sprite *sprites_core_[NUM_FRAMES];
+	const ggl::sprite *sprites_shield_[NUM_FRAMES];
 };

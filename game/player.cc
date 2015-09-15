@@ -14,8 +14,12 @@ player::player(game& g)
 {
 	for (int i = 0; i < NUM_FRAMES; i++) {
 		char name[80];
-		sprintf(name, "player-%02d.png", i);
-		sprites_[i] = ggl::res::get_sprite(name);
+
+		sprintf(name, "player-core-%02d.png", i);
+		sprites_core_[i] = ggl::res::get_sprite(name);
+
+		sprintf(name, "player-shield-%02d.png", i);
+		sprites_shield_[i] = ggl::res::get_sprite(name);
 	}
 }
 
@@ -377,19 +381,9 @@ player::draw() const
 	auto pos = vec2s(get_position());
 	const short radius = 10;
 
-	glColor4f(0, 1, 1, 1);
+	glColor4f(1, 1, 1, 1);
 
-#if 0
-	(ggl::vertex_array_flat<GLshort, 2>
-		{ { pos.x, pos.y },
-		  { static_cast<short>(pos.x - radius), pos.y },
-		  { pos.x, static_cast<short>(pos.y + radius) },
-		  { static_cast<short>(pos.x + radius), pos.y },
-		  { pos.x, static_cast<short>(pos.y - radius) },
-		  { static_cast<short>(pos.x - radius), pos.y } }).draw(GL_TRIANGLE_FAN);
-#else
-	sprites_[tic_%NUM_FRAMES]->draw(pos.x, pos.y, ggl::sprite::horiz_align::CENTER, ggl::sprite::vert_align::CENTER);
-#endif
+	(state_ == state::EXTENDING || state_ == state::EXTENDING_IDLE ? sprites_core_ : sprites_shield_)[tic_%NUM_FRAMES]->draw(pos.x, pos.y, ggl::sprite::horiz_align::CENTER, ggl::sprite::vert_align::CENTER);
 }
 
 const vec2i

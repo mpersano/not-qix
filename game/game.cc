@@ -416,7 +416,8 @@ game::reset(const level *l)
 
 	update_background();
 
-	enter_level_intro_state();
+	// enter_level_intro_state();
+	enter_select_initial_area_state();
 }
 
 void
