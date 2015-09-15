@@ -2,6 +2,10 @@
 
 #include "foe.h"
 
+namespace ggl {
+class sprite;
+}
+
 class powerup : public foe
 {
 public:
@@ -23,4 +27,7 @@ private:
 	enum state { MOVING, SLIDING } state_;
 	vec2f pos_;
 	vec2f dir_;
+
+	const ggl::sprite *outer_sprite_;
+	const ggl::sprite *inner_sprite_;
 };

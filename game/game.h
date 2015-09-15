@@ -80,6 +80,8 @@ public:
 
 	vec2i offset;
 
+	int tics;
+
 private:
 	void set_state(std::unique_ptr<game_state> next_state);
 

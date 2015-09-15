@@ -3,6 +3,7 @@
 #include <algorithm>
 
 #include <ggl/gl.h>
+#include <ggl/sprite.h>
 #include <ggl/resources.h>
 
 #include "game.h"
@@ -15,7 +16,7 @@
 namespace {
 
 const int RADIUS = 12;
-const float SPEED = .5;
+const float SPEED = 1.5;
 
 class picked_effect : public effect
 {
@@ -87,38 +88,29 @@ powerup::powerup(game& g, const vec2f& pos, const vec2f& dir)
 , pos_ { pos }
 , dir_ { dir }
 , state_ { state::MOVING }
+, outer_sprite_ { ggl::res::get_sprite("powerup-outer.png") }
+, inner_sprite_{ ggl::res::get_sprite("powerup-inner.png") }
 { }
 
 void
 powerup::draw() const
 {
-	glColor4f(1, 0, 0, 1);
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-	static const int NUM_SEGS = 13;
+	glPushMatrix();
+	glTranslatef(pos_.x, pos_.y, 0);
 
-	float a = 0;
-	const float da = 2.f*M_PI/NUM_SEGS;
+	glPushMatrix();
+	glRotatef(3.f*game_.tics, 0, 0, 1);
+	outer_sprite_->draw(ggl::sprite::horiz_align::CENTER, ggl::sprite::vert_align::CENTER);
+	glPopMatrix();
 
-	glBegin(GL_LINE_LOOP);
+	inner_sprite_->draw(ggl::sprite::horiz_align::CENTER, ggl::sprite::vert_align::CENTER);
 
-	for (int i = 0; i < NUM_SEGS; i++) {
-		vec2f p = pos_ + vec2f { cosf(a), sinf(a) }*RADIUS;
-		glVertex2f(p.x, p.y);
-		a += da;
-	}
+	glPopMatrix();
 
-	glEnd();
-
-	glColor4f(1, 1, 1, 1);
-
-	glBegin(GL_LINES);
-
-	glVertex2f(pos_.x - 5, pos_.y - 5);
-	glVertex2f(pos_.x + 5, pos_.y + 5);
-
-	glVertex2f(pos_.x + 5, pos_.y - 5);
-	glVertex2f(pos_.x - 5, pos_.y + 5);
-	glEnd();
+	glDisable(GL_BLEND);
 }
 
 bool

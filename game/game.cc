@@ -418,6 +418,8 @@ game::reset(const level *l)
 
 	// enter_level_intro_state();
 	enter_select_initial_area_state();
+
+	tics = 0;
 }
 
 void
@@ -619,6 +621,8 @@ game::draw_border() const
 void
 game::update(unsigned dpad_state)
 {
+	++tics;
+
 	update_foes();
 	update_hud();
 	update_effects();
