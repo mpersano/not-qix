@@ -1,27 +1,9 @@
 #include <cmath>
 
+#include <ggl/vec2_util.h>
+
 #include "game.h"
 #include "phys_foe.h"
-
-namespace {
-
-vec2f
-seg_closest_point(const vec2f& v0, const vec2f& v1, const vec2f& p)
-{
-	vec2f d = v1 - v0;
-	vec2f v = normalized(v1 - v0);
-
-	float t = dot(p - v0, v);
-
-	if (t < 0)
-		return v0;
-	else if (t > length(d))
-		return v1;
-	else
-		return v0 + t*v;
-}
-
-}
 
 phys_foe::phys_foe(game& g, const vec2f& pos, const vec2f& dir, float speed, float radius)
 : foe { g }
@@ -116,6 +98,12 @@ bool
 phys_foe::intersects(const vec2i& from, const vec2i& to) const
 {
 	return length(pos_ - seg_closest_point(vec2f(from), vec2f(to), pos_)) < radius_;
+}
+
+bool
+phys_foe::intersects(const vec2i& center, float radius) const
+{
+	return length(pos_ - vec2f(center)) < radius_ + radius;
 }
 
 vec2f

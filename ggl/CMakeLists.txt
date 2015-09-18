@@ -27,7 +27,8 @@ set(GGL_SOURCES
 	image.cc
 	sprite.cc
 	resources.cc
-	sprite_manager.cc)
+	sprite_manager.cc
+	vec2_util.cc)
 
 if (ANDROID)
 	list(APPEND GGL_SOURCES

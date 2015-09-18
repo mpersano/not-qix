@@ -1,34 +1,51 @@
-* game
-  * powerups
++ game
+  + powerups
     v draw sprites
-    * assets
+    + assets
       * outer sprite
       * inner sprite
     v spawn animation when collected
   v move percentage gauge from in_game_state to game
-  * player
+  + player
     v return along path when button is released
-    * assets
+    + assets
       v sprite animation
       * explosion
-  * text animation
-  * boss
+    * show player count when starting
+    * player intro animation
+    * player death animation
+  + text animation
+  + boss
     * laser beam attack
-    * assets
-      * sprite animation
-        * core
-	* spikes
-    * "danger" animation when shooting from outside visible area
-  * missile
-    * assets
+    + assets
+      * core sprite
+      * spikes
+    * sprite animation
+    * "danger" effect when shooting from outside visible area
+    * spawn miniboss
+  + bullets
+    + assets
       * sprite
-  * miniboss
+  + miniboss
     * AI
+    + assets
+      * sprite
+    * sprite animation
+    * death effect
+  + level intro state
+    * intro animation
   * game over state
   * level completed state
-  * level intro state
-    * intro animation
   * unlock scrolling
+  + HUD
+    + percentage gauge
+      + assets
+        * frame
+    + lives
+      * assets
+      * code
+  + effects
+    * % effect
 * in_game_state
   * virtual joypad
 * main_menu_state

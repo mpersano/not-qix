@@ -9,6 +9,12 @@
 #include "powerup.h"
 #include "player.h"
 
+namespace {
+
+const float RADIUS = 2;
+
+};
+
 player::player(game& g)
 : game_ { g }
 {
@@ -247,7 +253,10 @@ player::check_foe_collisions()
 						}
 
 						if (f->intersects(extend_trail_.back()*CELL_SIZE, get_position()))
-								return true;
+							return true;
+
+						if (f->intersects(get_position(), RADIUS))
+							return true;
 
 						return false;
 					});

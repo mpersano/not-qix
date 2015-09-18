@@ -17,6 +17,7 @@ public:
 	virtual bool is_boss() const = 0;
 
 	virtual bool intersects(const vec2i& from, const vec2i& to) const = 0;
+	virtual bool intersects(const vec2i& center, float radius) const = 0;
 
 protected:
 	game& game_;

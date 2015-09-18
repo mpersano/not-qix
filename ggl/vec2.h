@@ -1,5 +1,7 @@
 #pragma once
 
+#include <cmath>
+
 template <typename T>
 struct vec2
 {

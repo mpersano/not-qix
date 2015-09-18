@@ -14,10 +14,13 @@ public:
 	void draw() const override;
 	bool update() override;
 
-	bool is_boss() const
+	bool is_boss() const override
 	{ return false; }
 
-	bool intersects(const vec2i&, const vec2i&) const
+	bool intersects(const vec2i&, const vec2i&) const override
+	{ return false; }
+
+	bool intersects(const vec2i&, float) const override
 	{ return false; }
 
 private:

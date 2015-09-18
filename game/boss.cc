@@ -1,6 +1,7 @@
 #include <cmath>
 #include <cstdlib>
 
+#include <ggl/vec2_util.h>
 #include <ggl/texture.h>
 #include <ggl/sprite.h>
 #include <ggl/resources.h>
@@ -26,6 +27,7 @@ public:
 	{ return false; }
 
 	bool intersects(const vec2i& from, const vec2i& to) const override;
+	bool intersects(const vec2i& center, float radius) const override;
 
 private:
 	static const int LENGTH = 20;
@@ -129,6 +131,14 @@ bullet::intersects(const vec2i& from, const vec2i& to) const
 	float ub = ((to.x - from.x)*(from.y - pos_.y) - (to.y - from.y)*(from.x - pos_.x))/d;
 
 	return ua >= 0 && ua <= 1 && ub >= 0 && ub <= 1;
+}
+
+bool
+bullet::intersects(const vec2i& center, float radius) const
+{
+	vec2f end = pos_ + dir_*static_cast<float>(LENGTH);
+
+	return distance(seg_closest_point(pos_, end, center), vec2f(center)) < radius;
 }
 
 } // (anonymous namespace)

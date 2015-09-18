@@ -8,6 +8,7 @@ public:
 	phys_foe(game& g, const vec2f& pos, const vec2f& dir, float speed, float radius);
 
 	bool intersects(const vec2i& from, const vec2i& to) const override;
+	bool intersects(const vec2i& center, float radius) const override;
 
 	void update_position();
 	void rotate_to_player();
