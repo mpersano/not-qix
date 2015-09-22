@@ -4,14 +4,12 @@ include_directories(
 	${ZLIB_INCLUDE_DIR}
 	${PNG_INCLUDE_DIR}
 	${CMAKE_SOURCE_DIR}
-	${TINYXML_INCLUDE_DIR})
+	${TINYXML_INCLUDE_DIR}
+	${CMAKE_SOURCE_DIR}/external)
 
 link_directories(
 	${CMAKE_BINARY_DIR}/ggl
 	${CMAKE_BINARY_DIR}/png)
-
-# XXX fix this later
-find_library(LUA52_LIBRARY NAMES lua5.2 PATHS /usr/lib)
 
 set(GAME_LIBRARIES
 	ggl
@@ -78,7 +76,10 @@ endif()
 
 target_link_libraries(game ${GAME_LIBRARIES})
 
-if (NOT ANDROID)
+if (ANDROID)
+	add_custom_command(TARGET game POST_BUILD
+		COMMAND cp -r ${CMAKE_CURRENT_BINARY_DIR}/libgame.so ${CMAKE_SOURCE_DIR}/android/libs/armeabi/)
+else()
 	set(DATA_DIR "${CMAKE_CURRENT_BINARY_DIR}/data")
 	set(FONT_DIR "${DATA_DIR}/fonts")
 	set(SPRITE_DIR "${DATA_DIR}/sprites")
