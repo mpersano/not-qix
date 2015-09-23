@@ -38,9 +38,10 @@ private:
 	void update_sliding(unsigned dpad_state);
 	void update_extending_idle(unsigned dpad_state);
 	void update_extending(unsigned dpad_state);
+	void update_exploding(unsigned dpad_state);
 	void update_death(unsigned dpad_state);
 
-	enum class state { IDLE, SLIDING, EXTENDING_IDLE, EXTENDING, DEATH };
+	enum class state { IDLE, SLIDING, EXTENDING_IDLE, EXTENDING, EXPLODING, DEATH };
 	void set_state(state next_state);
 
 	game& game_;

@@ -4,7 +4,7 @@
 
 namespace {
 
-const int TTL = 90;
+const int TTL = 30;
 
 } // (anonymous namespace)
 
