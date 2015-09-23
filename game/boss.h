@@ -1,22 +1,19 @@
 #pragma once
 
 #include "script_interface.h"
-#include "phys_foe.h"
+#include "foe.h"
 
 namespace ggl {
 class sprite;
 }
 
-class boss : public phys_foe
+class boss : public foe
 {
 public:
 	boss(game& g, const vec2f& pos);
 
 	void draw() const override;
 	bool update() override;
-
-	bool is_boss() const override
-	{ return true; }
 
 	void on_miniboss_killed();
 

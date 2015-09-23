@@ -1,21 +1,18 @@
 #pragma once
 
-#include "foe.h"
+#include "entity.h"
 
 namespace ggl {
 class sprite;
 }
 
-class powerup : public foe
+class powerup : public entity
 {
 public:
 	powerup(game& g, const vec2f& pos, const vec2f& dir);
 
 	void draw() const override;
 	bool update() override;
-
-	bool is_boss() const override
-	{ return false; }
 
 	bool intersects(const vec2i&, const vec2i&) const override
 	{ return false; }

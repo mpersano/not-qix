@@ -1,24 +1,27 @@
 #pragma once
 
-#include <ggl/noncopyable.h>
-#include <ggl/vec2.h>
+#include "entity.h"
 
-class game;
-
-class foe : private ggl::noncopyable
+class foe : public entity
 {
 public:
-	foe(game& g);
-	virtual ~foe() = default;
+	foe(game& g, const vec2f& pos, const vec2f& dir, float speed, float radius);
 
-	virtual void draw() const = 0;
-	virtual bool update() = 0;
+	bool intersects(const vec2i& from, const vec2i& to) const override;
+	bool intersects(const vec2i& center, float radius) const override;
 
-	virtual bool is_boss() const = 0;
+	void update_position();
+	void rotate_to_player();
+	void set_speed(float speed);
 
-	virtual bool intersects(const vec2i& from, const vec2i& to) const = 0;
-	virtual bool intersects(const vec2i& center, float radius) const = 0;
+	vec2f get_position() const;
+
+private:
+	bool collide_against_edge(const vec2f& v0, const vec2f& v1);
 
 protected:
-	game& game_;
+	vec2f pos_;
+	vec2f dir_;
+	float speed_;
+	float radius_;
 };

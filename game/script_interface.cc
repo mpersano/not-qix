@@ -1,7 +1,7 @@
 #include <memory>
 #include <cassert>
 
-#include "phys_foe.h"
+#include "foe.h"
 #include "boss.h"
 #include "script_interface.h"
 
@@ -75,21 +75,21 @@ dup_table(lua_State *l)
 int
 foe_update_position(lua_State *state)
 {
-	reinterpret_cast<phys_foe *>(lua_touserdata(state, -1))->update_position();
+	reinterpret_cast<foe *>(lua_touserdata(state, -1))->update_position();
 	return 0;
 }
 
 int
 foe_rotate_to_player(lua_State *state)
 {
-	reinterpret_cast<phys_foe *>(lua_touserdata(state, -1))->rotate_to_player();
+	reinterpret_cast<foe *>(lua_touserdata(state, -1))->rotate_to_player();
 	return 0;
 }
 
 int
 foe_set_speed(lua_State *state)
 {
-	reinterpret_cast<phys_foe *>(lua_touserdata(state, -2))->set_speed(lua_tonumber(state, -1));
+	reinterpret_cast<foe *>(lua_touserdata(state, -2))->set_speed(lua_tonumber(state, -1));
 	return 0;
 }
 

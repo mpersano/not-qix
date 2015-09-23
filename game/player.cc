@@ -10,9 +10,7 @@
 #include "player.h"
 
 namespace {
-
 const float RADIUS = 2;
-
 };
 
 player::player(game& g)
@@ -237,12 +235,12 @@ void
 player::check_foe_collisions()
 {
 	if (extend_trail_.size() > 1) {
-		auto& foes = game_.foes;
+		auto& entities = game_.entities;
 
 		auto it = std::find_if(
-				std::begin(foes),
-				std::end(foes),
-				[this](std::unique_ptr<foe>& f)
+				std::begin(entities),
+				std::end(entities),
+				[this](std::unique_ptr<entity>& f)
 					{
 						for (size_t i = 0; i < extend_trail_.size() - 1; i++) {
 							const vec2i v0 = extend_trail_[i]*CELL_SIZE;
@@ -261,7 +259,7 @@ player::check_foe_collisions()
 						return false;
 					});
 
-		if (it != std::end(foes))
+		if (it != std::end(entities))
 			die();
 	}
 }
@@ -280,7 +278,7 @@ player::die()
 		const float c = cosf(a);
 		const float s = sinf(a);
 
-		game_.add_foe(std::unique_ptr<foe>(new powerup(game_, get_position(), vec2f { c, s })));
+		game_.add_entity(std::unique_ptr<entity>(new powerup(game_, get_position(), vec2f { c, s })));
 
 		a += da;
 	}
@@ -387,12 +385,12 @@ player::draw() const
 
 	// head
 
-	auto pos = vec2s(get_position());
-	const short radius = 10;
+	auto pos = get_position();
 
 	glColor4f(1, 1, 1, 1);
 
-	(state_ == state::EXTENDING || state_ == state::EXTENDING_IDLE ? sprites_core_ : sprites_shield_)[tic_%NUM_FRAMES]->draw(pos.x, pos.y, ggl::sprite::horiz_align::CENTER, ggl::sprite::vert_align::CENTER);
+	auto s = (state_ == state::EXTENDING || state_ == state::EXTENDING_IDLE ? sprites_core_ : sprites_shield_)[tic_%NUM_FRAMES];
+	s->draw(pos.x, pos.y, ggl::sprite::horiz_align::CENTER, ggl::sprite::vert_align::CENTER);
 }
 
 const vec2i

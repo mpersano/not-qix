@@ -58,8 +58,8 @@ set(GAME_SOURCES
 	game.cc
 	player.cc
 	script_interface.cc
+	entity.cc
 	foe.cc
-	phys_foe.cc
 	boss.cc
 	miniboss.cc
 	powerup.cc

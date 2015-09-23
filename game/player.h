@@ -34,7 +34,7 @@ private:
 	void move_slide(direction dir);
 	void move_extend(direction dir);
 
-	enum class state { IDLE, SLIDING, EXTENDING_IDLE, EXTENDING };
+	enum class state { IDLE, SLIDING, EXTENDING_IDLE, EXTENDING, DEATH };
 
 	void set_state(state next_state);
 

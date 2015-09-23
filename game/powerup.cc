@@ -84,7 +84,7 @@ picked_effect::draw() const
 };
 
 powerup::powerup(game& g, const vec2f& pos, const vec2f& dir)
-: foe { g }
+: entity { g }
 , pos_ { pos }
 , dir_ { dir }
 , state_ { state::MOVING }

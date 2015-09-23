@@ -15,16 +15,13 @@ namespace {
 
 const float SPIKE_RADIUS = 36;
 
-class bullet : public foe
+class bullet : public entity
 {
 public:
 	bullet(game& g, const vec2f& pos, const vec2f& dir);
 
 	void draw() const;
 	bool update();
-
-	bool is_boss() const
-	{ return false; }
 
 	bool intersects(const vec2i& from, const vec2i& to) const override;
 	bool intersects(const vec2i& center, float radius) const override;
@@ -38,7 +35,7 @@ private:
 };
 
 bullet::bullet(game& g, const vec2f& pos, const vec2f& dir)
-: foe { g }
+: entity { g }
 , pos_ { pos }
 , dir_ { dir }
 , sprite_ { ggl::res::get_sprite("bullet.png") }
@@ -148,7 +145,7 @@ bullet::intersects(const vec2i& center, float radius) const
 //
 
 boss::boss(game& g, const vec2f& pos)
-: phys_foe { g, pos, normalized(vec2f { 1.5f, .5f }), 0, RADIUS }
+: foe { g, pos, normalized(vec2f { 1.5f, .5f }), 0, RADIUS }
 , spike_angle_ { 0 }
 , spike_dispersion_ { 0 }
 , miniboss_spawned_ { 0 }
@@ -184,7 +181,7 @@ boss::fire_bullet()
 	const float a = spike_angle_;
 	const vec2f p = pos_ + vec2f { cosf(a), sinf(a) }*SPIKE_RADIUS;
 	vec2f d = normalized(p - pos_);
-	game_.add_foe(std::unique_ptr<foe>(new bullet { game_, p, d }));
+	game_.add_entity(std::unique_ptr<entity>(new bullet { game_, p, d }));
 }
 
 void

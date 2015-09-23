@@ -88,6 +88,24 @@ private:
 	vec2i prev_offset_, next_offset_; // when scrolling
 };
 
+class level_completed_state : public game_state
+{
+public:
+	level_completed_state(game& g);
+
+	void draw() const override;
+	void update(unsigned dpad_state) override;
+};
+
+class game_over_state : public game_state
+{
+public:
+	game_over_state(game& g);
+
+	void draw() const override;
+	void update(unsigned dpad_state) override;
+};
+
 bool
 button_pressed(unsigned dpad_state, ggl::dpad_button button)
 {
@@ -309,7 +327,7 @@ void
 playing_state::draw() const
 {
 	game_.draw_border();
-	game_.draw_foes();
+	game_.draw_entities();
 	game_.draw_player();
 }
 
@@ -385,6 +403,38 @@ playing_state::update(unsigned dpad_state)
 		}
 	}
 }
+
+//
+//  l e v e l _ c o m p l e t e d _ s t a t e
+//
+
+level_completed_state::level_completed_state(game& g)
+: game_state { g }
+{ }
+
+void
+level_completed_state::draw() const
+{ }
+
+void
+level_completed_state::update(unsigned dpad_state)
+{ }
+
+//
+//  g a m e _ o v e r _ s t a t e
+//
+
+game_over_state::game_over_state(game& g)
+: game_state { g }
+{ }
+
+void
+game_over_state::draw() const
+{ }
+
+void
+game_over_state::update(unsigned dpad_state)
+{ }
 
 } // (anonymous namespace)
 
@@ -623,7 +673,7 @@ game::update(unsigned dpad_state)
 {
 	++tics;
 
-	update_foes();
+	update_entities();
 	update_hud();
 	update_effects();
 
@@ -660,10 +710,7 @@ game::fill_grid(const std::vector<vec2i>& contour)
 		}
 	}
 
-	assert(!foes.empty() && foes.front()->is_boss());
-	auto *boss = static_cast<phys_foe *>(foes.front().get());
-
-	vec2i pos = (vec2i(boss->get_position()) + vec2i { CELL_SIZE, CELL_SIZE }/2)/CELL_SIZE;
+	vec2i pos = (vec2i(cur_boss_->get_position()) + vec2i { CELL_SIZE, CELL_SIZE }/2)/CELL_SIZE;
 
 	std::queue<vec2i> queue;
 	queue.push(pos);
@@ -755,9 +802,9 @@ game::get_player_world_position() const
 }
 
 void
-game::add_foe(std::unique_ptr<foe> f)
+game::add_entity(std::unique_ptr<entity> e)
 {
-	foes.push_back(std::move(f));
+	entities.push_back(std::move(e));
 }
 
 void
@@ -808,7 +855,9 @@ game::add_boss()
 		}
 	}
 
-	add_foe(std::unique_ptr<foe> { new boss { *this, boss_pos } });
+	std::unique_ptr<entity> e { new boss { *this, boss_pos } };
+	cur_boss_ = static_cast<foe *>(e.get());
+	add_entity(std::move(e));
 }
 
 void
@@ -843,10 +892,22 @@ game::enter_playing_state(const vec2i& bottom_left, const vec2i& top_right)
 }
 
 void
-game::draw_foes() const
+game::enter_game_over_state()
 {
-	for (auto& foe : foes)
-		foe->draw();
+	state_ = std::unique_ptr<game_state>(new game_over_state { *this });
+}
+
+void
+game::enter_level_completed_state()
+{
+	state_ = std::unique_ptr<game_state>(new level_completed_state { *this });
+}
+
+void
+game::draw_entities() const
+{
+	for (auto& e : entities)
+		e->draw();
 }
 
 void
@@ -856,13 +917,13 @@ game::draw_player() const
 }
 
 void
-game::update_foes()
+game::update_entities()
 {
-	auto it = std::begin(foes);
+	auto it = std::begin(entities);
 
-	while (it != std::end(foes)) {
+	while (it != std::end(entities)) {
 		if (!(*it)->update())
-			it = foes.erase(it);
+			it = entities.erase(it);
 		else
 			++it;
 	}

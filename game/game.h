@@ -11,11 +11,12 @@
 
 #include "widget.h"
 #include "effect.h"
-#include "foe.h"
+#include "entity.h"
 #include "player.h"
 #include "level.h"
 
 class game;
+class foe;
 
 class game_state
 {
@@ -47,13 +48,13 @@ public:
 	void reset_player(const vec2i& pos);
 
 	void update_player(unsigned dpad_state);
-	void update_foes();
+	void update_entities();
 
 	void draw_border() const;
-	void draw_foes() const;
+	void draw_entities() const;
 	void draw_player() const;
 
-	void add_foe(std::unique_ptr<foe> f);
+	void add_entity(std::unique_ptr<entity> f);
 	void add_effect(std::unique_ptr<effect> e);
 
 	void fill_grid(const std::vector<vec2i>& contour);
@@ -63,6 +64,8 @@ public:
 	void enter_select_initial_offset_state();
 	void enter_select_initial_area_state();
 	void enter_playing_state(const vec2i& bottom_left, const vec2i& top_right);
+	void enter_level_completed_state();
+	void enter_game_over_state();
 
 	int operator()(int c, int r) const
 	{ return grid[r*grid_cols + c]; }
@@ -76,7 +79,7 @@ public:
 
 	std::vector<vec2i> border;
 
-	std::list<std::unique_ptr<foe>> foes;
+	std::list<std::unique_ptr<entity>> entities;
 
 	vec2i offset;
 
@@ -100,6 +103,8 @@ private:
 	void hide_hud();
 
 	void add_boss();
+
+	const foe *cur_boss_;
 
 	player player_;
 	unsigned cover_percent_;

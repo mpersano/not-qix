@@ -13,7 +13,7 @@ const float RADIUS = 16;
 } // (anonymous namespace)
 
 miniboss::miniboss(game& g, boss *b, const vec2f& pos, const vec2f& dir)
-: phys_foe { g, pos, dir, SPEED, RADIUS }
+: foe { g, pos, dir, SPEED, RADIUS }
 , boss_ { b }
 , sprite_ { ggl::res::get_sprite("miniboss.png") }
 { }
