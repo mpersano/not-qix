@@ -28,11 +28,13 @@ public:
 	enum class direction { UP, DOWN, LEFT, RIGHT, NONE };
 
 private:
-	void die();
+	void draw_trail(int start_index) const;
+	void draw_head() const;
 
 	void move_slide(direction dir);
 	void move_extend(direction dir);
 	void check_foe_collisions();
+	void die();
 
 	void update_idle(unsigned dpad_state);
 	void update_sliding(unsigned dpad_state);
