@@ -60,7 +60,6 @@ player::reset(const vec2i& pos)
 {
 	pos_ = pos;
 	set_state(state::IDLE);
-	total_tics_ = 0;
 }
 
 void
@@ -156,7 +155,6 @@ player::move_slide(direction dir)
 void
 player::update(unsigned dpad_state)
 {
-	++total_tics_;
 	++state_tics_;
 
 	switch (state_) {
@@ -448,8 +446,8 @@ player::draw_trail(int start_index) const
 	short y1 = std::max(v0.y + TRAIL_RADIUS, v1.y + TRAIL_RADIUS);
 
 	(ggl::vertex_array_flat<GLshort, 2>
-	 { { x0, y0 }, { x1, y0 },
-	 { x0, y1 }, { x1, y1 } }).draw(GL_TRIANGLE_STRIP);
+		{ { x0, y0 }, { x1, y0 },
+		  { x0, y1 }, { x1, y1 } }).draw(GL_TRIANGLE_STRIP);
 }
 
 void
@@ -459,7 +457,7 @@ player::draw_head() const
 
 	glColor4f(1, 1, 1, 1);
 
-	auto s = (state_ == state::EXTENDING || state_ == state::EXTENDING_IDLE ? sprites_core_ : sprites_shield_)[total_tics_%NUM_FRAMES];
+	auto s = (state_ == state::EXTENDING || state_ == state::EXTENDING_IDLE ? sprites_core_ : sprites_shield_)[game_.tics%NUM_FRAMES];
 	s->draw(pos.x, pos.y, ggl::sprite::horiz_align::CENTER, ggl::sprite::vert_align::CENTER);
 }
 

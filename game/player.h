@@ -51,7 +51,6 @@ private:
 	std::vector<vec2i> extend_trail_;
 	state state_;
 	int state_tics_;
-	int total_tics_;
 
 	static const int NUM_FRAMES = 64;
 	const ggl::sprite *sprites_core_[NUM_FRAMES];
