@@ -7,10 +7,37 @@
 
 #include "game.h"
 #include "powerup.h"
+#include "explosion.h"
 #include "player.h"
 
 namespace {
-const float RADIUS = 2;
+
+bool
+dpad_button_pressed(unsigned dpad_state, ggl::dpad_button button)
+{
+	return dpad_state & (1u << button);
+}
+
+player::direction
+dpad_direction(unsigned dpad_state)
+{
+	if (dpad_button_pressed(dpad_state, ggl::UP))
+		return player::direction::UP;
+	else if (dpad_button_pressed(dpad_state, ggl::DOWN))
+		return player::direction::DOWN;
+	else if (dpad_button_pressed(dpad_state, ggl::LEFT))
+		return player::direction::LEFT;
+	else if (dpad_button_pressed(dpad_state, ggl::RIGHT))
+		return player::direction::RIGHT;
+	else
+		return player::direction::NONE;
+}
+
+const float PLAYER_RADIUS = 2;
+
+const int SLIDE_TICS = 3;
+const int DEATH_TICS = 20;
+
 };
 
 player::player(game& g)
@@ -32,25 +59,7 @@ player::reset(const vec2i& pos)
 {
 	pos_ = pos;
 	set_state(state::IDLE);
-	tic_ = 0;
-}
-
-void
-player::move(direction dir, bool button)
-{
-	switch (state_) {
-		case state::IDLE:
-			move_slide(dir);
-
-			if (state_ != state::SLIDING && button)
-				move_extend(dir);
-			break;
-
-		case state::EXTENDING_IDLE:
-			if (button)
-				move_extend(dir);
-			break;
-	}
+	total_tics_ = 0;
 }
 
 void
@@ -114,33 +123,31 @@ player::move_slide(direction dir)
 
 	auto *p = &game_.grid[pos_.y*grid_cols + pos_.x];
 
+	auto slide_to = [&](const vec2i& where)
+		{
+			next_pos_ = where;
+			set_state(state::SLIDING);
+		};
+
 	switch (dir) {
 		case direction::UP:
-			if (p[-1] != p[0]) {
-				next_pos_ = pos_ + vec2i { 0, 1 };
-				set_state(state::SLIDING);
-			}
+			if (p[-1] != p[0])
+				slide_to(pos_ + vec2i { 0, 1 });
 			break;
 
 		case direction::DOWN:
-			if (p[-grid_cols - 1] != p[-grid_cols]) {
-				next_pos_ = pos_ + vec2i { 0, -1 };
-				set_state(state::SLIDING);
-			}
+			if (p[-grid_cols - 1] != p[-grid_cols])
+				slide_to(pos_ + vec2i { 0, -1 });
 			break;
 
 		case direction::LEFT:
-			if (p[-grid_cols - 1] != p[-1]) {
-				next_pos_ = pos_ + vec2i { -1, 0 };
-				set_state(state::SLIDING);
-			}
+			if (p[-grid_cols - 1] != p[-1])
+				slide_to(pos_ + vec2i { -1, 0 });
 			break;
 
 		case direction::RIGHT:
-			if (p[-grid_cols] != p[0]) {
-				next_pos_ = pos_ + vec2i { 1, 0 };
-				set_state(state::SLIDING);
-			}
+			if (p[-grid_cols] != p[0])
+				slide_to(next_pos_ = pos_ + vec2i { 1, 0 });
 			break;
 	}
 }
@@ -148,86 +155,112 @@ player::move_slide(direction dir)
 void
 player::update(unsigned dpad_state)
 {
-	++tic_;
-
-	auto dpad_button_pressed = [=](ggl::dpad_button button)
-		{
-			return dpad_state & (1u << button);
-		};
-
-	bool button = dpad_button_pressed(ggl::BUTTON1);
-
-	if (dpad_button_pressed(ggl::UP))
-		move(direction::UP, button);
-
-	if (dpad_button_pressed(ggl::DOWN))
-		move(direction::DOWN, button);
-
-	if (dpad_button_pressed(ggl::LEFT))
-		move(direction::LEFT, button);
-
-	if (dpad_button_pressed(ggl::RIGHT))
-		move(direction::RIGHT, button);
-
-	const int grid_cols = game_.grid_cols;
-	const int grid_rows = game_.grid_rows;
+	++total_tics_;
+	++state_tics_;
 
 	switch (state_) {
 		case state::IDLE:
+			update_idle(dpad_state);
 			break;
 
 		case state::EXTENDING_IDLE:
-			if (!button) {
-				assert(!extend_trail_.empty());
-				next_pos_ = extend_trail_.back();
-				set_state(state::EXTENDING);
-			}
-
-			check_foe_collisions();
+			update_extending_idle(dpad_state);
 			break;
 
 		case state::SLIDING:
-			if (++state_tics_ >= SLIDE_TICS) {
-				pos_ = next_pos_;
-				set_state(state::IDLE);
-			}
+			update_sliding(dpad_state);
 			break;
 
 		case state::EXTENDING:
-			if (++state_tics_ >= SLIDE_TICS) {
-				pos_ = next_pos_;
-
-				if (!extend_trail_.empty() && extend_trail_.back() == pos_)
-					extend_trail_.pop_back();
-
-				if (extend_trail_.empty()) {
-					set_state(state::IDLE);
-				} else {
-					assert(pos_.x != 0 && pos_.x != grid_cols);
-					assert(pos_.y != 0 && pos_.y != grid_rows);
-
-					auto *p = &game_.grid[pos_.y*grid_cols + pos_.x];
-
-					if (p[0] || p[-1] || p[-grid_cols] || p[-grid_cols - 1]) {
-						extend_trail_.push_back(pos_);
-						game_.fill_grid(extend_trail_);
-
-						extend_trail_.clear();
-						set_state(state::IDLE);
-					} else {
-						if (button) {
-							state_ = state::EXTENDING_IDLE;
-						} else {
-							// move back if button not pressed
-							next_pos_ = extend_trail_.back();
-							set_state(state::EXTENDING);
-						}
-					}
-				}
-			}
-
-			check_foe_collisions();
+			update_extending(dpad_state);
 			break;
+
+		case state::DEATH:
+			update_death(dpad_state);
+			break;
+	}
+}
+
+void
+player::update_idle(unsigned dpad_state)
+{
+	direction dir = dpad_direction(dpad_state);
+
+	if (dir != direction::NONE) {
+		move_slide(dir);
+
+		if (state_ != state::SLIDING && dpad_button_pressed(dpad_state, ggl::BUTTON1))
+			move_extend(dir);
+	}
+}
+
+void
+player::update_sliding(unsigned dpad_state)
+{
+	if (state_tics_ >= SLIDE_TICS) {
+		pos_ = next_pos_;
+		set_state(state::IDLE);
+	}
+}
+
+void
+player::update_extending_idle(unsigned dpad_state)
+{
+	if (dpad_button_pressed(dpad_state, ggl::BUTTON1)) {
+		move_extend(dpad_direction(dpad_state));
+	} else {
+		assert(!extend_trail_.empty());
+		next_pos_ = extend_trail_.back();
+		set_state(state::EXTENDING);
+	}
+
+	check_foe_collisions();
+}
+
+void
+player::update_extending(unsigned dpad_state)
+{
+	if (state_tics_ >= SLIDE_TICS) {
+		pos_ = next_pos_;
+
+		if (!extend_trail_.empty() && extend_trail_.back() == pos_)
+			extend_trail_.pop_back();
+
+		if (extend_trail_.empty()) {
+			set_state(state::IDLE);
+			return;
+		}
+
+		const int grid_cols = game_.grid_cols;
+		const int grid_rows = game_.grid_rows;
+		auto *p = &game_.grid[pos_.y*grid_cols + pos_.x];
+
+		if (p[0] || p[-1] || p[-grid_cols] || p[-grid_cols - 1]) {
+			// filled region
+
+			extend_trail_.push_back(pos_);
+
+			game_.fill_grid(extend_trail_);
+
+			extend_trail_.clear();
+			set_state(state::IDLE);
+			return;
+		}
+
+		state_ = state::EXTENDING_IDLE;
+	}
+
+	check_foe_collisions();
+}
+
+void
+player::update_death(unsigned dpad_state)
+{
+	if (state_tics_ >= DEATH_TICS) {
+		pos_ = extend_trail_.front();
+		extend_trail_.clear();
+
+		set_state(state::IDLE);
 	}
 }
 
@@ -253,7 +286,7 @@ player::check_foe_collisions()
 						if (f->intersects(extend_trail_.back()*CELL_SIZE, get_position()))
 							return true;
 
-						if (f->intersects(get_position(), RADIUS))
+						if (f->intersects(get_position(), PLAYER_RADIUS))
 							return true;
 
 						return false;
@@ -269,6 +302,8 @@ player::die()
 {
 	printf("death!\n");
 
+	// spawn powerups
+
 	int num_powerups = 5;
 
 	float da = 2.f*M_PI/num_powerups;
@@ -283,10 +318,7 @@ player::die()
 		a += da;
 	}
 
-	pos_ = extend_trail_.front();
-	extend_trail_.clear();
-
-	state_ = state::IDLE;
+	state_ = state::DEATH;
 }
 
 void
@@ -389,7 +421,7 @@ player::draw() const
 
 	glColor4f(1, 1, 1, 1);
 
-	auto s = (state_ == state::EXTENDING || state_ == state::EXTENDING_IDLE ? sprites_core_ : sprites_shield_)[tic_%NUM_FRAMES];
+	auto s = (state_ == state::EXTENDING || state_ == state::EXTENDING_IDLE ? sprites_core_ : sprites_shield_)[total_tics_%NUM_FRAMES];
 	s->draw(pos.x, pos.y, ggl::sprite::horiz_align::CENTER, ggl::sprite::vert_align::CENTER);
 }
 

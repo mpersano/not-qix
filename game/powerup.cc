@@ -26,6 +26,9 @@ public:
 	bool update() override;
 	void draw() const override;
 
+	bool is_position_absolute() const override
+	{ return true; }
+
 private:
 	text_quad quad_;
 	std::unique_ptr<abstract_action> action_;

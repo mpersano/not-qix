@@ -986,6 +986,14 @@ game::draw_hud() const
 void
 game::draw_effects() const
 {
-	for (auto& e : effects_)
-		e->draw();
+	for (auto& e : effects_) {
+		if (e->is_position_absolute()) {
+			e->draw();
+		} else {
+			glPushMatrix();
+			glTranslatef(offset.x, offset.y, 0);
+			e->draw();
+			glPopMatrix();
+		}
+	}
 }

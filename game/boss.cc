@@ -20,8 +20,8 @@ class bullet : public entity
 public:
 	bullet(game& g, const vec2f& pos, const vec2f& dir);
 
-	void draw() const;
-	bool update();
+	void draw() const override;
+	bool update() override;
 
 	bool intersects(const vec2i& from, const vec2i& to) const override;
 	bool intersects(const vec2i& center, float radius) const override;
