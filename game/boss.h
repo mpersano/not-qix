@@ -37,10 +37,10 @@ private:
 
 	static const int NUM_PODS = 3;
 
-	struct pod_position {
+	struct pod {
 		float ang_offset;
 		float rotation;
-	} formation_[NUM_PODS];
+	} pods_[NUM_PODS];
 
 	int miniboss_spawned_;
 

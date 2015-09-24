@@ -140,7 +140,7 @@ const float POD_DISTANCE = 36;
 boss::boss(game& g, const vec2f& pos)
 : foe { g, pos, normalized(vec2f { 1.5f, .5f }), 0, RADIUS }
 , pod_angle_ { 0 }
-, formation_ { { 0, 0 }, { 0, 0 }, { 0, 0 } }
+, pods_ { { 0, 0 }, { 0, 0 }, { 0, 0 } }
 , miniboss_spawned_ { 0 }
 , core_sprite_ { ggl::res::get_sprite("boss-core.png") }
 , pod_sprite_ { ggl::res::get_sprite("boss-spike.png") }
@@ -159,8 +159,8 @@ boss::update()
 void
 boss::set_pod_position(int pod, float da, float r)
 {
-	formation_[pod].ang_offset = da;
-	formation_[pod].rotation = r;
+	pods_[pod].ang_offset = da;
+	pods_[pod].rotation = r;
 }
 
 void
@@ -188,7 +188,7 @@ boss::rotate_pods_to_player()
 void
 boss::fire_bullet(int pod)
 {
-	const float a = pod_angle_ + formation_[pod].ang_offset;
+	const float a = pod_angle_ + pods_[pod].ang_offset;
 	const vec2f p = pos_ + vec2f { cosf(a), sinf(a) }*POD_DISTANCE;
 	vec2f d = normalized(p - pos_);
 	game_.add_entity(std::unique_ptr<entity>(new bullet { game_, p, d }));
@@ -210,8 +210,15 @@ boss::draw_core() const
 void
 boss::draw_pods() const
 {
-	for (auto& p : formation_)
-		draw_pod(pod_angle_ + p.ang_offset, p.rotation);
+	glPushMatrix();
+
+	glTranslatef(pos_.x, pos_.y, 0.f);
+	glRotatef(pod_angle_*180.f/M_PI - 90.f, 0, 0, 1);
+
+	for (auto& p : pods_)
+		draw_pod(p.ang_offset, p.rotation);
+
+	glPopMatrix();
 }
 
 void
@@ -219,8 +226,7 @@ boss::draw_pod(float a, float r) const
 {
 	glPushMatrix();
 
-	glTranslatef(pos_.x, pos_.y, 0.f);
-	glRotatef(a*180.f/M_PI - 90.f, 0, 0, 1);
+	glRotatef(a*180.f/M_PI, 0, 0, 1);
 	glTranslatef(0, POD_DISTANCE, 0);
 	glRotatef(r*180.f/M_PI, 0, 0, 1);
 
