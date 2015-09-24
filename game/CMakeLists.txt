@@ -52,6 +52,7 @@ set(GAME_SOURCES
 	gesture_detector.cc
 	level.cc
 	util.cc
+	debug_gfx.cc
 	tween.cc
 	quad.cc
 	action.cc

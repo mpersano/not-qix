@@ -17,25 +17,34 @@ public:
 
 	void on_miniboss_killed();
 
-	void rotate_spike_to_player();
-	void rotate_spike(float a);
-	void set_spike_dispersion(float t);
-	void fire_bullet();
+	void set_pod_angle(float a);
+	void set_pod_position(int pod, float da, float r);
+
+	void rotate_pods_to_player();
+	void rotate_pods(float a);
+
+	void fire_bullet(int pod);
 
 	static const int RADIUS = 30;
 
 private:
 	void draw_core() const;
-	void draw_spikes() const;
-	void draw_spike(float a) const;
+	void draw_pods() const;
+	void draw_pod(float a, float r) const;
 
-	static const int NUM_SPIKES = 7;
-	float spike_angle_;
-	float spike_dispersion_; // 0 to 1
+	float pod_angle_;
+	int cur_pod_formation_;
+
+	static const int NUM_PODS = 3;
+
+	struct pod_position {
+		float ang_offset;
+		float rotation;
+	} formation_[NUM_PODS];
 
 	int miniboss_spawned_;
 
 	const ggl::sprite *core_sprite_;
-	const ggl::sprite *spike_sprite_;
+	const ggl::sprite *pod_sprite_;
 	std::unique_ptr<script_thread> script_thread_;
 };

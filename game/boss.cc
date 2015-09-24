@@ -13,8 +13,6 @@
 
 namespace {
 
-const float SPIKE_RADIUS = 36;
-
 class bullet : public entity
 {
 public:
@@ -44,14 +42,6 @@ bullet::bullet(game& g, const vec2f& pos, const vec2f& dir)
 void
 bullet::draw() const
 {
-#if 0
-	glColor4f(1, 0, 0, 1);
-
-	glBegin(GL_LINES);
-	glVertex2f(pos_.x, pos_.y);
-	glVertex2f(pos_.x + LENGTH*dir_.x, pos_.y + LENGTH*dir_.y);
-	glEnd();
-#else
 	const int w = sprite_->width;
 	const int h = sprite_->height;
 
@@ -86,7 +76,6 @@ bullet::draw() const
 
 	glDisable(GL_TEXTURE_2D);
 	glDisable(GL_BLEND);
-#endif
 }
 
 bool
@@ -138,6 +127,10 @@ bullet::intersects(const vec2i& center, float radius) const
 	return distance(seg_closest_point(pos_, end, center), vec2f(center)) < radius;
 }
 
+// pod formations
+
+const float POD_DISTANCE = 36;
+
 } // (anonymous namespace)
 
 //
@@ -146,11 +139,11 @@ bullet::intersects(const vec2i& center, float radius) const
 
 boss::boss(game& g, const vec2f& pos)
 : foe { g, pos, normalized(vec2f { 1.5f, .5f }), 0, RADIUS }
-, spike_angle_ { 0 }
-, spike_dispersion_ { 0 }
+, pod_angle_ { 0 }
+, formation_ { { 0, 0 }, { 0, 0 }, { 0, 0 } }
 , miniboss_spawned_ { 0 }
 , core_sprite_ { ggl::res::get_sprite("boss-core.png") }
-, spike_sprite_ { ggl::res::get_sprite("boss-spike.png") }
+, pod_sprite_ { ggl::res::get_sprite("boss-spike.png") }
 , script_thread_ { create_script_thread("scripts/boss.lua") }
 {
 	script_thread_->call("init", this);
@@ -164,96 +157,74 @@ boss::update()
 }
 
 void
-boss::rotate_spike(float da)
+boss::set_pod_position(int pod, float da, float r)
 {
-	spike_angle_ += da;
+	formation_[pod].ang_offset = da;
+	formation_[pod].rotation = r;
 }
 
 void
-boss::set_spike_dispersion(float t)
+boss::set_pod_angle(float a)
 {
-	spike_dispersion_ = t;
+	pod_angle_ = a;
 }
 
 void
-boss::fire_bullet()
+boss::rotate_pods(float da)
 {
-	const float a = spike_angle_;
-	const vec2f p = pos_ + vec2f { cosf(a), sinf(a) }*SPIKE_RADIUS;
-	vec2f d = normalized(p - pos_);
-	game_.add_entity(std::unique_ptr<entity>(new bullet { game_, p, d }));
+	pod_angle_ += da;
 }
 
 void
-boss::rotate_spike_to_player()
+boss::rotate_pods_to_player()
 {
 	const vec2f d = vec2f(game_.get_player_world_position()) - pos_;
 	const vec2f n = normalized(vec2f { -d.y, d.x });
+	const vec2f u { cosf(pod_angle_), sinf(pod_angle_) };
 
-	const float a = spike_angle_;
-	vec2f u { cosf(a), sinf(a) };
-	spike_angle_ -= .05f*dot(n, u);
+	pod_angle_ -= .05f*dot(n, u);
+}
+
+void
+boss::fire_bullet(int pod)
+{
+	const float a = pod_angle_ + formation_[pod].ang_offset;
+	const vec2f p = pos_ + vec2f { cosf(a), sinf(a) }*POD_DISTANCE;
+	vec2f d = normalized(p - pos_);
+	game_.add_entity(std::unique_ptr<entity>(new bullet { game_, p, d }));
 }
 
 void
 boss::draw() const
 {
 	draw_core();
-	draw_spikes();
+	draw_pods();
 }
 
 void
 boss::draw_core() const
 {
-#if 1
 	core_sprite_->draw(pos_.x, pos_.y, ggl::sprite::horiz_align::CENTER, ggl::sprite::vert_align::CENTER);
-#else
-	static const int NUM_SEGS = 13;
-
-	float a = 0;
-	const float da = 2.f*M_PI/NUM_SEGS;
-
-	glBegin(GL_LINE_LOOP);
-
-	for (int i = 0; i < NUM_SEGS; i++) {
-		vec2f p = pos_ + vec2f { cosf(a), sinf(a) }*radius_;
-		glVertex2f(p.x, p.y);
-		a += da;
-	}
-
-	glEnd();
-#endif
 }
 
 void
-boss::draw_spikes() const
+boss::draw_pods() const
 {
-	const float da = 2.f*M_PI/NUM_SPIKES;
-
-	for (size_t i = 0; i <= NUM_SPIKES/2; i++)
-		draw_spike(spike_angle_ + quadratic_tween(spike_dispersion_)*i*da);
-
-	for (size_t i = 0; i < NUM_SPIKES/2; i++)
-		draw_spike(spike_angle_ - quadratic_tween(spike_dispersion_)*(i + 1)*da);
+	for (auto& p : formation_)
+		draw_pod(pod_angle_ + p.ang_offset, p.rotation);
 }
 
 void
-boss::draw_spike(float a) const
+boss::draw_pod(float a, float r) const
 {
 	glPushMatrix();
 
 	glTranslatef(pos_.x, pos_.y, 0.f);
 	glRotatef(a*180.f/M_PI - 90.f, 0, 0, 1);
-	glTranslatef(0, SPIKE_RADIUS, 0.f);
+	glTranslatef(0, POD_DISTANCE, 0);
+	glRotatef(r*180.f/M_PI, 0, 0, 1);
 
-	spike_sprite_->draw(ggl::sprite::horiz_align::CENTER, ggl::sprite::vert_align::BOTTOM);
-#if 0
-	glBegin(GL_LINE_LOOP);
-	glVertex2i(-5, 0);
-	glVertex2i(0, 15);
-	glVertex2i(5, 0);
-	glEnd();
-#endif
+	pod_sprite_->draw(ggl::sprite::horiz_align::CENTER, ggl::sprite::vert_align::BOTTOM);
 
 	glPopMatrix();
 }

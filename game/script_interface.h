@@ -3,6 +3,7 @@
 #include <string>
 #include <lua5.2/lua.hpp>
 
+#include <ggl/panic.h>
 #include <ggl/noncopyable.h>
 
 class script_thread : private ggl::noncopyable
@@ -17,7 +18,10 @@ public:
 		setup_call(func);
 
 		push_args(args...);
-		lua_pcall(thread_, sizeof...(args), 0, 0);
+
+		if (lua_pcall(thread_, sizeof...(args), 0, 0) != 0) {
+			panic("lua_pcall: %s", lua_tostring(thread_, -1));
+		}
 
 		cleanup_call();
 	}

@@ -96,41 +96,57 @@ foe_set_speed(lua_State *state)
 // boss
 
 int
-boss_rotate_spike_to_player(lua_State *state)
+boss_set_pod_angle(lua_State *state)
 {
-	reinterpret_cast<boss *>(lua_touserdata(state, -1))->rotate_spike_to_player();
+	reinterpret_cast<boss *>(lua_touserdata(state, -2))->set_pod_angle(lua_tonumber(state, -1));
 	return 0;
 }
 
 int
-boss_rotate_spike(lua_State *state)
+boss_set_pod_position(lua_State *state)
 {
-	reinterpret_cast<boss *>(lua_touserdata(state, -2))->rotate_spike(lua_tonumber(state, -1));
+	reinterpret_cast<boss *>(lua_touserdata(state, -4))->set_pod_position(
+					lua_tonumber(state, -3), lua_tonumber(state, -2), lua_tonumber(state, -1));
 	return 0;
 }
 
 int
-boss_set_spike_dispersion(lua_State *state)
+boss_rotate_pods_to_player(lua_State *state)
 {
-	reinterpret_cast<boss *>(lua_touserdata(state, -2))->set_spike_dispersion(lua_tonumber(state, -1));
+	reinterpret_cast<boss *>(lua_touserdata(state, -1))->rotate_pods_to_player();
+	return 0;
+}
+
+int
+boss_rotate_pods(lua_State *state)
+{
+	reinterpret_cast<boss *>(lua_touserdata(state, -2))->rotate_pods(lua_tonumber(state, -1));
 	return 0;
 }
 
 int
 boss_fire_bullet(lua_State *state)
 {
-	reinterpret_cast<boss *>(lua_touserdata(state, -1))->fire_bullet();
+	reinterpret_cast<boss *>(lua_touserdata(state, -2))->fire_bullet(lua_tonumber(state, -1));
 	return 0;
 }
 
 const std::pair<const char *, lua_CFunction> exported_functions[] {
-	{ "foe_update_position", foe_update_position },
-	{ "foe_rotate_to_player", foe_rotate_to_player },
-	{ "foe_set_speed", foe_set_speed },
-	{ "boss_rotate_spike_to_player", boss_rotate_spike_to_player },
-	{ "boss_rotate_spike", boss_rotate_spike },
-	{ "boss_set_spike_dispersion", boss_set_spike_dispersion },
-	{ "boss_fire_bullet", boss_fire_bullet },
+#define EXPORT_FUNCTION(name) { #name, name },
+
+	// foe
+	EXPORT_FUNCTION(foe_update_position)
+	EXPORT_FUNCTION(foe_rotate_to_player)
+	EXPORT_FUNCTION(foe_set_speed)
+
+	// boss
+	EXPORT_FUNCTION(boss_set_pod_angle)
+	EXPORT_FUNCTION(boss_set_pod_position)
+	EXPORT_FUNCTION(boss_rotate_pods_to_player)
+	EXPORT_FUNCTION(boss_rotate_pods)
+	EXPORT_FUNCTION(boss_fire_bullet)
+
+#undef EXPORT_FUNCTION
 };
 
 const char *const script_interface_functions[] {
@@ -209,7 +225,9 @@ script_interface::create_script_thread(const std::string& path)
 
 		// first run
 
-		lua_pcall(lua_state_, 0, 0, 0);
+		if (lua_pcall(lua_state_, 0, 0, 0) != 0) {
+			panic("lua_pcall: %s", lua_tostring(lua_state_, -1));
+		}
 
 		// store initial thread-local vars on _scriptvars
 		lua_getglobal(lua_state_, "_scriptvars");
