@@ -12,7 +12,6 @@ local PI = 3.14159265
 v.state = STATE_CHASING
 
 v.state_tics = 0
-v.fire_tics = 0
 
 local formation_chasing = { { da = -2*PI/3, r = PI/2 }, { da = 0, r = PI/2 }, { da = 2*PI/3, r = PI/2 } }
 local formation_firing = { { da = -.25, r = 0 }, { da = 0, r = 0 }, { da = .25, r = 0 } }
@@ -66,13 +65,10 @@ end
 local function update_firing(self)
 	local FIRE_TICS = 90
 
-	if v.fire_tics == 0 then
+	if v.state_tics % 30 == 0 then
 		boss_fire_bullet(self, 0)
 		boss_fire_bullet(self, 1)
 		boss_fire_bullet(self, 2)
-		v.fire_tics = 30
-	else
-		v.fire_tics = v.fire_tics - 1
 	end
 
 	boss_rotate_pods_to_player(self)
