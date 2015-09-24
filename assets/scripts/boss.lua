@@ -22,10 +22,10 @@ local function set_pod_formation(self, formation)
 	end
 end
 
-local function set_pod_formation_lerp(self, formation_from, formation_to, t)
+local function set_pod_formation_lerp(self, from, to, t)
 	for i = 1, NUM_PODS do
-		local da = formation_from[i].da + t*(formation_to[i].da - formation_from[i].da)
-		local r = formation_from[i].r + t*(formation_to[i].r - formation_from[i].r)
+		local da = from[i].da + t*(to[i].da - from[i].da)
+		local r = from[i].r + t*(to[i].r - from[i].r)
 
 		boss_set_pod_position(self, i - 1, da, r)
 	end
@@ -66,9 +66,9 @@ local function update_firing(self)
 	local FIRE_TICS = 90
 
 	if v.state_tics % 30 == 0 then
-		boss_fire_bullet(self, 0)
-		boss_fire_bullet(self, 1)
-		boss_fire_bullet(self, 2)
+		for i = 0, NUM_PODS - 1 do
+			boss_fire_bullet(self, i)
+		end
 	end
 
 	boss_rotate_pods_to_player(self)
