@@ -138,7 +138,7 @@ const float POD_DISTANCE = 36;
 //
 
 boss::boss(game& g, const vec2f& pos)
-: foe { g, pos, normalized(vec2f { 1.5f, .5f }), 0, RADIUS }
+: foe { g, pos, RADIUS }
 , pod_angle_ { 0 }
 , pods_ { { 0, 0 }, { 0, 0 }, { 0, 0 } }
 , miniboss_spawned_ { 0 }

@@ -12,11 +12,14 @@ const float RADIUS = 16;
 
 } // (anonymous namespace)
 
-miniboss::miniboss(game& g, boss *b, const vec2f& pos, const vec2f& dir)
-: foe { g, pos, dir, SPEED, RADIUS }
-, boss_ { b }
+miniboss::miniboss(game& g, const vec2f& pos, boss *parent)
+: foe { g, pos, RADIUS }
+, parent_ { parent }
 , sprite_ { ggl::res::get_sprite("miniboss.png") }
-{ }
+{
+	set_direction(vec2f { 1, 0 });
+	set_speed(SPEED);
+}
 
 void
 miniboss::draw() const
@@ -36,7 +39,7 @@ miniboss::update()
 		for (int c = p0.x; c <= p1.x; c++) {
 			if (game_.grid[r*game_.grid_cols + c]) {
 				printf("killed!\n");
-				boss_->on_miniboss_killed();
+				parent_->on_miniboss_killed();
 				return false;
 			}
 		}

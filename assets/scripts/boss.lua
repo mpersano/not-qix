@@ -97,6 +97,7 @@ end
 function init(self)
 	set_state(self, STATE_CHASING)
 
+	foe_set_direction(self, 1, 0)
 	foe_set_speed(self, BOSS_SPEED)
 
 	boss_set_pod_angle(self, 0)

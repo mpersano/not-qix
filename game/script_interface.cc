@@ -73,6 +73,19 @@ dup_table(lua_State *l)
 // foe
 
 int
+foe_set_direction(lua_State *state)
+{
+	reinterpret_cast<foe *>(lua_touserdata(state, -3))->set_direction(vec2f { lua_tonumber(state, -2), lua_tonumber(state, -1) });
+}
+
+int
+foe_set_speed(lua_State *state)
+{
+	reinterpret_cast<foe *>(lua_touserdata(state, -2))->set_speed(lua_tonumber(state, -1));
+	return 0;
+}
+
+int
 foe_update_position(lua_State *state)
 {
 	reinterpret_cast<foe *>(lua_touserdata(state, -1))->update_position();
@@ -83,13 +96,6 @@ int
 foe_rotate_to_player(lua_State *state)
 {
 	reinterpret_cast<foe *>(lua_touserdata(state, -1))->rotate_to_player();
-	return 0;
-}
-
-int
-foe_set_speed(lua_State *state)
-{
-	reinterpret_cast<foe *>(lua_touserdata(state, -2))->set_speed(lua_tonumber(state, -1));
 	return 0;
 }
 
@@ -135,9 +141,10 @@ const std::pair<const char *, lua_CFunction> exported_functions[] {
 #define EXPORT_FUNCTION(name) { #name, name },
 
 	// foe
+	EXPORT_FUNCTION(foe_set_direction)
+	EXPORT_FUNCTION(foe_set_speed)
 	EXPORT_FUNCTION(foe_update_position)
 	EXPORT_FUNCTION(foe_rotate_to_player)
-	EXPORT_FUNCTION(foe_set_speed)
 
 	// boss
 	EXPORT_FUNCTION(boss_set_pod_angle)

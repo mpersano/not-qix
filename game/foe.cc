@@ -5,11 +5,11 @@
 #include "game.h"
 #include "foe.h"
 
-foe::foe(game& g, const vec2f& pos, const vec2f& dir, float speed, float radius)
+foe::foe(game& g, const vec2f& pos, float radius)
 : entity { g }
 , pos_ { pos }
-, dir_ { dir }
-, speed_ { speed }
+, dir_ { 1, 0 }
+, speed_ { 0 }
 , radius_ { radius }
 { }
 
@@ -86,6 +86,12 @@ foe::rotate_to_player()
 
 	vec2f next_dir { dot(dir_, vec2f { c, -s }), dot(dir_, vec2f { s, c }) };
 	dir_ = next_dir;
+}
+
+void
+foe::set_direction(const vec2f& dir)
+{
+	dir_ = normalized(dir);
 }
 
 void

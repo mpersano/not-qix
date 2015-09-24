@@ -11,12 +11,12 @@ class boss;
 class miniboss : public foe
 {
 public:
-	miniboss(game& g, boss *b, const vec2f& pos, const vec2f& dir);
+	miniboss(game& g, const vec2f& pos, boss *parent);
 
 	void draw() const override;
 	bool update() override;
 
 private:
-	boss *boss_;
+	boss *parent_;
 	const ggl::sprite *sprite_;
 };

@@ -5,14 +5,16 @@
 class foe : public entity
 {
 public:
-	foe(game& g, const vec2f& pos, const vec2f& dir, float speed, float radius);
+	foe(game& g, const vec2f& pos, float radius);
 
 	bool intersects(const vec2i& from, const vec2i& to) const override;
 	bool intersects(const vec2i& center, float radius) const override;
 
+	void set_direction(const vec2f& dir);
+	void set_speed(float speed);
+
 	void update_position();
 	void rotate_to_player();
-	void set_speed(float speed);
 
 	vec2f get_position() const;
 
