@@ -20,3 +20,19 @@ draw_circle(const vec2f& center, float radius)
 
 	va.draw(GL_LINE_LOOP);
 }
+
+void
+draw_line(const vec2f& p0, const vec2f& p1)
+{
+	(ggl::vertex_array_flat<GLfloat, 2>{ { p0.x, p0.y }, { p1.x, p1.y } }).draw(GL_LINES);
+}
+
+void
+draw_box(const vec2f& p0, const vec2f& p1)
+{
+	(ggl::vertex_array_flat<GLfloat, 2>
+		{ { p0.x, p0.y },
+		  { p0.x, p1.y },
+		  { p1.x, p1.y },
+		  { p1.x, p0.y } }).draw(GL_LINE_LOOP);
+}

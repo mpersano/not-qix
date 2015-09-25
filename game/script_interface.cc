@@ -137,6 +137,13 @@ boss_fire_bullet(lua_State *state)
 	return 0;
 }
 
+int
+boss_fire_laser(lua_State *state)
+{
+	reinterpret_cast<boss *>(lua_touserdata(state, -3))->fire_laser(lua_tonumber(state, -2), lua_tonumber(state, -1));
+	return 0;
+}
+
 const std::pair<const char *, lua_CFunction> exported_functions[] {
 #define EXPORT_FUNCTION(name) { #name, name },
 
@@ -152,6 +159,7 @@ const std::pair<const char *, lua_CFunction> exported_functions[] {
 	EXPORT_FUNCTION(boss_rotate_pods_to_player)
 	EXPORT_FUNCTION(boss_rotate_pods)
 	EXPORT_FUNCTION(boss_fire_bullet)
+	EXPORT_FUNCTION(boss_fire_laser)
 
 #undef EXPORT_FUNCTION
 };

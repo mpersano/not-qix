@@ -24,6 +24,7 @@ public:
 	void rotate_pods(float a);
 
 	void fire_bullet(int pod);
+	void fire_laser(int pod, float power);
 
 	static const int RADIUS = 30;
 
@@ -44,6 +45,7 @@ private:
 		void update();
 
 		void fire_bullet(const vec2f& center, float angle);
+		void fire_laser(float power);
 
 		float ang_offset;
 		float rotation;
@@ -52,6 +54,7 @@ private:
 		game& game_;
 		const ggl::sprite *sprite_;
 		int fire_tics_;
+		float laser_power_;
 	} pods_[NUM_PODS];
 
 	int miniboss_spawned_;

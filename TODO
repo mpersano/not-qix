@@ -50,3 +50,5 @@
   * virtual joypad
 * main_menu_state
 * in_game_menu_state
+* script_interface
+  * remove entry from threads_ table on thread destruction

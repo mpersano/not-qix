@@ -193,12 +193,12 @@ void
 boss::fire_bullet(int pod)
 {
 	pods_[pod].fire_bullet(pos_, pod_angle_);
-#if 0
-	const float a = pod_angle_ + pods_[pod].ang_offset;
-	const vec2f p = pos_ + vec2f { cosf(a), sinf(a) }*POD_DISTANCE;
-	vec2f d = normalized(p - pos_);
-	game_.add_entity(std::unique_ptr<entity>(new bullet { game_, p, d }));
-#endif
+}
+
+void
+boss::fire_laser(int pod, float power)
+{
+	pods_[pod].fire_laser(power);
 }
 
 void
@@ -246,6 +246,7 @@ boss::pod::pod(game& g)
 , game_ { g }
 , sprite_ { ggl::res::get_sprite("boss-spike.png") }
 , fire_tics_ { 0 }
+, laser_power_ { 0 }
 { }
 
 void
@@ -263,6 +264,12 @@ boss::pod::draw() const
 		glColor4f(1, 1, 1, 1);
 		const float t = static_cast<float>(fire_tics_)/MUZZLE_FLASH_TICS;
 		draw_circle(vec2f { 0, 20 }, t*10.f);
+	}
+
+	if (laser_power_) {
+		glColor4f(0, 1, 0, 1);
+		float radius = 20.f*laser_power_;
+		draw_box(vec2f { -radius, 20 }, vec2f { radius, 500 });
 	}
 
 	glPopMatrix();
@@ -283,4 +290,10 @@ boss::pod::fire_bullet(const vec2f& center, float angle)
 	game_.add_entity(std::unique_ptr<entity>(new bullet { game_, center + d*POD_DISTANCE, d }));
 
 	fire_tics_ = MUZZLE_FLASH_TICS;
+}
+
+void
+boss::pod::fire_laser(float power)
+{
+	laser_power_ = power;
 }
