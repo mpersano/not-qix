@@ -9,6 +9,7 @@
 #include "tween.h"
 #include "game.h"
 #include "miniboss.h"
+#include "debug_gfx.h"
 #include "boss.h"
 
 namespace {
@@ -140,10 +141,9 @@ const float POD_DISTANCE = 36;
 boss::boss(game& g, const vec2f& pos)
 : foe { g, pos, RADIUS }
 , pod_angle_ { 0 }
-, pods_ { { 0, 0 }, { 0, 0 }, { 0, 0 } }
+, pods_ { game_, game_, game_ }
 , miniboss_spawned_ { 0 }
 , core_sprite_ { ggl::res::get_sprite("boss-core.png") }
-, pod_sprite_ { ggl::res::get_sprite("boss-spike.png") }
 , script_thread_ { create_script_thread("scripts/boss.lua") }
 {
 	script_thread_->call("init", this);
@@ -153,6 +153,10 @@ bool
 boss::update()
 {
 	script_thread_->call("update", this);
+
+	for (auto& p : pods_)
+		p.update();
+
 	return true;
 }
 
@@ -188,10 +192,13 @@ boss::rotate_pods_to_player()
 void
 boss::fire_bullet(int pod)
 {
+	pods_[pod].fire_bullet(pos_, pod_angle_);
+#if 0
 	const float a = pod_angle_ + pods_[pod].ang_offset;
 	const vec2f p = pos_ + vec2f { cosf(a), sinf(a) }*POD_DISTANCE;
 	vec2f d = normalized(p - pos_);
 	game_.add_entity(std::unique_ptr<entity>(new bullet { game_, p, d }));
+#endif
 }
 
 void
@@ -216,21 +223,7 @@ boss::draw_pods() const
 	glRotatef(pod_angle_*180.f/M_PI - 90.f, 0, 0, 1);
 
 	for (auto& p : pods_)
-		draw_pod(p.ang_offset, p.rotation);
-
-	glPopMatrix();
-}
-
-void
-boss::draw_pod(float a, float r) const
-{
-	glPushMatrix();
-
-	glRotatef(a*180.f/M_PI, 0, 0, 1);
-	glTranslatef(0, POD_DISTANCE, 0);
-	glRotatef(r*180.f/M_PI, 0, 0, 1);
-
-	pod_sprite_->draw(ggl::sprite::horiz_align::CENTER, ggl::sprite::vert_align::BOTTOM);
+		p.draw();
 
 	glPopMatrix();
 }
@@ -239,4 +232,55 @@ void
 boss::on_miniboss_killed()
 {
 	--miniboss_spawned_;
+}
+
+namespace {
+
+const int MUZZLE_FLASH_TICS = 10;
+
+} // (anonymous namespace)
+
+boss::pod::pod(game& g)
+: ang_offset { 0 }
+, rotation { 0 }
+, game_ { g }
+, sprite_ { ggl::res::get_sprite("boss-spike.png") }
+, fire_tics_ { 0 }
+{ }
+
+void
+boss::pod::draw() const
+{
+	glPushMatrix();
+
+	glRotatef(ang_offset*180.f/M_PI, 0, 0, 1);
+	glTranslatef(0, POD_DISTANCE, 0);
+	glRotatef(rotation*180.f/M_PI, 0, 0, 1);
+
+	sprite_->draw(ggl::sprite::horiz_align::CENTER, ggl::sprite::vert_align::BOTTOM);
+
+	if (fire_tics_) {
+		glColor4f(1, 1, 1, 1);
+		const float t = static_cast<float>(fire_tics_)/MUZZLE_FLASH_TICS;
+		draw_circle(vec2f { 0, 20 }, t*10.f);
+	}
+
+	glPopMatrix();
+}
+
+void
+boss::pod::update()
+{
+	if (fire_tics_ > 0)
+		--fire_tics_;
+}
+
+void
+boss::pod::fire_bullet(const vec2f& center, float angle)
+{
+	const float a = angle + ang_offset;
+	const vec2f d = { cosf(a), sinf(a) };
+	game_.add_entity(std::unique_ptr<entity>(new bullet { game_, center + d*POD_DISTANCE, d }));
+
+	fire_tics_ = MUZZLE_FLASH_TICS;
 }

@@ -30,21 +30,32 @@ public:
 private:
 	void draw_core() const;
 	void draw_pods() const;
-	void draw_pod(float a, float r) const;
 
 	float pod_angle_;
 	int cur_pod_formation_;
 
 	static const int NUM_PODS = 3;
 
-	struct pod {
+	class pod {
+	public:
+		pod(game& g);
+
+		void draw() const;
+		void update();
+
+		void fire_bullet(const vec2f& center, float angle);
+
 		float ang_offset;
 		float rotation;
+
+	private:
+		game& game_;
+		const ggl::sprite *sprite_;
+		int fire_tics_;
 	} pods_[NUM_PODS];
 
 	int miniboss_spawned_;
 
 	const ggl::sprite *core_sprite_;
-	const ggl::sprite *pod_sprite_;
 	std::unique_ptr<script_thread> script_thread_;
 };
