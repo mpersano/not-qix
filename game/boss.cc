@@ -350,10 +350,7 @@ boss::pod::intersects(const vec2f& center, float angle, const vec2i& from, const
 
 	float radius = get_laser_radius();
 
-	if (std::max(v0.x, v1.x) < -radius || std::min(v0.x, v1.x) > radius)
-		return false;
-
-	return true;
+	return !(std::max(v0.x, v1.x) < -radius || std::min(v0.x, v1.x) > radius);
 }
 
 float
