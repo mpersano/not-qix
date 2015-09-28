@@ -70,7 +70,7 @@ private:
 
 	std::pair<vec2i, vec2i> initial_area_;
 
-	int change_tics_;
+	int change_tics_, total_tics_;
 	unsigned prev_dpad_state_;
 };
 
@@ -226,6 +226,7 @@ select_initial_offset_state::update(unsigned dpad_state)
 
 select_initial_area_state::select_initial_area_state(game& g)
 : game_state { g }
+, total_tics_ { 0 }
 , prev_dpad_state_ { ~0u }
 {
 	reset_initial_area();
@@ -280,8 +281,9 @@ select_initial_area_state::draw() const
 void
 select_initial_area_state::update(unsigned dpad_state)
 {
-	if (prev_dpad_state_ != ~0u &&
-	  button_pressed(dpad_state, ggl::BUTTON1) && !button_pressed(prev_dpad_state_, ggl::BUTTON1)) {
+	if (++total_tics_ == 3*60 ||
+	  (prev_dpad_state_ != ~0u &&
+	   button_pressed(dpad_state, ggl::BUTTON1) && !button_pressed(prev_dpad_state_, ggl::BUTTON1))) {
 		game_.enter_playing_state(initial_area_.first, initial_area_.second);
 		return;
 	}

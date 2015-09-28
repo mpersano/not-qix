@@ -1,6 +1,9 @@
 #include <memory>
 #include <cassert>
 
+#include <ggl/asset.h>
+#include <ggl/core.h>
+
 #include "foe.h"
 #include "boss.h"
 #include "script_interface.h"
@@ -232,7 +235,12 @@ script_interface::create_script_thread(const std::string& path)
 
 		// load it
 
-		if (luaL_loadfile(lua_state_, path.c_str())) {
+		auto asset = ggl::g_core->get_asset(path.c_str());
+
+		std::vector<char> script(asset->size());
+		asset->read(&script[0], asset->size());
+
+		if (luaL_loadbuffer(lua_state_, &script[0], asset->size(),path.c_str())) {
 			fprintf(stderr, "failed to parse %s: %s\n", path.c_str(), lua_tostring(lua_state_, -1));
 			lua_pop(lua_state_, 1);
 			return nullptr;
