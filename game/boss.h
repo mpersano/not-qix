@@ -29,6 +29,9 @@ public:
 	static const int RADIUS = 30;
 
 private:
+	bool intersects_children(const vec2i& from, const vec2i& to) const override;
+	bool intersects_children(const vec2i& center, float radius) const override;
+
 	void draw_core() const;
 	void draw_pods() const;
 
@@ -47,10 +50,14 @@ private:
 		void fire_bullet(const vec2f& center, float angle);
 		void fire_laser(float power);
 
+		bool intersects(const vec2f& center, float angle, const vec2i& from, const vec2i& to) const;
+
 		float ang_offset;
 		float rotation;
 
 	private:
+		float get_laser_radius() const;
+
 		game& game_;
 		const ggl::sprite *sprite_;
 		int fire_tics_;

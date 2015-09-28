@@ -17,6 +17,9 @@ public:
 	bool update() override;
 
 private:
+	bool intersects_children(const vec2i& from, const vec2i& to) const override;
+	bool intersects_children(const vec2i& center, float radius) const override;
+
 	boss *parent_;
 	const ggl::sprite *sprite_;
 };

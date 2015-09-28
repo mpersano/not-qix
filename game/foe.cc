@@ -103,13 +103,13 @@ foe::set_speed(float speed)
 bool
 foe::intersects(const vec2i& from, const vec2i& to) const
 {
-	return length(pos_ - seg_closest_point(vec2f(from), vec2f(to), pos_)) < radius_;
+	return length(pos_ - seg_closest_point(vec2f(from), vec2f(to), pos_)) < radius_ || intersects_children(from, to);
 }
 
 bool
 foe::intersects(const vec2i& center, float radius) const
 {
-	return length(pos_ - vec2f(center)) < radius_ + radius;
+	return length(pos_ - vec2f(center)) < radius_ + radius || intersects_children(center, radius);
 }
 
 vec2f

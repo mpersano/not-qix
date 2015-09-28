@@ -1,5 +1,8 @@
 #include <cmath>
 #include <cstdlib>
+#include <cassert>
+
+#include <algorithm>
 
 #include <ggl/vec2_util.h>
 #include <ggl/texture.h>
@@ -131,6 +134,7 @@ bullet::intersects(const vec2i& center, float radius) const
 // pod formations
 
 const float POD_DISTANCE = 36;
+const float LASER_DISTANCE = 20;
 
 } // (anonymous namespace)
 
@@ -147,6 +151,21 @@ boss::boss(game& g, const vec2f& pos)
 , script_thread_ { create_script_thread("scripts/boss.lua") }
 {
 	script_thread_->call("init", this);
+}
+
+bool
+boss::intersects_children(const vec2i& from, const vec2i& to) const
+{
+	return std::find_if(
+		std::begin(pods_),
+		std::end(pods_),
+		[&](const pod& p) { return p.intersects(pos_, pod_angle_, from, to); }) != std::end(pods_);
+}
+
+bool
+boss::intersects_children(const vec2i& center, float radius) const
+{
+	return false;
 }
 
 bool
@@ -249,6 +268,11 @@ boss::pod::pod(game& g)
 , laser_power_ { 0 }
 { }
 
+namespace {
+bool touched;
+vec2f touch_pos;
+}
+
 void
 boss::pod::draw() const
 {
@@ -263,13 +287,13 @@ boss::pod::draw() const
 	if (fire_tics_) {
 		glColor4f(1, 1, 1, 1);
 		const float t = static_cast<float>(fire_tics_)/MUZZLE_FLASH_TICS;
-		draw_circle(vec2f { 0, 20 }, t*10.f);
+		draw_circle(vec2f { 0, LASER_DISTANCE }, t*10.f);
 	}
 
 	if (laser_power_) {
 		glColor4f(0, 1, 0, 1);
-		float radius = 20.f*laser_power_;
-		draw_box(vec2f { -radius, 20 }, vec2f { radius, 500 });
+		float radius = get_laser_radius();
+		draw_box(vec2f { -radius, LASER_DISTANCE }, vec2f { radius, 500 });
 	}
 
 	glPopMatrix();
@@ -287,7 +311,7 @@ boss::pod::fire_bullet(const vec2f& center, float angle)
 {
 	const float a = angle + ang_offset;
 	const vec2f d = { cosf(a), sinf(a) };
-	game_.add_entity(std::unique_ptr<entity>(new bullet { game_, center + d*POD_DISTANCE, d }));
+	game_.add_entity(std::unique_ptr<entity>(new bullet { game_, center + d*(POD_DISTANCE + LASER_DISTANCE), d }));
 
 	fire_tics_ = MUZZLE_FLASH_TICS;
 }
@@ -296,4 +320,44 @@ void
 boss::pod::fire_laser(float power)
 {
 	laser_power_ = power;
+}
+
+bool
+boss::pod::intersects(const vec2f& center, float angle, const vec2i& from, const vec2i& to) const
+{
+	if (laser_power_ == 0.f)
+		return false;
+
+	const float a = angle - .5f*M_PI + ang_offset;
+
+	vec2f v0 = (vec2f(from) - center).rotate(-a);
+	vec2f v1 = (vec2f(to) - center).rotate(-a);
+
+	const float min_y = POD_DISTANCE + LASER_DISTANCE;
+
+	if (v0.y <= min_y) {
+		if (v1.y <= min_y)
+			return false;
+
+		v0.x = (min_y - v0.y)*(v1.x - v0.x)/(v1.y - v0.y) + v0.x;
+		v0.y = min_y;
+	} else if (v1.y <= min_y) {
+		assert(v0.y > min_y);
+
+		v1.x = (min_y - v0.y)*(v1.x - v0.x)/(v1.y - v0.y) + v0.x;
+		v1.y = min_y;
+	}
+
+	float radius = get_laser_radius();
+
+	if (std::max(v0.x, v1.x) < -radius || std::min(v0.x, v1.x) > radius)
+		return false;
+
+	return true;
+}
+
+float
+boss::pod::get_laser_radius() const
+{
+	return 20.f*laser_power_;
 }

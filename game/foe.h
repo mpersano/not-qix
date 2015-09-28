@@ -22,6 +22,9 @@ private:
 	bool collide_against_edge(const vec2f& v0, const vec2f& v1);
 
 protected:
+	virtual bool intersects_children(const vec2i& from, const vec2i& to) const = 0;
+	virtual bool intersects_children(const vec2i& center, float radius) const = 0;
+
 	vec2f pos_;
 	vec2f dir_;
 	float speed_;

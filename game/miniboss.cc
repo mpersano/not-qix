@@ -49,3 +49,15 @@ miniboss::update()
 
 	return true;
 }
+
+bool
+miniboss::intersects_children(const vec2i& from, const vec2i& to) const
+{
+	return false;
+}
+
+bool
+miniboss::intersects_children(const vec2i& center, float radius) const
+{
+	return false;
+}

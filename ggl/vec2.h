@@ -43,6 +43,14 @@ struct vec2
 		return x != v.x || y != v.y;
 	}
 
+	const vec2<T>
+	rotate(float ang) const
+	{
+		const float c = cosf(ang);
+		const float s = sinf(ang);
+		return { x*c - y*s, y*c + x*s };
+	}
+
 	T x, y;
 };
 
