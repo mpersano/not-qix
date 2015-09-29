@@ -1,22 +1,48 @@
-local STATE_CHASING	= 0
+local STATE_CHASING		= 0
 
-local STATE_PRE_FIRING	= 1
-local STATE_FIRING	= 2
-local STATE_POST_FIRING	= 3
-local STATE_LASER	= 4
+local STATE_BEFORE_ATTACK	= 1
+local STATE_AFTER_ATTACK	= 2
 
-local BOSS_SPEED = 2
+local STATE_FIRING		= 3
+local STATE_LASER		= 4
 
-local NUM_PODS = 3
+local SPEED = 2
+local POD_ANG_SPEED = .1
+
+local NUM_PODS = 5
+local NUM_ATTACKS = 2
 
 local PI = 3.14159265
 
-v.state = STATE_CHASING
-v.state_tics = 0
+local FORMATION_CHASING =
+	{ { da = -4*PI/5, r = PI/2 },
+	  { da = -2*PI/5, r = PI/2 },
+	  { da =       0, r = PI/2 },
+	  { da =  2*PI/5, r = PI/2 },
+	  { da =  4*PI/5, r = PI/2 } }
 
-local formation_chasing = { { da = -2*PI/3, r = PI/2 }, { da = 0, r = PI/2 }, { da = 2*PI/3, r = PI/2 } }
-local formation_firing = { { da = -.25, r = 0 }, { da = 0, r = 0 }, { da = .25, r = 0 } }
-local formation_laser = { { da = -2*PI/3, r = 0 }, { da = 0, r = 0 }, { da = 2*PI/3, r = 0 } }
+local FORMATION_FIRING =
+	{ { da =  -.3, r = 0 },
+	  { da = -.15, r = 0 },
+	  { da =    0, r = 0 },
+	  { da =  .15, r = 0 },
+	  { da =   .3, r = 0 } }
+
+local FORMATION_LASER =
+	{ { da = -4*PI/5, r = 0 },
+	  { da = -2*PI/5, r = 0 },
+	  { da =       0, r = 0 },
+	  { da =  2*PI/5, r = 0 },
+	  { da =  4*PI/5, r = 0 } }
+
+local ATTACKS =
+	{ { formation = FORMATION_FIRING, state = STATE_FIRING },
+	  { formation = FORMATION_LASER, state = STATE_LASER } }
+
+v.state = STATE_CHASING
+
+v.state_tics = 0
+v.attack = 1
 
 local function set_pod_formation(self, formation)
 	for i = 1, NUM_PODS do
@@ -47,35 +73,49 @@ end
 local function update_chasing(self)
 	foe_rotate_to_player(self)
 
-	boss_rotate_pods(self, .1)
+	boss_rotate_pods(self, POD_ANG_SPEED)
 
 	if v.state_tics == 60 then
-		set_state(self, STATE_PRE_FIRING)
+		set_state(self, STATE_BEFORE_ATTACK)
 	end
 end
 
-local function update_pre_firing(self)
+local function update_before_attack(self)
 	local STOP_TICS = 90
-
-	foe_rotate_to_player(self)
 
 	local t = 1 - v.state_tics/STOP_TICS
 
-	foe_set_speed(self, t*BOSS_SPEED)
-	-- set_pod_formation_lerp(self, formation_chasing, formation_firing, 1 - t)
-	set_pod_formation_lerp(self, formation_chasing, formation_laser, 1 - t)
-	boss_rotate_pods_to_player(self)
+	foe_set_speed(self, t*SPEED)
+	boss_rotate_pods(self, t*POD_ANG_SPEED)
+
+	set_pod_formation_lerp(self, FORMATION_CHASING, ATTACKS[v.attack].formation, 1 - t)
 
 	if v.state_tics == STOP_TICS then
-		-- set_state(self, STATE_FIRING)
-		set_state(self, STATE_LASER)
+		set_state(self, ATTACKS[v.attack].state)
+	end
+end
+
+local function update_after_attack(self)
+	local RECOVER_TICS = 90
+
+	local t = v.state_tics/RECOVER_TICS
+
+	foe_set_speed(self, t*SPEED)
+	boss_rotate_pods(self, t*POD_ANG_SPEED)
+
+	set_pod_formation_lerp(self, ATTACKS[v.attack].formation, FORMATION_CHASING, t)
+
+	if v.state_tics == RECOVER_TICS then
+		v.attack = (v.attack % NUM_ATTACKS) + 1
+		set_state(self, STATE_CHASING)
 	end
 end
 
 local function update_firing(self)
-	local FIRE_TICS = 90
+	local FIRE_TICS = 120 
+	local AIM_TICKS = 20
 
-	if v.state_tics % 30 == 0 then
+	if v.state_tics > AIM_TICKS and (v.state_tics - AIM_TICKS) % 30 == 0 then
 		for i = 0, NUM_PODS - 1 do
 			boss_fire_bullet(self, i)
 		end
@@ -84,7 +124,7 @@ local function update_firing(self)
 	boss_rotate_pods_to_player(self)
 
 	if v.state_tics == FIRE_TICS then
-		set_state(self, STATE_POST_FIRING)
+		set_state(self, STATE_AFTER_ATTACK)
 	end
 end
 
@@ -98,24 +138,7 @@ local function update_laser(self)
 
 	if v.state_tics == LASER_TICS then
 		fire_all_lasers(self, 0)
-		set_state(self, STATE_POST_FIRING)
-	end
-end
-
-local function update_post_firing(self)
-	local RECOVER_TICS = 90
-
-	foe_rotate_to_player(self)
-
-	local t = v.state_tics/RECOVER_TICS
-
-	foe_set_speed(self, t*BOSS_SPEED)
-	-- set_pod_formation_lerp(self, formation_firing, formation_chasing, t)
-	set_pod_formation_lerp(self, formation_laser, formation_chasing, t)
-	boss_rotate_pods_to_player(self)
-
-	if v.state_tics == RECOVER_TICS then
-		set_state(self, STATE_CHASING)
+		set_state(self, STATE_AFTER_ATTACK)
 	end
 end
 
@@ -123,10 +146,10 @@ function init(self)
 	set_state(self, STATE_CHASING)
 
 	foe_set_direction(self, 1, 0)
-	foe_set_speed(self, BOSS_SPEED)
+	foe_set_speed(self, SPEED)
 
 	boss_set_pod_angle(self, 0)
-	set_pod_formation(self, formation_chasing)
+	set_pod_formation(self, FORMATION_CHASING)
 end
 
 function update(self)
@@ -136,13 +159,13 @@ function update(self)
 
 	if v.state == STATE_CHASING then
 		update_chasing(self)
-	elseif v.state == STATE_PRE_FIRING then
-		update_pre_firing(self)
+	elseif v.state == STATE_BEFORE_ATTACK then
+		update_before_attack(self)
+	elseif v.state == STATE_AFTER_ATTACK then
+		update_after_attack(self)
 	elseif v.state == STATE_FIRING then
 		update_firing(self)
 	elseif v.state == STATE_LASER then
 		update_laser(self)
-	elseif v.state == STATE_POST_FIRING then
-		update_post_firing(self)
 	end
 end

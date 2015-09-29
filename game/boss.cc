@@ -145,11 +145,13 @@ const float LASER_DISTANCE = 20;
 boss::boss(game& g, const vec2f& pos)
 : foe { g, pos, RADIUS }
 , pod_angle_ { 0 }
-, pods_ { game_, game_, game_ }
 , miniboss_spawned_ { 0 }
 , core_sprite_ { ggl::res::get_sprite("boss-core.png") }
 , script_thread_ { create_script_thread("scripts/boss.lua") }
 {
+	for (int i = 0; i < NUM_PODS; i++)
+		pods_.push_back(std::unique_ptr<pod>(new pod { game_ }));
+
 	script_thread_->call("init", this);
 }
 
@@ -159,7 +161,7 @@ boss::intersects_children(const vec2i& from, const vec2i& to) const
 	return std::find_if(
 		std::begin(pods_),
 		std::end(pods_),
-		[&](const pod& p) { return p.intersects(pos_, pod_angle_, from, to); }) != std::end(pods_);
+		[&](const std::unique_ptr<pod>& p) { return p->intersects(pos_, pod_angle_, from, to); }) != std::end(pods_);
 }
 
 bool
@@ -174,7 +176,7 @@ boss::update()
 	script_thread_->call("update", this);
 
 	for (auto& p : pods_)
-		p.update();
+		p->update();
 
 	return true;
 }
@@ -182,8 +184,9 @@ boss::update()
 void
 boss::set_pod_position(int pod, float da, float r)
 {
-	pods_[pod].ang_offset = da;
-	pods_[pod].rotation = r;
+	auto& p = pods_[pod];
+	p->ang_offset = da;
+	p->rotation = r;
 }
 
 void
@@ -211,13 +214,13 @@ boss::rotate_pods_to_player()
 void
 boss::fire_bullet(int pod)
 {
-	pods_[pod].fire_bullet(pos_, pod_angle_);
+	pods_[pod]->fire_bullet(pos_, pod_angle_);
 }
 
 void
 boss::fire_laser(int pod, float power)
 {
-	pods_[pod].fire_laser(power);
+	pods_[pod]->fire_laser(power);
 }
 
 void
@@ -242,7 +245,7 @@ boss::draw_pods() const
 	glRotatef(pod_angle_*180.f/M_PI - 90.f, 0, 0, 1);
 
 	for (auto& p : pods_)
-		p.draw();
+		p->draw();
 
 	glPopMatrix();
 }

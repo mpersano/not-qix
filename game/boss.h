@@ -38,7 +38,7 @@ private:
 	float pod_angle_;
 	int cur_pod_formation_;
 
-	static const int NUM_PODS = 3;
+	static const int NUM_PODS = 5;
 
 	class pod {
 	public:
@@ -62,7 +62,9 @@ private:
 		const ggl::sprite *sprite_;
 		int fire_tics_;
 		float laser_power_;
-	} pods_[NUM_PODS];
+	};
+
+	std::vector<std::unique_ptr<pod>> pods_;
 
 	int miniboss_spawned_;
 
