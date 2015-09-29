@@ -1,16 +1,15 @@
 local STATE_CHASING		= 0
-
 local STATE_BEFORE_ATTACK	= 1
 local STATE_AFTER_ATTACK	= 2
-
 local STATE_FIRING		= 3
 local STATE_LASER		= 4
+local STATE_SPREAD		= 5
 
 local SPEED = 2
 local POD_ANG_SPEED = .1
 
 local NUM_PODS = 5
-local NUM_ATTACKS = 2
+local NUM_ATTACKS = 3
 
 local PI = 3.14159265
 
@@ -28,6 +27,13 @@ local FORMATION_FIRING =
 	  { da =  .15, r = 0 },
 	  { da =   .3, r = 0 } }
 
+local FORMATION_SPREAD =
+	{ { da = -4*PI/5, r = 0 },
+	  { da = -2*PI/5, r = 0 },
+	  { da =       0, r = 0 },
+	  { da =  2*PI/5, r = 0 },
+	  { da =  4*PI/5, r = 0 } }
+
 local FORMATION_LASER =
 	{ { da = -4*PI/5, r = 0 },
 	  { da = -2*PI/5, r = 0 },
@@ -37,7 +43,8 @@ local FORMATION_LASER =
 
 local ATTACKS =
 	{ { formation = FORMATION_FIRING, state = STATE_FIRING },
-	  { formation = FORMATION_LASER, state = STATE_LASER } }
+	  { formation = FORMATION_LASER, state = STATE_LASER },
+	  { formation = FORMATION_SPREAD, state = STATE_SPREAD } }
 
 v.state = STATE_CHASING
 
@@ -112,10 +119,10 @@ local function update_after_attack(self)
 end
 
 local function update_firing(self)
-	local FIRE_TICS = 120 
-	local AIM_TICKS = 20
+	local TICS = 120 
+	local AIM_TICS = 20
 
-	if v.state_tics > AIM_TICKS and (v.state_tics - AIM_TICKS) % 30 == 0 then
+	if v.state_tics > AIM_TICS and (v.state_tics - AIM_TICS)%30 == 0 then
 		for i = 0, NUM_PODS - 1 do
 			boss_fire_bullet(self, i)
 		end
@@ -123,21 +130,51 @@ local function update_firing(self)
 
 	boss_rotate_pods_to_player(self)
 
-	if v.state_tics == FIRE_TICS then
+	if v.state_tics == TICS then
 		set_state(self, STATE_AFTER_ATTACK)
 	end
 end
 
 local function update_laser(self)
-	local LASER_TICS = 90
+	local TICS = 90
+	local AIM_TICS = 20
 
-	if v.state_tics < 20 then
-		local t = v.state_tics/20
+	if v.state_tics < AIM_TICS then
+		local t = v.state_tics/AIM_TICS
 		fire_all_lasers(self, t)
 	end
 
-	if v.state_tics == LASER_TICS then
+	if v.state_tics == TICS then
 		fire_all_lasers(self, 0)
+		set_state(self, STATE_AFTER_ATTACK)
+	end
+end
+
+local function update_spread(self)
+	local TICS = 120
+
+	local ACCEL_TICS = 20
+	local ANG_SPEED = .15
+
+	local a
+
+	if v.state_tics < ACCEL_TICS then
+		a = ANG_SPEED*v.state_tics/ACCEL_TICS
+	elseif v.state_tics > TICS - ACCEL_TICS then
+		a = ANG_SPEED*(1 - (v.state_tics - (TICS - ACCEL_TICS))/ACCEL_TICS)
+	else
+		a = ANG_SPEED
+
+		if (v.state_tics - ACCEL_TICS)%5 == 0 then
+			for i = 0, NUM_PODS - 1 do
+				boss_fire_bullet(self, i)
+			end
+		end
+	end
+
+	boss_rotate_pods(self, a)
+
+	if v.state_tics == TICS then
 		set_state(self, STATE_AFTER_ATTACK)
 	end
 end
@@ -167,5 +204,7 @@ function update(self)
 		update_firing(self)
 	elseif v.state == STATE_LASER then
 		update_laser(self)
+	elseif v.state == STATE_SPREAD then
+		update_spread(self)
 	end
 end
