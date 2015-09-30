@@ -67,7 +67,8 @@ set(GAME_SOURCES
 	explosion.cc
 	in_game_state.cc
 	widget.cc
-	percent_gauge.cc)
+	lives_widget.cc
+	percent_widget.cc)
 
 if (ANDROID)
 	list(APPEND GAME_SOURCES

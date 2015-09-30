@@ -8,10 +8,10 @@ class font;
 
 class game;
 
-class percent_gauge : public widget
+class percent_widget : public widget
 {
 public:
-	percent_gauge(game& g);
+	percent_widget(game& g);
 
 	void hide() override;
 	void show() override;

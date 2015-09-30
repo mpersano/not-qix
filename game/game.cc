@@ -15,7 +15,8 @@
 #include "action.h"
 #include "level.h"
 #include "boss.h"
-#include "percent_gauge.h"
+#include "percent_widget.h"
+#include "lives_widget.h"
 #include "game.h"
 
 namespace {
@@ -449,7 +450,8 @@ game::game(int width, int height)
 , viewport_height { height }
 , player_ { *this }
 {
-	widgets_.push_back(std::unique_ptr<widget>(new percent_gauge(*this)));
+	widgets_.push_back(std::unique_ptr<widget>(new percent_widget(*this)));
+	widgets_.push_back(std::unique_ptr<widget>(new lives_widget(*this)));
 }
 
 void
@@ -930,6 +932,12 @@ game::update_entities()
 			++it;
 	}
 
+}
+
+player&
+game::get_player()
+{
+	return player_;
 }
 
 void

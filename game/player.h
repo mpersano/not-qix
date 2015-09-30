@@ -2,6 +2,7 @@
 
 #include <vector>
 
+#include <ggl/event.h>
 #include <ggl/noncopyable.h>
 #include <ggl/vec2.h>
 
@@ -27,7 +28,15 @@ public:
 
 	enum class direction { UP, DOWN, LEFT, RIGHT, NONE };
 
+	using respawn_event_handler = std::function<void()>;
+	ggl::connectable_event<respawn_event_handler>& get_respawn_event();
+
+	using death_event_handler = std::function<void()>;
+	ggl::connectable_event<death_event_handler>& get_death_event();
+
 private:
+	void respawn(const vec2i& pos);
+
 	void draw_trail(int start_index) const;
 	void draw_head() const;
 
@@ -55,4 +64,7 @@ private:
 	static const int NUM_FRAMES = 64;
 	const ggl::sprite *sprites_core_[NUM_FRAMES];
 	const ggl::sprite *sprites_shield_[NUM_FRAMES];
+
+	ggl::event<respawn_event_handler> respawn_event_;
+	ggl::event<death_event_handler> death_event_;
 };

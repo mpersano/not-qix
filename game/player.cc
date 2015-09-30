@@ -58,8 +58,16 @@ player::player(game& g)
 void
 player::reset(const vec2i& pos)
 {
+	respawn(pos);
+}
+
+void
+player::respawn(const vec2i& pos)
+{
 	pos_ = pos;
 	set_state(state::IDLE);
+
+	respawn_event_.notify();
 }
 
 void
@@ -277,10 +285,9 @@ void
 player::update_death(unsigned dpad_state)
 {
 	if (state_tics_ >= DEATH_TICS) {
-		pos_ = extend_trail_.front();
+		auto p = extend_trail_.front();
 		extend_trail_.clear();
-
-		set_state(state::IDLE);
+		respawn(p);
 	}
 }
 
@@ -339,6 +346,8 @@ player::die()
 	}
 
 	set_state(state::EXPLODING);
+
+	death_event_.notify();
 }
 
 void
@@ -487,4 +496,16 @@ vec2i
 player::get_grid_position() const
 {
 	return pos_;
+}
+
+ggl::connectable_event<player::respawn_event_handler>&
+player::get_respawn_event()
+{
+	return respawn_event_;
+}
+
+ggl::connectable_event<player::death_event_handler>&
+player::get_death_event()
+{
+	return death_event_;
 }

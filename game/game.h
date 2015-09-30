@@ -45,6 +45,8 @@ public:
 	vec2i get_player_screen_position() const;
 	vec2i get_player_world_position() const;
 
+	player& get_player();
+
 	void reset_player(const vec2i& pos);
 
 	void update_player(unsigned dpad_state);

@@ -4,7 +4,7 @@
 
 #include "tween.h"
 #include "game.h"
-#include "percent_gauge.h"
+#include "percent_widget.h"
 
 namespace {
 
@@ -14,7 +14,7 @@ static const int UPDATE_TICS = 5;
 
 }
 
-percent_gauge::percent_gauge(game& g)
+percent_widget::percent_widget(game& g)
 : widget { g }
 , position_top_ { true }
 , cur_value_ { 0 }
@@ -28,26 +28,26 @@ percent_gauge::percent_gauge(game& g)
 }
 
 void
-percent_gauge::hide()
+percent_widget::hide()
 {
 	hidden_ = true;
 }
 
 void
-percent_gauge::show()
+percent_widget::show()
 {
 	hidden_ = false;
 }
 
 void
-percent_gauge::set_state(state next_state)
+percent_widget::set_state(state next_state)
 {
 	state_ = next_state;
 	state_tics_ = 0;
 }
 
 bool
-percent_gauge::update()
+percent_widget::update()
 {
 	switch (state_) {
 		case state::INTRO:
@@ -109,7 +109,7 @@ percent_gauge::update()
 }
 
 int
-percent_gauge::get_base_y() const
+percent_widget::get_base_y() const
 {
 	if (position_top_)
 		return game_.viewport_height - TOP_MARGIN - HEIGHT;
@@ -118,7 +118,7 @@ percent_gauge::get_base_y() const
 }
 
 int
-percent_gauge::get_base_x() const
+percent_widget::get_base_x() const
 {
 	switch (state_) {
 		case state::HIDDEN:
@@ -136,7 +136,7 @@ percent_gauge::get_base_x() const
 }
 
 unsigned
-percent_gauge::get_value() const
+percent_widget::get_value() const
 {
 	if (updating_)
 		return cur_value_ + (next_value_ - cur_value_)*quadratic_tween(static_cast<float>(update_tics_)/UPDATE_TICS);
@@ -145,7 +145,7 @@ percent_gauge::get_value() const
 }
 
 void
-percent_gauge::draw() const
+percent_widget::draw() const
 {
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -157,7 +157,7 @@ percent_gauge::draw() const
 }
 
 void
-percent_gauge::draw_frame() const
+percent_widget::draw_frame() const
 {
 	glColor4f(1, 0, 0, .6);
 
@@ -171,7 +171,7 @@ percent_gauge::draw_frame() const
 }
 
 void
-percent_gauge::draw_digits() const
+percent_widget::draw_digits() const
 {
 	const int BIG_DIGIT_WIDTH = 20;
 	const int SMALL_DIGIT_WIDTH = 16;
@@ -206,7 +206,7 @@ percent_gauge::draw_digits() const
 }
 
 void
-percent_gauge::draw_char(const ggl::font *f, wchar_t ch, int base_x, int base_y) const
+percent_widget::draw_char(const ggl::font *f, wchar_t ch, int base_x, int base_y) const
 {
 	auto *g = f->find_glyph(ch);
 
