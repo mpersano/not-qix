@@ -785,6 +785,8 @@ game::update_cover_percent()
 	}
 
 	cover_percent_ = (static_cast<unsigned long long>(cover)*10000ull)/cur_level->silhouette_pixels;
+
+	cover_update_event_.notify(cover_percent_);
 }
 
 unsigned
@@ -1006,4 +1008,10 @@ game::draw_effects() const
 			glPopMatrix();
 		}
 	}
+}
+
+ggl::connectable_event<game::cover_update_event_handler>&
+game::get_cover_update_event()
+{
+	return cover_update_event_;
 }

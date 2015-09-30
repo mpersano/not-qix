@@ -1,5 +1,7 @@
 #pragma once
 
+#include <ggl/event.h>
+
 #include "widget.h"
 
 namespace ggl {
@@ -20,6 +22,8 @@ public:
 	void draw() const override;
 
 private:
+	void on_cover_update(unsigned percent);
+
 	int get_base_x() const;
 	int get_base_y() const;
 
@@ -49,4 +53,6 @@ private:
 	bool hidden_;
 
 	const ggl::font *large_font_, *small_font_;
+
+	ggl::event_connection_ptr cover_update_conn_;
 };

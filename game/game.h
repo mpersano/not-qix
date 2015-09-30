@@ -5,6 +5,7 @@
 #include <list>
 #include <functional>
 
+#include <ggl/event.h>
 #include <ggl/noncopyable.h>
 #include <ggl/vec2.h>
 #include <ggl/vertex_array.h>
@@ -42,10 +43,10 @@ public:
 
 	unsigned get_cover_percent() const;
 
+	player& get_player();
+
 	vec2i get_player_screen_position() const;
 	vec2i get_player_world_position() const;
-
-	player& get_player();
 
 	void reset_player(const vec2i& pos);
 
@@ -68,6 +69,9 @@ public:
 	void enter_playing_state(const vec2i& bottom_left, const vec2i& top_right);
 	void enter_level_completed_state();
 	void enter_game_over_state();
+
+	using cover_update_event_handler  = std::function<void(unsigned)>;
+	ggl::connectable_event<cover_update_event_handler>& get_cover_update_event();
 
 	int operator()(int c, int r) const
 	{ return grid[r*grid_cols + c]; }
@@ -119,4 +123,6 @@ private:
 	ggl::vertex_array_flat<GLshort, 2> border_va_;
 
 	std::unique_ptr<game_state> state_;
+
+	ggl::event<cover_update_event_handler> cover_update_event_;
 };

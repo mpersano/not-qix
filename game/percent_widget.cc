@@ -24,6 +24,10 @@ percent_widget::percent_widget(game& g)
 , update_tics_ { 0 }
 , hidden_ { true }
 {
+	cover_update_conn_ =
+		game_.get_cover_update_event().connect(
+			std::bind(&percent_widget::on_cover_update, this, std::placeholders::_1));
+
 	set_state(state::HIDDEN);
 }
 
@@ -95,17 +99,17 @@ percent_widget::update()
 			cur_value_ = next_value_;
 			updating_ = false;
 		}
-	} else {
-		unsigned p = game_.get_cover_percent();
-
-		if (p != cur_value_) {
-			next_value_ = p;
-			updating_ = true;
-			update_tics_ = 0;
-		}
 	}
 
 	return true;
+}
+
+void
+percent_widget::on_cover_update(unsigned percent)
+{
+	next_value_ = percent;
+	updating_ = true;
+	update_tics_ = 0;
 }
 
 int
