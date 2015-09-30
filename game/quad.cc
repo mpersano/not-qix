@@ -1,3 +1,5 @@
+#include <algorithm>
+
 #include <ggl/texture.h>
 #include <ggl/font.h>
 
@@ -67,18 +69,18 @@ text_quad::text_quad(const ggl::font *font, const std::basic_string<wchar_t> tex
 {
 	font->render(text, va_);
 
-	vec2s v0 { va_.front().pos[0], va_.front().pos[1] };
-	vec2s v1 = v0;
+	using vert = decltype(va_)::value_type;
 
-	for (auto& v : va_) {
-		v0.x = std::min(v0.x, v.pos[0]);
-		v0.y = std::min(v0.y, v.pos[1]);
+	auto cmp_x = [](const vert& a, const vert& b) { return a.pos[0] < b.pos[0]; };
+	auto cmp_y = [](const vert& a, const vert& b) { return a.pos[1] < b.pos[1]; };
 
-		v1.x = std::max(v1.x, v.pos[0]);
-		v1.y = std::max(v1.y, v.pos[1]);
-	}
+	auto x_min = std::min_element(std::begin(va_), std::end(va_), cmp_x)->pos[0];
+	auto x_max = std::max_element(std::begin(va_), std::end(va_), cmp_x)->pos[0];
 
-	rect_ = std::make_pair(v0, v1);
+	auto y_min = std::min_element(std::begin(va_), std::end(va_), cmp_y)->pos[1];
+	auto y_max = std::max_element(std::begin(va_), std::end(va_), cmp_y)->pos[1];
+
+	rect_ = std::make_pair(vec2s { x_min, y_min }, vec2s { x_max, y_max });
 }
 
 unsigned
