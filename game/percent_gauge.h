@@ -11,7 +11,7 @@ class game;
 class percent_gauge : public widget
 {
 public:
-	percent_gauge(game& g, int viewport_height);
+	percent_gauge(game& g);
 
 	void hide() override;
 	void show() override;
@@ -36,8 +36,6 @@ private:
 		HEIGHT = 60,
 	};
 
-	game& game_;
-	int viewport_height_;
 	bool position_top_;
 	unsigned cur_value_, next_value_;
 

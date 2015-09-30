@@ -14,9 +14,8 @@ static const int UPDATE_TICS = 5;
 
 }
 
-percent_gauge::percent_gauge(game& g, int viewport_height)
-: game_ { g }
-, viewport_height_ { viewport_height }
+percent_gauge::percent_gauge(game& g)
+: widget { g }
 , position_top_ { true }
 , cur_value_ { 0 }
 , large_font_ { ggl::res::get_font("fonts/small.spr") }
@@ -63,11 +62,11 @@ percent_gauge::update()
 				int player_y = game_.get_player_screen_position().y;
 
 				if (position_top_) {
-					if (player_y > .7*viewport_height_) {
+					if (player_y > .7*game_.viewport_height) {
 						set_state(state::OUTRO);
 					}
 				} else {
-					if (player_y < .3*viewport_height_) {
+					if (player_y < .3*game_.viewport_height) {
 						set_state(state::OUTRO);
 					}
 				}
@@ -113,7 +112,7 @@ int
 percent_gauge::get_base_y() const
 {
 	if (position_top_)
-		return viewport_height_ - TOP_MARGIN - HEIGHT;
+		return game_.viewport_height - TOP_MARGIN - HEIGHT;
 	else
 		return TOP_MARGIN;
 }

@@ -66,6 +66,7 @@ set(GAME_SOURCES
 	powerup.cc
 	explosion.cc
 	in_game_state.cc
+	widget.cc
 	percent_gauge.cc)
 
 if (ANDROID)

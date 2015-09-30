@@ -449,7 +449,7 @@ game::game(int width, int height)
 , viewport_height { height }
 , player_ { *this }
 {
-	widgets_.push_back(std::unique_ptr<widget>(new percent_gauge(*this, viewport_height)));
+	widgets_.push_back(std::unique_ptr<widget>(new percent_gauge(*this)));
 }
 
 void
