@@ -79,7 +79,6 @@ end
 
 local function update_chasing(self)
 	foe_rotate_to_player(self)
-
 	boss_rotate_pods(self, POD_ANG_SPEED)
 
 	if v.state_tics == 60 then
@@ -88,39 +87,37 @@ local function update_chasing(self)
 end
 
 local function update_before_attack(self)
-	local STOP_TICS = 90
+	local TICS = 90
 
-	local t = 1 - v.state_tics/STOP_TICS
+	local t = 1 - v.state_tics/TICS
 
 	foe_set_speed(self, t*SPEED)
 	boss_rotate_pods(self, t*POD_ANG_SPEED)
-
 	set_pod_formation_lerp(self, FORMATION_CHASING, ATTACKS[v.attack].formation, 1 - t)
 
-	if v.state_tics == STOP_TICS then
+	if v.state_tics == TICS then
 		set_state(self, ATTACKS[v.attack].state)
 	end
 end
 
 local function update_after_attack(self)
-	local RECOVER_TICS = 90
+	local TICS = 90
 
-	local t = v.state_tics/RECOVER_TICS
+	local t = v.state_tics/TICS
 
 	foe_set_speed(self, t*SPEED)
 	boss_rotate_pods(self, t*POD_ANG_SPEED)
-
 	set_pod_formation_lerp(self, ATTACKS[v.attack].formation, FORMATION_CHASING, t)
 
-	if v.state_tics == RECOVER_TICS then
+	if v.state_tics == TICS then
 		v.attack = (v.attack % NUM_ATTACKS) + 1
 		set_state(self, STATE_CHASING)
 	end
 end
 
 local function update_firing(self)
-	local TICS = 120 
-	local AIM_TICS = 20
+	local TICS = 140
+	local AIM_TICS = 40
 
 	if v.state_tics > AIM_TICS and (v.state_tics - AIM_TICS)%30 == 0 then
 		for i = 0, NUM_PODS - 1 do
@@ -136,8 +133,8 @@ local function update_firing(self)
 end
 
 local function update_laser(self)
-	local TICS = 90
-	local AIM_TICS = 20
+	local TICS = 120
+	local AIM_TICS = 40
 
 	if v.state_tics < AIM_TICS then
 		local t = v.state_tics/AIM_TICS
