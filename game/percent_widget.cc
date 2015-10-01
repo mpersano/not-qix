@@ -28,17 +28,25 @@ percent_widget::percent_widget(game& g)
 		game_.get_cover_update_event().connect(
 			std::bind(&percent_widget::on_cover_update, this, std::placeholders::_1));
 
+	game_start_conn_ =
+		game_.get_start_event().connect(
+			std::bind(&percent_widget::on_game_start, this));
+
+	game_stop_conn_ =
+		game_.get_stop_event().connect(
+			std::bind(&percent_widget::on_game_stop, this));
+
 	set_state(state::HIDDEN);
 }
 
 void
-percent_widget::hide()
+percent_widget::on_game_stop()
 {
 	hidden_ = true;
 }
 
 void
-percent_widget::show()
+percent_widget::on_game_start()
 {
 	hidden_ = false;
 }

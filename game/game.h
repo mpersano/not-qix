@@ -70,8 +70,14 @@ public:
 	void enter_level_completed_state();
 	void enter_game_over_state();
 
-	using cover_update_event_handler  = std::function<void(unsigned)>;
+	using cover_update_event_handler = std::function<void(unsigned)>;
 	ggl::connectable_event<cover_update_event_handler>& get_cover_update_event();
+
+	using start_event_handler = std::function<void(void)>;
+	ggl::connectable_event<start_event_handler>& get_start_event();
+
+	using stop_event_handler = std::function<void(void)>;
+	ggl::connectable_event<stop_event_handler>& get_stop_event();
 
 	int operator()(int c, int r) const
 	{ return grid[r*grid_cols + c]; }
@@ -105,9 +111,6 @@ private:
 	void update_background();
 	void update_cover_percent();
 
-	void show_hud();
-	void hide_hud();
-
 	void add_boss();
 
 	const foe *cur_boss_;
@@ -125,4 +128,6 @@ private:
 	std::unique_ptr<game_state> state_;
 
 	ggl::event<cover_update_event_handler> cover_update_event_;
+	ggl::event<start_event_handler> start_event_;
+	ggl::event<stop_event_handler> stop_event_;
 };

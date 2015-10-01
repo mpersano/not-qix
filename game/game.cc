@@ -892,9 +892,9 @@ game::enter_playing_state(const vec2i& bottom_left, const vec2i& top_right)
 
 	add_boss();
 
-	show_hud();
-
 	state_ = std::unique_ptr<game_state>(new playing_state { *this });
+
+	start_event_.notify();
 }
 
 void
@@ -955,20 +955,6 @@ game::update_player(unsigned dpad_state)
 }
 
 void
-game::show_hud()
-{
-	for (auto& w : widgets_)
-		w->show();
-}
-
-void
-game::hide_hud()
-{
-	for (auto& w : widgets_)
-		w->hide();
-}
-
-void
 game::update_hud()
 {
 	for (auto& w : widgets_)
@@ -1014,4 +1000,16 @@ ggl::connectable_event<game::cover_update_event_handler>&
 game::get_cover_update_event()
 {
 	return cover_update_event_;
+}
+
+ggl::connectable_event<game::start_event_handler>&
+game::get_start_event()
+{
+	return start_event_;
+}
+
+ggl::connectable_event<game::stop_event_handler>&
+game::get_stop_event()
+{
+	return stop_event_;
 }

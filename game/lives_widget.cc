@@ -19,18 +19,6 @@ lives_widget::lives_widget(game& g)
 			std::bind(&lives_widget::on_player_death, this));
 }
 
-void
-lives_widget::hide()
-{
-	show_tics_ = 0;
-}
-
-void
-lives_widget::show()
-{
-	show_tics_ = 120;
-}
-
 bool
 lives_widget::update()
 {
@@ -57,12 +45,12 @@ void
 lives_widget::on_player_respawn()
 {
 	printf("respawned!\n");
-	show();
+	show_tics_ = 120;
 }
 
 void
 lives_widget::on_player_death()
 {
 	printf("died!\n");
-	hide();
+	show_tics_ = 0;
 }

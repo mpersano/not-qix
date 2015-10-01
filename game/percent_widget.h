@@ -15,14 +15,13 @@ class percent_widget : public widget
 public:
 	percent_widget(game& g);
 
-	void hide() override;
-	void show() override;
-
 	bool update() override;
 	void draw() const override;
 
 private:
 	void on_cover_update(unsigned percent);
+	void on_game_start();
+	void on_game_stop();
 
 	int get_base_x() const;
 	int get_base_y() const;
@@ -55,4 +54,6 @@ private:
 	const ggl::font *large_font_, *small_font_;
 
 	ggl::event_connection_ptr cover_update_conn_;
+	ggl::event_connection_ptr game_start_conn_;
+	ggl::event_connection_ptr game_stop_conn_;
 };

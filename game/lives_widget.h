@@ -9,9 +9,6 @@ class lives_widget : public widget
 public:
 	lives_widget(game& g);
 
-	void hide() override;
-	void show() override;
-
 	bool update() override;
 	void draw() const override;
 
