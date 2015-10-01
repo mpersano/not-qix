@@ -88,7 +88,7 @@ public:
 	void draw_overlay() const override;
 
 private:
-	void scroll();
+	void update_scroll();
 
 	bool scrolling_;
 	int scroll_tics_;
@@ -362,14 +362,14 @@ playing_state::draw_overlay() const
 void
 playing_state::update(unsigned dpad_state)
 {
-	if (game_.update_player(dpad_state))
-		scroll();
-	else
+	update_scroll();
+
+	if (!game_.update_player(dpad_state))
 		game_.enter_game_over_state();
 }
 
 void
-playing_state::scroll()
+playing_state::update_scroll()
 {
 	if (scrolling_) {
 		static const int SCROLL_TICS = 30;
@@ -478,7 +478,6 @@ game_over_state::draw() const
 void
 game_over_state::draw_overlay() const
 {
-
 	glColor4f(1, 1, 1, 1);
 
 	glEnable(GL_TEXTURE_2D);
@@ -537,7 +536,6 @@ game::draw() const
 	glTranslatef(offset.x, offset.y, 0);
 
 	draw_background();
-	draw_border();
 	draw_entities();
 
 	state_->draw();
@@ -722,12 +720,7 @@ game::draw_background() const
 	background_unfilled_va_.draw(GL_TRIANGLES);
 
 	glDisable(GL_TEXTURE_2D);
-}
 
-void
-game::draw_border() const
-{
-	glColor4f(1, 1, 1, 1);
 	border_va_.draw(GL_TRIANGLE_STRIP);
 }
 

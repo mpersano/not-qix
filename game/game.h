@@ -102,7 +102,6 @@ private:
 	void draw_background() const;
 	void draw_hud() const;
 	void draw_effects() const;
-	void draw_border() const;
 	void draw_entities() const;
 
 	void update_hud();
