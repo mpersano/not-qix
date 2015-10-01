@@ -18,7 +18,7 @@ public:
 	player(game& g);
 
 	void reset(const vec2i& pos);
-	void update(unsigned dpad_state);
+	bool update(unsigned dpad_state);
 
 	void draw() const;
 	const vec2i get_position() const;
@@ -28,7 +28,7 @@ public:
 
 	enum class direction { UP, DOWN, LEFT, RIGHT, NONE };
 
-	using respawn_event_handler = std::function<void()>;
+	using respawn_event_handler = std::function<void(int)>;
 	ggl::connectable_event<respawn_event_handler>& get_respawn_event();
 
 	using death_event_handler = std::function<void()>;
@@ -52,7 +52,7 @@ private:
 	void update_exploding(unsigned dpad_state);
 	void update_death(unsigned dpad_state);
 
-	enum class state { IDLE, SLIDING, EXTENDING_IDLE, EXTENDING, EXPLODING, DEATH };
+	enum class state { IDLE, SLIDING, EXTENDING_IDLE, EXTENDING, EXPLODING, DEATH, DEAD };
 	void set_state(state next_state);
 
 	game& game_;
@@ -60,6 +60,7 @@ private:
 	std::vector<vec2i> extend_trail_;
 	state state_;
 	int state_tics_;
+	int lives_left_;
 
 	static const int NUM_FRAMES = 64;
 	const ggl::sprite *sprites_core_[NUM_FRAMES];

@@ -58,6 +58,7 @@ player::player(game& g)
 void
 player::reset(const vec2i& pos)
 {
+	lives_left_ = 2;
 	respawn(pos);
 }
 
@@ -67,7 +68,7 @@ player::respawn(const vec2i& pos)
 	pos_ = pos;
 	set_state(state::IDLE);
 
-	respawn_event_.notify();
+	respawn_event_.notify(lives_left_);
 }
 
 void
@@ -160,7 +161,7 @@ player::move_slide(direction dir)
 	}
 }
 
-void
+bool
 player::update(unsigned dpad_state)
 {
 	++state_tics_;
@@ -189,7 +190,12 @@ player::update(unsigned dpad_state)
 		case state::DEATH:
 			update_death(dpad_state);
 			break;
+
+		case state::DEAD:
+			break;
 	}
+
+	return state_ != state::DEAD;
 }
 
 void
@@ -285,9 +291,15 @@ void
 player::update_death(unsigned dpad_state)
 {
 	if (state_tics_ >= DEATH_TICS) {
-		auto p = extend_trail_.front();
-		extend_trail_.clear();
-		respawn(p);
+		if (lives_left_) {
+			--lives_left_;
+
+			auto p = extend_trail_.front();
+			extend_trail_.clear();
+			respawn(p);
+		} else {
+			set_state(state::DEAD);
+		}
 	}
 }
 

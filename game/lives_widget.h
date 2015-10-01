@@ -13,7 +13,7 @@ public:
 	void draw() const override;
 
 private:
-	void on_player_respawn();
+	void on_player_respawn(int lives_left);
 	void on_player_death();
 
 	int show_tics_;

@@ -12,7 +12,7 @@ lives_widget::lives_widget(game& g)
 
 	respawn_conn_ =
 		p.get_respawn_event().connect(
-			std::bind(&lives_widget::on_player_respawn, this));
+			std::bind(&lives_widget::on_player_respawn, this, std::placeholders::_1));
 
 	death_conn_ =
 		p.get_death_event().connect(
@@ -42,9 +42,9 @@ lives_widget::draw() const
 }
 
 void
-lives_widget::on_player_respawn()
+lives_widget::on_player_respawn(int lives_left)
 {
-	printf("respawned!\n");
+	printf("respawned! %d lives left\n", lives_left);
 	show_tics_ = 120;
 }
 

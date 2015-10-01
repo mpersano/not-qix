@@ -25,8 +25,9 @@ public:
 	game_state(game& g);
 	virtual ~game_state() = default;
 
-	virtual void draw() const = 0;
 	virtual void update(unsigned dpad_state) = 0;
+	virtual void draw() const = 0;
+	virtual void draw_overlay() const = 0;
 
 protected:
 	game& game_;
@@ -50,11 +51,9 @@ public:
 
 	void reset_player(const vec2i& pos);
 
-	void update_player(unsigned dpad_state);
+	bool update_player(unsigned dpad_state);
 	void update_entities();
 
-	void draw_border() const;
-	void draw_entities() const;
 	void draw_player() const;
 
 	void add_entity(std::unique_ptr<entity> f);
@@ -103,6 +102,8 @@ private:
 	void draw_background() const;
 	void draw_hud() const;
 	void draw_effects() const;
+	void draw_border() const;
+	void draw_entities() const;
 
 	void update_hud();
 	void update_effects();

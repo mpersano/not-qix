@@ -28,8 +28,9 @@ class level_intro_state : public game_state
 public:
 	level_intro_state(game& g);
 
-	void draw() const override;
 	void update(unsigned dpad_state) override;
+	void draw() const override;
+	void draw_overlay() const override;
 
 private:
 	void init_portrait();
@@ -47,8 +48,9 @@ class select_initial_offset_state : public game_state
 public:
 	select_initial_offset_state(game& g);
 
-	void draw() const override;
 	void update(unsigned dpad_state) override;
+	void draw() const override;
+	void draw_overlay() const override;
 
 private:
 	static const int SCROLL_TICS = 30;
@@ -63,8 +65,9 @@ class select_initial_area_state : public game_state
 public:
 	select_initial_area_state(game& g);
 
-	void draw() const override;
 	void update(unsigned dpad_state) override;
+	void draw() const override;
+	void draw_overlay() const override;
 
 private:
 	void reset_initial_area();
@@ -80,10 +83,13 @@ class playing_state : public game_state
 public:
 	playing_state(game& g);
 
-	void draw() const override;
 	void update(unsigned dpad_state) override;
+	void draw() const override;
+	void draw_overlay() const override;
 
 private:
+	void scroll();
+
 	bool scrolling_;
 	int scroll_tics_;
 	vec2i prev_offset_, next_offset_; // when scrolling
@@ -94,8 +100,9 @@ class level_completed_state : public game_state
 public:
 	level_completed_state(game& g);
 
-	void draw() const override;
 	void update(unsigned dpad_state) override;
+	void draw() const override;
+	void draw_overlay() const override;
 };
 
 class game_over_state : public game_state
@@ -103,8 +110,12 @@ class game_over_state : public game_state
 public:
 	game_over_state(game& g);
 
-	void draw() const override;
 	void update(unsigned dpad_state) override;
+	void draw() const override;
+	void draw_overlay() const override;
+
+private:
+	text_quad text_;
 };
 
 bool
@@ -151,6 +162,10 @@ level_intro_state::level_intro_state(game& g)
 
 void
 level_intro_state::draw() const
+{ }
+
+void
+level_intro_state::draw_overlay() const
 {
 	glColor4f(1, 1, 1, 1);
 
@@ -190,6 +205,10 @@ select_initial_offset_state::select_initial_offset_state(game& g)
 
 void
 select_initial_offset_state::draw() const
+{ }
+
+void
+select_initial_offset_state::draw_overlay() const
 { }
 
 void
@@ -280,6 +299,10 @@ select_initial_area_state::draw() const
 }
 
 void
+select_initial_area_state::draw_overlay() const
+{ }
+
+void
 select_initial_area_state::update(unsigned dpad_state)
 {
 	if (++total_tics_ == 3*60 ||
@@ -329,18 +352,25 @@ playing_state::playing_state(game& g)
 void
 playing_state::draw() const
 {
-	game_.draw_border();
-	game_.draw_entities();
 	game_.draw_player();
 }
 
 void
+playing_state::draw_overlay() const
+{ }
+
+void
 playing_state::update(unsigned dpad_state)
 {
-	game_.update_player(dpad_state);
+	if (game_.update_player(dpad_state))
+		scroll();
+	else
+		game_.enter_game_over_state();
+}
 
-	// scrolling
-
+void
+playing_state::scroll()
+{
 	if (scrolling_) {
 		static const int SCROLL_TICS = 30;
 
@@ -420,6 +450,10 @@ level_completed_state::draw() const
 { }
 
 void
+level_completed_state::draw_overlay() const
+{ }
+
+void
 level_completed_state::update(unsigned dpad_state)
 { }
 
@@ -429,11 +463,31 @@ level_completed_state::update(unsigned dpad_state)
 
 game_over_state::game_over_state(game& g)
 : game_state { g }
-{ }
+, text_(ggl::res::get_font("fonts/small.spr"), L"game over")
+{
+	const auto w = game_.viewport_width;
+	const auto h = game_.viewport_height;
+
+	text_.pos = vec2f { w, h }*.5f;
+}
 
 void
 game_over_state::draw() const
 { }
+
+void
+game_over_state::draw_overlay() const
+{
+
+	glColor4f(1, 1, 1, 1);
+
+	glEnable(GL_TEXTURE_2D);
+
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+	text_.draw();
+}
 
 void
 game_over_state::update(unsigned dpad_state)
@@ -483,12 +537,17 @@ game::draw() const
 	glTranslatef(offset.x, offset.y, 0);
 
 	draw_background();
+	draw_border();
+	draw_entities();
+
 	state_->draw();
 
 	glPopMatrix();
 
 	draw_effects();
 	draw_hud();
+
+	state_->draw_overlay();
 }
 
 void
@@ -742,7 +801,8 @@ game::fill_grid(const std::vector<vec2i>& contour)
 					std::begin(transitions),
 					std::end(transitions),
 					[=](const std::pair<vec2i, vec2i>& t)
-						{ return (pos == t.first && next_pos == t.second) || (pos == t.second && next_pos == t.first); });
+						{ return (pos == t.first && next_pos == t.second) ||
+							 (pos == t.second && next_pos == t.first); });
 
 			if (it == std::end(transitions)) {
 				grid[next_pos.y*grid_cols + next_pos.x] = -1;
@@ -901,6 +961,8 @@ void
 game::enter_game_over_state()
 {
 	state_ = std::unique_ptr<game_state>(new game_over_state { *this });
+
+	stop_event_.notify();
 }
 
 void
@@ -948,10 +1010,10 @@ game::reset_player(const vec2i& pos)
 	player_.reset(pos);
 }
 
-void
+bool
 game::update_player(unsigned dpad_state)
 {
-	player_.update(dpad_state);
+	return player_.update(dpad_state);
 }
 
 void
