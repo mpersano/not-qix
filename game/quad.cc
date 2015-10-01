@@ -98,6 +98,13 @@ text_quad::get_height() const
 void
 text_quad::draw_quad() const
 {
+	glEnable(GL_TEXTURE_2D);
+
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+	glPushMatrix();
+
 	glTranslatef(
 		-rect_.first.x - .5f*get_width(),
 		-rect_.first.y - .5f*get_height(),
@@ -105,4 +112,6 @@ text_quad::draw_quad() const
 
 	tex_->bind();
 	va_.draw(GL_TRIANGLES);
+
+	glPopMatrix();
 }

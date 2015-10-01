@@ -1,0 +1,7 @@
+fill none
+
+stroke White
+stroke-width 3
+
+translate 128,128
+circle 0,0 40,0
