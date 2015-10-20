@@ -10,33 +10,10 @@ class texture : private noncopyable
 {
 public:
 	texture(const image& pm);
-
-	~texture()
-	{ glDeleteTextures(1, &id_); }
+	~texture();
 
 	void bind() const
 	{ glBindTexture(GL_TEXTURE_2D, id_); }
-
-	void set_wrap_s(GLint wrap) const
-	{ set_parameter(GL_TEXTURE_WRAP_S, wrap); }
-
-	void set_wrap_t(GLint wrap) const
-	{ set_parameter(GL_TEXTURE_WRAP_T, wrap); }
-
-	void set_mag_filter(GLint filter) const
-	{ set_parameter(GL_TEXTURE_MAG_FILTER, filter); }
-
-	void set_min_filter(GLint filter) const
-	{ set_parameter(GL_TEXTURE_MIN_FILTER, filter); }
-
-	void set_parameter(GLenum name, GLint value) const
-	{
-		bind();
-		glTexParameteri(GL_TEXTURE_2D, name, value);
-	}
-
-	static void set_env_mode(GLint mode)
-	{ glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, mode); }
 
 	unsigned row_stride() const
 	{ return width*pixel_size(); }
@@ -44,12 +21,24 @@ public:
 	unsigned pixel_size() const
 	{ return get_pixel_size(type); }
 
+	void load();
+	void unload();
+
 	unsigned orig_width, width;
 	unsigned orig_height, height;
 	pixel_type type;
 	std::vector<uint8_t> data;
 
 private:
+	void set_wrap_s(GLint wrap) const;
+	void set_wrap_t(GLint wrap) const;
+
+	void set_mag_filter(GLint filter) const;
+	void set_min_filter(GLint filter) const;
+
+	void set_parameter(GLenum name, GLint value) const;
+	static void set_env_mode(GLint mode);
+
 	GLuint id_;
 };
 

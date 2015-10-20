@@ -41,6 +41,9 @@ public:
 	{
 		return std::unique_ptr<texture>(new texture { image(name) });
 	}
+
+	void load_all();
+	void unload_all();
 } *g_texture_manager;
 
 class font_manager : public resource_manager<font, font_manager>
@@ -53,6 +56,20 @@ public:
 } *g_font_manager;
 
 sprite_manager *g_sprite_manager;
+
+void
+texture_manager::load_all()
+{
+	for (auto& kv : resource_map_)
+		kv.second->load();
+}
+
+void
+texture_manager::unload_all()
+{
+	for (auto& kv : resource_map_)
+		kv.second->unload();
+}
 
 } // (anonymous namespace)
 
@@ -85,6 +102,18 @@ void
 load_sprite_sheet(const std::string& name)
 {
 	g_sprite_manager->load_sprite_sheet(name);
+}
+
+void
+unload_gl_resources()
+{
+	g_texture_manager->unload_all();
+}
+
+void
+load_gl_resources()
+{
+	g_texture_manager->load_all();
 }
 
 } }

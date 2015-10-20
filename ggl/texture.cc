@@ -1,4 +1,4 @@
-#include <cstdio>
+#include <cassert>
 #include <algorithm>
 #include <map>
 
@@ -52,8 +52,6 @@ texture::texture(const image& im)
 , data(height*width*pixel_size())
 , id_ { 0 }
 {
-	glGenTextures(1, &id_);
-
 	const uint8_t *src = &im.data[(im.height - 1)*im.row_stride()];
 	uint8_t *dest = &data[0];
 
@@ -66,9 +64,60 @@ texture::texture(const image& im)
 		dest += dest_stride;
 	}
 
-	const GLint format = color_type_to_pixel_format(type);
+	load();
+}
+
+texture::~texture()
+{
+	unload();
+}
+
+void
+texture::set_wrap_s(GLint wrap) const
+{
+	set_parameter(GL_TEXTURE_WRAP_S, wrap);
+}
+
+void
+texture::set_wrap_t(GLint wrap) const
+{
+	set_parameter(GL_TEXTURE_WRAP_T, wrap);
+}
+
+void
+texture::set_mag_filter(GLint filter) const
+{
+	set_parameter(GL_TEXTURE_MAG_FILTER, filter);
+}
+
+void
+texture::set_min_filter(GLint filter) const
+{
+	set_parameter(GL_TEXTURE_MIN_FILTER, filter);
+}
+
+void
+texture::set_parameter(GLenum name, GLint value) const
+{
+	bind();
+	glTexParameteri(GL_TEXTURE_2D, name, value);
+}
+
+void
+texture::set_env_mode(GLint mode)
+{
+	glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, mode);
+}
+
+void
+texture::load()
+{
+	assert(id_ == 0);
+	glGenTextures(1, &id_);
 
 	bind();
+
+	const GLint format = color_type_to_pixel_format(type);
 
 	glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
 
@@ -89,6 +138,13 @@ texture::texture(const image& im)
 	set_min_filter(GL_LINEAR);
 
 	set_env_mode(GL_MODULATE);
+}
+
+void
+texture::unload()
+{
+	glDeleteTextures(1, &id_);
+	id_ = 0;
 }
 
 }

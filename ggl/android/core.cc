@@ -2,6 +2,7 @@
 
 #include <ggl/log.h>
 #include <ggl/gl.h>
+#include <ggl/resources.h>
 #include <ggl/android/asset.h>
 #include <ggl/android/core.h>
 
@@ -10,6 +11,7 @@ namespace ggl { namespace android {
 core::core(app& a, android_app *state)
 : ggl::core { a }
 , state_ { state }
+, app_initialized_ { false }
 , display_ { EGL_NO_DISPLAY }
 , surface_ { EGL_NO_SURFACE }
 , context_ { EGL_NO_CONTEXT }
@@ -168,22 +170,28 @@ core::handle_cmd(int32_t cmd)
 			break;
 
 		case APP_CMD_INIT_WINDOW:
-			// The core is being shown, get it ready.
+			// The window is being shown, get it ready.
 			log_info("APP_CMD_INIT_WINDOW");
 			if (state_->window != NULL) {
 				init_display();
-				app_.init(width_, height_);
+				res::load_gl_resources();
+
+				if (!app_initialized_) {
+					app_.init(width_, height_);
+					app_initialized_ = true;
+				}
 			}
 			break;
 
 		case APP_CMD_TERM_WINDOW:
+			// The window is being hidden or closed, clean it up.
 			log_info("APP_CMD_TERM_WINDOW");
-			// The core is being hidden or closed, clean it up.
+
+			res::unload_gl_resources();
 			term_display();
 			break;
 
 		case APP_CMD_GAINED_FOCUS:
-			// When our app gains focus, we start monitoring the accelerometer.
 			log_info("APP_CMD_GAINED_FOCUS");
 			break;
 

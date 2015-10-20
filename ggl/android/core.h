@@ -37,6 +37,8 @@ private:
 
 	android_app *state_;
 
+	bool app_initialized_;
+
 	EGLDisplay display_;
 	EGLSurface surface_;
 	EGLContext context_;

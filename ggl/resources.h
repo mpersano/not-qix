@@ -25,4 +25,10 @@ get_sprite(const std::string& name);
 void
 load_sprite_sheet(const std::string& name);
 
+void
+unload_gl_resources();
+
+void
+load_gl_resources();
+
 } }
