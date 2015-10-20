@@ -82,6 +82,9 @@ target_link_libraries(game ${GAME_LIBRARIES})
 
 if (ANDROID)
 	add_custom_command(TARGET game POST_BUILD
+		COMMAND mkdir -p ${CMAKE_SOURCE_DIR}/android/libs/armeabi/)
+
+	add_custom_command(TARGET game POST_BUILD
 		COMMAND cp -r ${CMAKE_CURRENT_BINARY_DIR}/libgame.so ${CMAKE_SOURCE_DIR}/android/libs/armeabi/)
 else()
 	set(DATA_DIR "${CMAKE_CURRENT_BINARY_DIR}/data")
