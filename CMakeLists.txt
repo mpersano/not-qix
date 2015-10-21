@@ -9,9 +9,6 @@ add_subdirectory(external/libpng)
 add_subdirectory(external/tinyxml)
 add_subdirectory(external/lua5.2)
 
-if (NOT ANDROID)
-	add_subdirectory(tools)
-endif()
-
+add_subdirectory(assets)
 add_subdirectory(ggl)
 add_subdirectory(game)

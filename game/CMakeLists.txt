@@ -80,56 +80,22 @@ endif()
 
 target_link_libraries(game ${GAME_LIBRARIES})
 
+set(ASSET_DIR "${CMAKE_BINARY_DIR}/assets/assets")
+
 if (ANDROID)
 	add_custom_command(TARGET game POST_BUILD
 		COMMAND mkdir -p ${CMAKE_SOURCE_DIR}/android/libs/armeabi/)
 
 	add_custom_command(TARGET game POST_BUILD
 		COMMAND cp -r ${CMAKE_CURRENT_BINARY_DIR}/libgame.so ${CMAKE_SOURCE_DIR}/android/libs/armeabi/)
+
+	add_custom_command(TARGET game POST_BUILD
+		COMMAND ln -s ${ASSET_DIR} ${CMAKE_SOURCE_DIR}/android/
+		DEPENDS ${ASSET_DIR})
 else()
 	set(DATA_DIR "${CMAKE_CURRENT_BINARY_DIR}/data")
-	set(FONT_DIR "${DATA_DIR}/fonts")
-	set(SPRITE_DIR "${DATA_DIR}/sprites")
-
-	set(PACKFONT_COMMAND "${CMAKE_BINARY_DIR}/tools/packsprites/packfont")
-	set(PACKSPRITES_COMMAND "${CMAKE_BINARY_DIR}/tools/packsprites/packsprites")
-	
-	add_custom_command(TARGET game POST_BUILD
-		COMMAND mkdir -p ${DATA_DIR})
-
-	# copy images/data/scripts
-	
-	add_custom_command(TARGET game POST_BUILD
-		COMMAND cp -r ${CMAKE_SOURCE_DIR}/assets/images ${DATA_DIR})
 
 	add_custom_command(TARGET game POST_BUILD
-		COMMAND cp -r ${CMAKE_SOURCE_DIR}/assets/data ${DATA_DIR})
-
-	add_custom_command(TARGET game POST_BUILD
-		COMMAND cp -r ${CMAKE_SOURCE_DIR}/assets/scripts ${DATA_DIR})
-
-	# pack fonts
-
-	add_custom_command(TARGET game POST_BUILD
-		COMMAND mkdir -p ${FONT_DIR})
-
-	add_custom_command(TARGET game POST_BUILD
-		COMMAND ${PACKFONT_COMMAND} -w 512 -h 256 -s 20 -g 2 -t fonts -d 2 -e 2 -S .6 -i ff0000-ffff00-ffffff -o 800000-808000-808080 -B 4 ${CMAKE_SOURCE_DIR}/assets/fonts/font.ttf small x20-x7e
-		WORKING_DIRECTORY ${FONT_DIR}
-		DEPENDS ${PACKFONT_COMMAND})
-
-	add_custom_command(TARGET game POST_BUILD
-		COMMAND ${PACKFONT_COMMAND} -w 512 -h 256 -s 12 -g 2 -t fonts -d 2 -e 2 -S .6 -i ff0000-ffff00-ffffff -o 800000-808000-808080 -B 4 ${CMAKE_SOURCE_DIR}/assets/fonts/font.ttf tiny x20-x7e
-		WORKING_DIRECTORY ${FONT_DIR}
-		DEPENDS ${PACKFONT_COMMAND})
-
-	# pack sprites
-
-	add_custom_command(TARGET game POST_BUILD
-		COMMAND mkdir -p ${SPRITE_DIR})
-
-	add_custom_command(TARGET game POST_BUILD
-		COMMAND ${PACKSPRITES_COMMAND} -w 1024 -h 1024 -t sprites sprites ${CMAKE_SOURCE_DIR}/assets/sprites
-		WORKING_DIRECTORY ${SPRITE_DIR}
-		DEPENDS ${PACKSPRITES_COMMAND})
+		COMMAND ln -s ${ASSET_DIR} ${DATA_DIR}
+		DEPENDS ${ASSET_DIR})
 endif()
