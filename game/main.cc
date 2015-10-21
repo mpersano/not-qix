@@ -47,7 +47,7 @@ game_app::init(int viewport_width, int viewport_height)
 	viewport_width_ = viewport_width;
 	viewport_height_ = viewport_height;
 
-	scene_width_ = 320;
+	scene_width_ = 480;
 	scene_height_ = scene_width_*viewport_height_/viewport_width_;
 
 	ggl::res::load_sprite_sheet("sprites/sprites.spr");
