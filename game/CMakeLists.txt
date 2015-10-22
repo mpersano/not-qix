@@ -70,32 +70,36 @@ set(GAME_SOURCES
 	lives_widget.cc
 	percent_widget.cc)
 
+set(ASSET_DIR "${CMAKE_BINARY_DIR}/assets/assets")
+
 if (ANDROID)
-	list(APPEND GAME_SOURCES
-		"${ANDROID_NDK}/sources/android/native_app_glue/android_native_app_glue.c")
-	add_library(game SHARED ${GAME_SOURCES})
+	set(DEST_ASSET_DIR "${CMAKE_SOURCE_DIR}/android/assets")
 else()
-	add_executable(game ${GAME_SOURCES})
+	set(DEST_ASSET_DIR "${CMAKE_CURRENT_BINARY_DIR}/data")
+endif()
+
+add_custom_command(
+	OUTPUT ${DEST_ASSET_DIR}
+	COMMAND ln -s ${ASSET_DIR} ${DEST_ASSET_DIR}
+	DEPENDS ${ASSET_DIR})
+
+if (ANDROID)
+	add_library(
+		game SHARED
+		${GAME_SOURCES}
+		"${ANDROID_NDK}/sources/android/native_app_glue/android_native_app_glue.c"
+		${DEST_ASSET_DIR})
+else()
+	add_executable(
+		game
+		${GAME_SOURCES}
+		${DEST_ASSET_DIR})
 endif()
 
 target_link_libraries(game ${GAME_LIBRARIES})
 
-set(ASSET_DIR "${CMAKE_BINARY_DIR}/assets/assets")
-
 if (ANDROID)
 	add_custom_command(TARGET game POST_BUILD
-		COMMAND mkdir -p ${CMAKE_SOURCE_DIR}/android/libs/armeabi/)
-
-	add_custom_command(TARGET game POST_BUILD
+		COMMAND mkdir -p ${CMAKE_SOURCE_DIR}/android/libs/armeabi/
 		COMMAND cp -r ${CMAKE_CURRENT_BINARY_DIR}/libgame.so ${CMAKE_SOURCE_DIR}/android/libs/armeabi/)
-
-	add_custom_command(TARGET game POST_BUILD
-		COMMAND ln -s ${ASSET_DIR} ${CMAKE_SOURCE_DIR}/android/
-		DEPENDS ${ASSET_DIR})
-else()
-	set(DATA_DIR "${CMAKE_CURRENT_BINARY_DIR}/data")
-
-	add_custom_command(TARGET game POST_BUILD
-		COMMAND ln -s ${ASSET_DIR} ${DATA_DIR}
-		DEPENDS ${ASSET_DIR})
 endif()
