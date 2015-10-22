@@ -1,6 +1,7 @@
 #include <ggl/texture.h>
-#include <ggl/sprite.h>
 #include <ggl/vertex_array.h>
+#include <ggl/util.h>
+#include <ggl/sprite.h>
 
 namespace ggl {
 
@@ -79,10 +80,8 @@ sprite::draw(float x, float y, horiz_align ha, vert_align va) const
 void
 sprite::draw(float x0, float y0, float x1, float y1) const
 {
-	glEnable(GL_BLEND);
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
-	glEnable(GL_TEXTURE_2D);
+	enable_alpha_blend _;
+	enable_texture __;
 
 	glColor4f(1, 1, 1, 1);
 
@@ -93,9 +92,6 @@ sprite::draw(float x0, float y0, float x1, float y1) const
 		  { x1, y0, u1, v1 },
 		  { x0, y1, u0, v0 },
 		  { x1, y1, u1, v0 } }).draw(GL_TRIANGLE_STRIP);
-
-	glDisable(GL_TEXTURE_2D);
-	glDisable(GL_BLEND);
 }
 
 }

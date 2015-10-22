@@ -5,6 +5,7 @@
 #include <ggl/sprite.h>
 #include <ggl/texture.h>
 #include <ggl/resources.h>
+#include <ggl/util.h>
 
 #include "game.h"
 #include "lives_widget.h"
@@ -39,6 +40,8 @@ shiny_sprite_quad::shiny_sprite_quad(const ggl::sprite *sprite, const game& g)
 void
 shiny_sprite_quad::draw_quad() const
 {
+	ggl::enable_alpha_blend _;
+
 	const short w = sprite_->width;
 	const short h = sprite_->height;
 
@@ -58,9 +61,6 @@ shiny_sprite_quad::draw_quad() const
 
 	const float s0 = -.01f*game_.tics;
 	const float s1 = s0 + ds;
-
-	glEnable(GL_BLEND);
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 	glActiveTexture(GL_TEXTURE0);
 	glEnable(GL_TEXTURE_2D);

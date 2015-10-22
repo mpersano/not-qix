@@ -8,6 +8,7 @@
 #include <ggl/texture.h>
 #include <ggl/sprite.h>
 #include <ggl/resources.h>
+#include <ggl/util.h>
 
 #include "tween.h"
 #include "game.h"
@@ -46,6 +47,9 @@ bullet::bullet(game& g, const vec2f& pos, const vec2f& dir)
 void
 bullet::draw() const
 {
+	ggl::enable_alpha_blend _;
+	ggl::enable_texture __;
+
 	const int w = sprite_->width;
 	const int h = sprite_->height;
 
@@ -63,11 +67,6 @@ bullet::draw() const
 	const float v0 = sprite_->v0;
 	const float v1 = sprite_->v1;
 
-	glEnable(GL_BLEND);
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
-	glEnable(GL_TEXTURE_2D);
-
 	glColor4f(1, 1, 1, 1);
 
 	sprite_->tex->bind();
@@ -77,9 +76,6 @@ bullet::draw() const
 		  { p1.x, p1.y, u1, v1 },
 		  { p2.x, p2.y, u0, v0 },
 		  { p3.x, p3.y, u1, v0 } }).draw(GL_TRIANGLE_STRIP);
-
-	glDisable(GL_TEXTURE_2D);
-	glDisable(GL_BLEND);
 }
 
 bool

@@ -71,17 +71,7 @@ void
 picked_effect::draw() const
 {
 	glColor4f(1, 1, 1, 1);
-
-	glEnable(GL_TEXTURE_2D);
-
-	glEnable(GL_BLEND);
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
 	quad_.draw();
-
-	glDisable(GL_BLEND);
-
-	glDisable(GL_TEXTURE_2D);
 }
 
 };
@@ -98,9 +88,6 @@ powerup::powerup(game& g, const vec2f& pos, const vec2f& dir)
 void
 powerup::draw() const
 {
-	glEnable(GL_BLEND);
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
 	glPushMatrix();
 	glTranslatef(pos_.x, pos_.y, 0);
 
@@ -112,8 +99,6 @@ powerup::draw() const
 	inner_sprite_->draw(ggl::sprite::horiz_align::CENTER, ggl::sprite::vert_align::CENTER);
 
 	glPopMatrix();
-
-	glDisable(GL_BLEND);
 }
 
 bool

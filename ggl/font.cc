@@ -10,6 +10,7 @@
 #include <ggl/asset.h>
 #include <ggl/texture.h>
 #include <ggl/resources.h>
+#include <ggl/util.h>
 #include <ggl/font.h>
 
 namespace ggl {
@@ -109,10 +110,12 @@ font::get_string_width(const std::basic_string<wchar_t>& str) const
 void
 font::render(const std::basic_string<wchar_t>& str) const
 {
+	enable_alpha_blend _;
+	enable_texture __;
+
 	vertex_array_texcoord<GLshort, 2, GLfloat, 2> va;
 	render(str, va);
 
-	glEnable(GL_TEXTURE_2D);
 	tex->bind();
 
 	va.draw(GL_TRIANGLES);

@@ -1,6 +1,7 @@
 #include <ggl/resources.h>
 #include <ggl/font.h>
 #include <ggl/texture.h>
+#include <ggl/util.h>
 
 #include "tween.h"
 #include "game.h"
@@ -159,13 +160,10 @@ percent_widget::get_value() const
 void
 percent_widget::draw() const
 {
-	glEnable(GL_BLEND);
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	ggl::enable_alpha_blend _;
 
 	draw_frame();
 	draw_digits();
-
-	glDisable(GL_BLEND);
 }
 
 void
@@ -185,6 +183,8 @@ percent_widget::draw_frame() const
 void
 percent_widget::draw_digits() const
 {
+	ggl::enable_texture _;
+
 	const int BIG_DIGIT_WIDTH = 20;
 	const int SMALL_DIGIT_WIDTH = 16;
 
@@ -197,7 +197,6 @@ percent_widget::draw_digits() const
 	const int base_x = get_base_x();
 
 	glColor4f(1, 1, 1, 1);
-	glEnable(GL_TEXTURE_2D);
 
 	int x = get_base_x() + 8 + BIG_DIGIT_WIDTH/2;
 	draw_char(large_font_, L'0' + int_part%10, x + 2*BIG_DIGIT_WIDTH, base_y);
@@ -213,8 +212,6 @@ percent_widget::draw_digits() const
 	draw_char(small_font_, L'0' + (fract_part/10)%10, x + SMALL_DIGIT_WIDTH, base_y);
 	draw_char(small_font_, L'0' + (fract_part)%10, x + 2*SMALL_DIGIT_WIDTH, base_y);
 	draw_char(small_font_, L'%', x + 3*SMALL_DIGIT_WIDTH, base_y);
-
-	glDisable(GL_TEXTURE_2D);
 }
 
 void

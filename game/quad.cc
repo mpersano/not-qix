@@ -2,6 +2,7 @@
 
 #include <ggl/texture.h>
 #include <ggl/font.h>
+#include <ggl/util.h>
 
 #include "quad.h"
 
@@ -60,6 +61,8 @@ image_quad::get_height() const
 void
 image_quad::draw_quad() const
 {
+	ggl::enable_texture _;
+
 	tex_->bind();
 	va_.draw(GL_TRIANGLE_STRIP);
 }
@@ -98,10 +101,8 @@ text_quad::get_height() const
 void
 text_quad::draw_quad() const
 {
-	glEnable(GL_TEXTURE_2D);
-
-	glEnable(GL_BLEND);
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	ggl::enable_alpha_blend _;
+	ggl::enable_texture __;
 
 	glPushMatrix();
 

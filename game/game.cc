@@ -8,6 +8,7 @@
 #include <ggl/font.h>
 #include <ggl/vertex_array.h>
 #include <ggl/resources.h>
+#include <ggl/util.h>
 
 #include "util.h"
 #include "tween.h"
@@ -169,18 +170,9 @@ level_intro_state::draw_overlay() const
 {
 	glColor4f(1, 1, 1, 1);
 
-	glEnable(GL_TEXTURE_2D);
-
-	glEnable(GL_BLEND);
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
 	portrait_.draw();
 	stage_text_.draw();
 	name_text_.draw();
-
-	glDisable(GL_BLEND);
-
-	glDisable(GL_TEXTURE_2D);
 }
 
 void
@@ -265,14 +257,13 @@ select_initial_area_state::draw() const
 
 	glColor4f(1, 1, 1, .5);
 
-	glEnable(GL_BLEND);
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	{
+	ggl::enable_alpha_blend _;
 
 	(ggl::vertex_array_flat<GLshort, 2>
 		{ { x0, y0 }, { x1, y0 },
 		  { x0, y1 }, { x1, y1 } }).draw(GL_TRIANGLE_STRIP);
-
-	glDisable(GL_BLEND);
+	}
 
 	// border
 
@@ -479,12 +470,6 @@ void
 game_over_state::draw_overlay() const
 {
 	glColor4f(1, 1, 1, 1);
-
-	glEnable(GL_TEXTURE_2D);
-
-	glEnable(GL_BLEND);
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
 	text_.draw();
 }
 
@@ -711,15 +696,15 @@ game::draw_background() const
 {
 	glColor4f(1, 1, 1, 1);
 
-	glEnable(GL_TEXTURE_2D);
+	{
+	ggl::enable_texture _;
 
 	cur_level->fg_texture->bind();
 	background_filled_va_.draw(GL_TRIANGLES);
 
 	cur_level->bg_texture->bind();
 	background_unfilled_va_.draw(GL_TRIANGLES);
-
-	glDisable(GL_TEXTURE_2D);
+	}
 
 	border_va_.draw(GL_TRIANGLE_STRIP);
 }
