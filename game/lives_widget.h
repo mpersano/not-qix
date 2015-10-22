@@ -26,9 +26,7 @@ private:
 	int show_tics_;
 
 	std::unique_ptr<quad> text_;
-
-	const ggl::sprite *circle_sprite_;
-	const ggl::texture *shine_texture_;
+	std::unique_ptr<quad> circle_;
 
 	ggl::event_connection_ptr respawn_conn_;
 	ggl::event_connection_ptr death_conn_;
