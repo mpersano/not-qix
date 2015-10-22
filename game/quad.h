@@ -21,7 +21,11 @@ public:
 	virtual unsigned get_width() const = 0;
 	virtual unsigned get_height() const = 0;
 
+	enum class vert_align { TOP, CENTER, BOTTOM };
+	enum class horiz_align { LEFT, CENTER, RIGHT };
+
 	void draw() const;
+	void draw(horiz_align ha, vert_align va) const;
 
 	vec2f pos;
 	vec2f scale;

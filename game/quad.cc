@@ -13,17 +13,55 @@ quad::quad()
 { }
 
 void
-quad::draw() const
+quad::draw(horiz_align ha, vert_align va) const
 {
 	glPushMatrix();
 	glTranslatef(pos.x, pos.y, 0.f);
 	glScalef(scale.x, scale.y, 1.f);
+
+	float dx, dy;
+
+	switch (ha) {
+		case horiz_align::LEFT:
+			dx = .5f*get_width();
+			break;
+
+		case horiz_align::CENTER:
+			dx = 0;
+			break;
+
+		case horiz_align::RIGHT:
+			dx = -.5f*get_width();
+			break;
+	}
+
+	switch (va) {
+		case vert_align::TOP:
+			dy = .5f*get_height();
+			break;
+
+		case vert_align::CENTER:
+			dy = 0;
+			break;
+
+		case vert_align::BOTTOM:
+			dy = -.5f*get_height();
+			break;
+	}
+
+	glTranslatef(dx, dy, 0.f);
 
 	glColor4f(1, 1, 1, alpha);
 
 	draw_quad();
 
 	glPopMatrix();
+}
+
+void
+quad::draw() const
+{
+	draw(horiz_align::CENTER, vert_align::CENTER);
 }
 
 image_quad::image_quad(const ggl::texture *tex)

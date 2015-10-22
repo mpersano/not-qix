@@ -119,11 +119,11 @@ lives_widget::initialize_text(int lives_left)
 	std::basic_stringstream<wchar_t> ss;
 
 	if (lives_left > 0)
-		ss << lives_left << " left";
+		ss << lives_left << " LEFT";
 	else
-		ss << "last player";
+		ss << "LAST PLAYER";
 
-	text_.reset(new text_quad { ggl::res::get_font("fonts/small.spr"), ss.str() });
+	text_.reset(new text_quad { ggl::res::get_font("fonts/tiny.spr"), ss.str() });
 }
 
 bool
@@ -143,25 +143,46 @@ lives_widget::draw() const
 
 	auto pos = game_.get_player_screen_position();
 
+	vec2f circle_scale, text_pos;
+	quad::horiz_align text_ha;
+	quad::vert_align text_va;
+
+	if (pos.x < .5f*game_.viewport_width) {
+		circle_scale.x = -1.f;
+		text_ha = quad::horiz_align::RIGHT;
+	} else {
+		circle_scale.x = 1.f;
+		text_ha = quad::horiz_align::LEFT;
+	}
+
+	if (pos.y < .5f*game_.viewport_height) {
+		circle_scale.y = -1;
+		text_va = quad::vert_align::BOTTOM;
+	} else {
+		circle_scale.y = 1;
+		text_va = quad::vert_align::TOP;
+	}
+
+	text_pos = circle_scale*vec2f { -110, -80 };
+
 	glPushMatrix();
 	glTranslatef(pos.x, pos.y, 0);
 
 	// circle
 
 	glPushMatrix();
-
-	const float sx = pos.x > .5f*game_.viewport_width ? -1.f : 1.f;
-	const float sy = pos.y > .5f*game_.viewport_height ? 1.f : -1.f;
-	glScalef(sx, sy, 1);
-
+	glScalef(circle_scale.x, circle_scale.y, 1);
 	circle_->draw();
-
 	glPopMatrix();
 
 	// text
 
 	assert(text_);
-	text_->draw();
+
+	glPushMatrix();
+	glTranslatef(text_pos.x, text_pos.y, 0);
+	text_->draw(text_ha, text_va);
+	glPopMatrix();
 
 	glPopMatrix();
 }
