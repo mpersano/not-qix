@@ -82,7 +82,7 @@ powerup::powerup(game& g, const vec2f& pos, const vec2f& dir)
 , dir_ { dir }
 , state_ { state::MOVING }
 , outer_sprite_ { ggl::res::get_sprite("powerup-outer.png") }
-, inner_sprite_{ ggl::res::get_sprite("powerup-inner.png") }
+, text_ { new shiny_sprite_quad { ggl::res::get_sprite("powerup-inner.png"), game_ } }
 { }
 
 void
@@ -96,7 +96,7 @@ powerup::draw() const
 	outer_sprite_->draw(ggl::sprite::horiz_align::CENTER, ggl::sprite::vert_align::CENTER);
 	glPopMatrix();
 
-	inner_sprite_->draw(ggl::sprite::horiz_align::CENTER, ggl::sprite::vert_align::CENTER);
+	text_->draw();
 
 	glPopMatrix();
 }

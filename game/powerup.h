@@ -1,5 +1,6 @@
 #pragma once
 
+#include "quad.h"
 #include "entity.h"
 
 namespace ggl {
@@ -29,5 +30,5 @@ private:
 	vec2f dir_;
 
 	const ggl::sprite *outer_sprite_;
-	const ggl::sprite *inner_sprite_;
+	std::unique_ptr<quad> text_;
 };

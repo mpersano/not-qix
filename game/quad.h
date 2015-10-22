@@ -8,9 +8,12 @@
 #include <ggl/vec2.h>
 
 namespace ggl {
+class sprite;
 class texture;
 class font;
 }
+
+class game;
 
 class quad
 {
@@ -65,4 +68,20 @@ private:
 	const ggl::texture *tex_;
 	ggl::vertex_array_texcoord<GLshort, 2, GLfloat, 2> va_;
 	std::pair<vec2s, vec2s> rect_;
+};
+
+class shiny_sprite_quad : public quad
+{
+public:
+	shiny_sprite_quad(const ggl::sprite *sprite, const game& g);
+
+	unsigned get_width() const override;
+	unsigned get_height() const override;
+
+private:
+	void draw_quad() const override;
+
+	const ggl::sprite *sprite_;
+	const ggl::texture *shine_texture_;
+	const game& game_;
 };
