@@ -1,7 +1,0 @@
-fill none
-
-stroke White
-stroke-width 3
-
-translate 128,128
-path 'M 28.28,28.28 L 50,50 100,50'
