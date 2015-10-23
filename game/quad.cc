@@ -200,7 +200,7 @@ shiny_sprite_quad::draw_quad() const
 
 	const float ds = .5f;
 
-	const float s0 = -.015f*game_.tics;
+	const float s0 = -.02f*game_.tics;
 	const float s1 = s0 - ds;
 
 	glActiveTexture(GL_TEXTURE0);

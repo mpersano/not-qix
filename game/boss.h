@@ -1,6 +1,7 @@
 #pragma once
 
 #include "script_interface.h"
+#include "quad.h"
 #include "foe.h"
 
 namespace ggl {
@@ -69,5 +70,8 @@ private:
 	int miniboss_spawned_;
 
 	const ggl::sprite *core_sprite_;
+	const ggl::sprite *danger_frame_sprite_;
+	text_quad danger_text_;
+
 	std::unique_ptr<script_thread> script_thread_;
 };
