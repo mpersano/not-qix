@@ -2,6 +2,8 @@
 
 #include <string>
 #include <utility>
+#include <memory>
+
 #include <wchar.h>
 
 #include <ggl/vertex_array.h>
@@ -27,12 +29,7 @@ public:
 	enum class vert_align { TOP, CENTER, BOTTOM };
 	enum class horiz_align { LEFT, CENTER, RIGHT };
 
-	void draw() const;
-	void draw(horiz_align ha, vert_align va) const;
-
-	vec2f pos;
-	vec2f scale;
-	float alpha;
+	void draw(horiz_align ha = horiz_align::CENTER, vert_align va = vert_align::CENTER) const;
 
 protected:
 	virtual void draw_quad() const = 0;
@@ -67,7 +64,7 @@ private:
 
 	const ggl::texture *tex_;
 	ggl::vertex_array_texcoord<GLshort, 2, GLfloat, 2> va_;
-	std::pair<vec2s, vec2s> rect_;
+	int width_, height_;
 };
 
 class shiny_sprite_quad : public quad
@@ -84,4 +81,25 @@ private:
 	const ggl::sprite *sprite_;
 	const ggl::texture *shine_texture_;
 	const game& game_;
+};
+
+class quad_frame
+{
+public:
+	quad_frame(std::unique_ptr<quad> q);
+
+	void draw(quad::horiz_align ha = quad::horiz_align::CENTER, quad::vert_align va = quad::vert_align::CENTER) const;
+
+	unsigned get_width() const
+	{ return quad_->get_width(); }
+
+	unsigned get_height() const
+	{ return quad_->get_height(); }
+
+	vec2f pos;
+	vec2f scale;
+	float alpha;
+
+private:
+	std::unique_ptr<quad> quad_;
 };

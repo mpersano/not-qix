@@ -10,17 +10,12 @@
 #include "quad.h"
 
 quad::quad()
-: pos { 0.f, 0.f }
-, scale { 1.f, 1.f }
-, alpha { 1.f }
 { }
 
 void
 quad::draw(horiz_align ha, vert_align va) const
 {
 	glPushMatrix();
-	glTranslatef(pos.x, pos.y, 0.f);
-	glScalef(scale.x, scale.y, 1.f);
 
 	float dx, dy;
 
@@ -54,17 +49,9 @@ quad::draw(horiz_align ha, vert_align va) const
 
 	glTranslatef(dx, dy, 0.f);
 
-	glColor4f(1, 1, 1, alpha);
-
 	draw_quad();
 
 	glPopMatrix();
-}
-
-void
-quad::draw() const
-{
-	draw(horiz_align::CENTER, vert_align::CENTER);
 }
 
 image_quad::image_quad(const ggl::texture *tex)
@@ -124,19 +111,28 @@ text_quad::text_quad(const ggl::font *font, const std::basic_string<wchar_t> tex
 	auto y_min = std::min_element(std::begin(va_), std::end(va_), cmp_y)->pos[1];
 	auto y_max = std::max_element(std::begin(va_), std::end(va_), cmp_y)->pos[1];
 
-	rect_ = std::make_pair(vec2s { x_min, y_min }, vec2s { x_max, y_max });
+	width_ = x_max - x_min;
+	height_ = y_max - y_min;
+
+	const int dx = -x_min - .5*width_;
+	const int dy = -y_min - .5*height_;
+
+	for (auto& v : va_) {
+		v.pos[0] += dx;
+		v.pos[1] += dy;
+	}
 }
 
 unsigned
 text_quad::get_width() const
 {
-	return rect_.second.x - rect_.first.x;
+	return width_;
 }
 
 unsigned
 text_quad::get_height() const
 {
-	return rect_.second.y - rect_.first.y;
+	return height_;
 }
 
 void
@@ -145,17 +141,8 @@ text_quad::draw_quad() const
 	ggl::enable_alpha_blend _;
 	ggl::enable_texture __;
 
-	glPushMatrix();
-
-	glTranslatef(
-		-rect_.first.x - .5f*get_width(),
-		-rect_.first.y - .5f*get_height(),
-		0);
-
 	tex_->bind();
 	va_.draw(GL_TRIANGLES);
-
-	glPopMatrix();
 }
 
 // XXX: we only need game& for game_.tics, should be global somewhere?
@@ -237,4 +224,25 @@ shiny_sprite_quad::draw_quad() const
 
 	glActiveTexture(GL_TEXTURE0);
 	glDisable(GL_TEXTURE_2D);
+}
+
+quad_frame::quad_frame(std::unique_ptr<quad> q)
+: pos { 0.f, 0.f }
+, scale { 1.f, 1.f }
+, alpha { 1.f }
+, quad_ { std::move(q) }
+{ }
+
+void
+quad_frame::draw(quad::horiz_align ha, quad::vert_align va) const
+{
+	glColor4f(1, 1, 1, alpha);
+
+	glPushMatrix();
+	glTranslatef(pos.x, pos.y, 0.f);
+	glScalef(scale.x, scale.y, 1.f);
+
+	quad_->draw(ha, va);
+
+	glPopMatrix();
 }

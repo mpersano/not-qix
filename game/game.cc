@@ -37,10 +37,9 @@ private:
 	void init_portrait();
 	void init_stage_text();
 
-	image_quad portrait_;
-	text_quad stage_text_;
-	text_quad name_text_;
-
+	quad_frame portrait_;
+	quad_frame stage_text_;
+	quad_frame name_text_;
 	std::unique_ptr<abstract_action> action_;
 };
 
@@ -131,9 +130,9 @@ button_pressed(unsigned dpad_state, ggl::dpad_button button)
 
 level_intro_state::level_intro_state(game& g)
 : game_state { g }
-, portrait_(game_.cur_level->portrait_texture)
-, stage_text_(ggl::res::get_font("fonts/small.spr"), L"stage 1")
-, name_text_(ggl::res::get_font("fonts/tiny.spr"), L"pearl girl")
+, portrait_ { std::unique_ptr<quad> { new image_quad { game_.cur_level->portrait_texture } } }
+, stage_text_ { std::unique_ptr<quad> { new text_quad { ggl::res::get_font("fonts/small.spr"), L"stage 1" } } }
+, name_text_ { std::unique_ptr<quad> { new text_quad { ggl::res::get_font("fonts/tiny.spr"), L"pearl girl" } } }
 {
 	const auto w = game_.viewport_width;
 	const auto h = game_.viewport_height;
@@ -455,12 +454,7 @@ level_completed_state::update(unsigned dpad_state)
 game_over_state::game_over_state(game& g)
 : game_state { g }
 , text_(ggl::res::get_font("fonts/small.spr"), L"game over")
-{
-	const auto w = game_.viewport_width;
-	const auto h = game_.viewport_height;
-
-	text_.pos = vec2f { w, h }*.5f;
-}
+{ }
 
 void
 game_over_state::draw() const
@@ -470,7 +464,13 @@ void
 game_over_state::draw_overlay() const
 {
 	glColor4f(1, 1, 1, 1);
+
+	glPushMatrix();
+
+	glTranslatef(.5f*game_.viewport_width, .5f*game_.viewport_height, 0.f);
 	text_.draw();
+
+	glPopMatrix();
 }
 
 void
@@ -508,8 +508,7 @@ game::reset(const level *l)
 
 	update_background();
 
-	// enter_level_intro_state();
-	enter_select_initial_area_state();
+	enter_level_intro_state();
 
 	tics = 0;
 }

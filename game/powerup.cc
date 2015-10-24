@@ -30,29 +30,29 @@ public:
 	{ return true; }
 
 private:
-	text_quad quad_;
+	quad_frame text_;
 	std::unique_ptr<abstract_action> action_;
 };
 
 picked_effect::picked_effect(const vec2f& pos)
-: quad_(ggl::res::get_font("fonts/tiny.spr"), L"power up!")
+: text_ { std::unique_ptr<quad> { new text_quad { ggl::res::get_font("fonts/tiny.spr"), L"power up!" } } }
 {
 	action_.reset(
 		(new parallel_action_group)->add(
 			new property_change_action<vec2f, cos_tween>(
-				quad_.pos,
+				text_.pos,
 				pos + vec2f { 0, 8 },
 				pos + vec2f { 0, 40 },
 				60))->add(
 			(new sequential_action_group)->add(
 				new property_change_action<float, linear_tween>(
-					quad_.alpha,
+					text_.alpha,
 					0,
 					1,
 					20))->add(
 				new delay_action(30))->add(
 				new property_change_action<float, linear_tween>(
-					quad_.alpha,
+					text_.alpha,
 					1,
 					0,
 					20))));
@@ -71,7 +71,7 @@ void
 picked_effect::draw() const
 {
 	glColor4f(1, 1, 1, 1);
-	quad_.draw();
+	text_.draw();
 }
 
 };
