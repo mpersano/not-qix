@@ -82,7 +82,7 @@ powerup::powerup(game& g, const vec2f& pos, const vec2f& dir)
 , dir_ { dir }
 , state_ { state::MOVING }
 , outer_sprite_ { ggl::res::get_sprite("powerup-outer.png") }
-, text_ { new shiny_sprite_quad { ggl::res::get_sprite("powerup-inner.png"), game_ } }
+, text_ { new shiny_sprite_quad { ggl::res::get_sprite("powerup-inner.png"), game_, .5, -.02 } }
 { }
 
 void

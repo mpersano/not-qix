@@ -13,7 +13,7 @@
 lives_widget::lives_widget(game& g)
 : widget { g }
 , show_tics_ { 0 }
-, circle_ { new shiny_sprite_quad { ggl::res::get_sprite("lives-left-circle.png"), game_ } }
+, circle_ { new shiny_sprite_quad { ggl::res::get_sprite("lives-left-circle.png"), game_, .5, -.02 } }
 {
 	auto& p = game_.get_player();
 

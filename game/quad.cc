@@ -147,10 +147,12 @@ text_quad::draw_quad() const
 
 // XXX: we only need game& for game_.tics, should be global somewhere?
 
-shiny_sprite_quad::shiny_sprite_quad(const ggl::sprite *sprite, const game& g)
+shiny_sprite_quad::shiny_sprite_quad(const ggl::sprite *sprite, const game& g, float tex_offset, float speed)
 : sprite_ { sprite }
 , shine_texture_ { ggl::res::get_texture("images/lives-left-shine.png") }
 , game_ { g }
+, tex_offset_ { tex_offset }
+, speed_ { speed }
 { }
 
 unsigned
@@ -185,10 +187,8 @@ shiny_sprite_quad::draw_quad() const
 	const float v0 = sprite_->v0;
 	const float v1 = sprite_->v1;
 
-	const float ds = .5f;
-
-	const float s0 = -.02f*game_.tics;
-	const float s1 = s0 - ds;
+	const float s0 = speed_*game_.tics;
+	const float s1 = s0 - tex_offset_*static_cast<float>(sprite_->height)/sprite_->width;
 
 	glActiveTexture(GL_TEXTURE0);
 	glEnable(GL_TEXTURE_2D);
@@ -216,9 +216,9 @@ shiny_sprite_quad::draw_quad() const
 
 	(va_type {
 		{ x0, y0, u0, v1, s0, 0 },
-		{ x1, y0, u1, v1, s0 + ds, 0 },
+		{ x1, y0, u1, v1, s0 + tex_offset_, 0 },
 		{ x0, y1, u0, v0, s1, 1 },
-		{ x1, y1, u1, v0, s1 + ds, 1 } }).draw(GL_TRIANGLE_STRIP);
+		{ x1, y1, u1, v0, s1 + tex_offset_, 1 } }).draw(GL_TRIANGLE_STRIP);
 
 	glDisable(GL_TEXTURE_2D);
 

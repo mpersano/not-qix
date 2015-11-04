@@ -70,7 +70,7 @@ private:
 class shiny_sprite_quad : public quad
 {
 public:
-	shiny_sprite_quad(const ggl::sprite *sprite, const game& g);
+	shiny_sprite_quad(const ggl::sprite *sprite, const game& g, float tex_offset, float speed);
 
 	unsigned get_width() const override;
 	unsigned get_height() const override;
@@ -81,6 +81,8 @@ private:
 	const ggl::sprite *sprite_;
 	const ggl::texture *shine_texture_;
 	const game& game_;
+	float tex_offset_;
+	float speed_;
 };
 
 class quad_frame
