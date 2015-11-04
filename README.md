@@ -1,3 +1,7 @@
+Building prerequisites
+-------------
+* [packsprites](https://github.com/mpersano/packsprites) in the `$PATH`.
+
 Building for linux
 ------------------
 
@@ -26,5 +30,3 @@ To build the APK:
     ant debug
 
 The `android update` step only needs to be done once. The argument for `--target` should be the id of an Android target with at least API level 14 (`android list target` may be useful).
-
-Actually I've just lied, these instructions are not enough to get a working APK. You will also need to build the `assets` dir and put it under `android` before building. More on this later.
