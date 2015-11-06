@@ -23,7 +23,11 @@ private:
 	void on_player_respawn(int lives_left);
 	void on_player_death();
 
-	int show_tics_;
+	bool hide_;
+
+	enum state { HIDDEN, INTRO, IDLE, OUTRO } state_;
+	void set_state(state next_state);
+	int state_tics_;
 
 	std::unique_ptr<quad> text_;
 	std::unique_ptr<quad> circle_;

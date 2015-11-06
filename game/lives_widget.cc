@@ -10,9 +10,17 @@
 #include "game.h"
 #include "lives_widget.h"
 
+namespace {
+
+const int INTRO_TICS = 30;
+const int IDLE_TICS = 240;
+const int OUTRO_TICS = 30;
+
+};
+
 lives_widget::lives_widget(game& g)
 : widget { g }
-, show_tics_ { 0 }
+, hide_ { true }
 , circle_ { new shiny_sprite_quad { ggl::res::get_sprite("lives-left-circle.png"), game_, .5, -.02 } }
 {
 	auto& p = game_.get_player();
@@ -24,6 +32,8 @@ lives_widget::lives_widget(game& g)
 	death_conn_ =
 		p.get_death_event().connect(
 			std::bind(&lives_widget::on_player_death, this));
+
+	set_state(state::HIDDEN);
 }
 
 void
@@ -42,8 +52,29 @@ lives_widget::initialize_text(int lives_left)
 bool
 lives_widget::update()
 {
-	if (show_tics_ > 0)
-		--show_tics_;
+	switch (state_) {
+		case state::HIDDEN:
+			if (!hide_)
+				set_state(state::INTRO);
+			break;
+
+		case state::INTRO:
+			if (++state_tics_ == INTRO_TICS)
+				set_state(state::IDLE);
+			break;
+
+		case state::IDLE:
+			if (++state_tics_ == IDLE_TICS)
+				hide_ = true;
+			if (hide_)
+				set_state(state::OUTRO);
+			break;
+
+		case state::OUTRO:
+			if (++state_tics_ == OUTRO_TICS)
+				set_state(state::HIDDEN);
+			break;
+	}
 
 	return true;
 }
@@ -51,7 +82,7 @@ lives_widget::update()
 void
 lives_widget::draw() const
 {
-	if (!show_tics_)
+	if (state_ == state::HIDDEN)
 		return;
 
 	auto pos = game_.get_player_screen_position();
@@ -76,10 +107,27 @@ lives_widget::draw() const
 		text_va = quad::vert_align::TOP;
 	}
 
+	float scale;
+
+	switch (state_) {
+		case state::INTRO:
+			scale = static_cast<float>(state_tics_)/INTRO_TICS;
+			break;
+
+		case state::OUTRO:
+			scale = 1.f - static_cast<float>(state_tics_)/OUTRO_TICS;
+			break;
+
+		case state::IDLE:
+			scale = 1;
+			break;
+	}
+
 	text_pos = circle_scale*vec2f { -110, -80 };
 
 	glPushMatrix();
 	glTranslatef(pos.x, pos.y, 0);
+	glScalef(scale, scale, 1.f);
 
 	// circle
 
@@ -103,15 +151,19 @@ lives_widget::draw() const
 void
 lives_widget::on_player_respawn(int lives_left)
 {
-	printf("respawned! %d lives left\n", lives_left);
-
 	initialize_text(lives_left);
-	show_tics_ = 240;
+	hide_ = false;
 }
 
 void
 lives_widget::on_player_death()
 {
-	printf("died!\n");
-	show_tics_ = 0;
+	hide_ = true;
+}
+
+void
+lives_widget::set_state(state next_state)
+{
+	state_ = next_state;
+	state_tics_ = 0;
 }
