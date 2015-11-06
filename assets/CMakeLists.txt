@@ -15,10 +15,13 @@ endforeach()
 
 set(FONT_DIR "${ASSET_DIR}/fonts")
 
+set(FONTS ${FONT_DIR}/small.png ${FONT_DIR}/tiny.png)
+
 add_custom_command(
-	OUTPUT ${FONT_DIR}/small.png
+	OUTPUT ${FONTS}
 	COMMAND mkdir -p ${FONT_DIR}
-	COMMAND cd ${FONT_DIR} && ${CMAKE_CURRENT_SOURCE_DIR}/packfonts.sh)
+	COMMAND cd ${FONT_DIR} && ${CMAKE_CURRENT_SOURCE_DIR}/packfonts.sh
+	DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/packfonts.sh)
 
 list(APPEND DEST_FILES ${FONT_DIR}/small.png)
 

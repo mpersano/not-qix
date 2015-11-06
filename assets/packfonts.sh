@@ -9,7 +9,8 @@ ${PACKFONT} \
 	-g 2 \
 	-t fonts \
 	-d 2 -e 2 -S .6 -B 4 \
-	-i ff0000-ffff00-ffffff -o 800000-808000-808080 \
+	-i ffff0000-ffffff00-ffffffff \
+	-o ff800000-ff808000-ff808080 \
 	${FONT} \
 	small \
 	x20-x7e
@@ -20,7 +21,8 @@ ${PACKFONT} \
 	-g 2 \
 	-t fonts \
 	-d 2 -e 2 -S .6 -B 4 \
-	-i ff0000-ffff00-ffffff -o 800000-808000-808080 \
+	-i ffff0000-ffffff00-ffffffff \
+	-o ff800000-ff808000-ff808080 \
 	${FONT} \
 	tiny \
 	x20-x7e
