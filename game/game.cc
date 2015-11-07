@@ -34,12 +34,13 @@ public:
 	void draw_overlay() const override;
 
 private:
-	void init_portrait();
-	void init_stage_text();
+	std::unique_ptr<text_quad> stage_text_, stage_text_border_;
+	std::unique_ptr<text_quad> start_text_, start_text_border_;
 
-	quad_frame portrait_;
-	quad_frame stage_text_;
-	quad_frame name_text_;
+	float text_alpha_;
+	float shadow_alpha_;
+	float shadow_offset_;
+
 	std::unique_ptr<abstract_action> action_;
 };
 
@@ -130,32 +131,43 @@ button_pressed(unsigned dpad_state, ggl::dpad_button button)
 
 level_intro_state::level_intro_state(game& g)
 : game_state { g }
-, portrait_ { std::unique_ptr<quad> { new image_quad { game_.cur_level->portrait_texture } } }
-, stage_text_ { std::unique_ptr<quad> { new text_quad { ggl::res::get_font("fonts/small.spr"), L"stage 1" } } }
-, name_text_ { std::unique_ptr<quad> { new text_quad { ggl::res::get_font("fonts/tiny.spr"), L"pearl girl" } } }
 {
-	const auto w = game_.viewport_width;
-	const auto h = game_.viewport_height;
+	const std::basic_string<wchar_t> stage_text { L"STAGE 1" };
+
+	stage_text_.reset(new text_quad { ggl::res::get_font("fonts/title-yellow.spr"), stage_text });
+	stage_text_border_.reset(new text_quad { ggl::res::get_font("fonts/title-border.spr"), stage_text });
+
+	const std::basic_string<wchar_t> start_text { L"START !!" };
+
+	start_text_.reset(new text_quad { ggl::res::get_font("fonts/title-red.spr"), start_text });
+	start_text_border_.reset(new text_quad { ggl::res::get_font("fonts/title-border.spr"), start_text });
 
 	action_.reset(
-		(new sequential_action_group)->add(
-			(new parallel_action_group)->add(
-				new property_change_action<vec2f, quadratic_tween>(
-					portrait_.pos,
-					vec2f { w + .5f*portrait_.get_width(), .5f*h },
-					vec2f { .5f*w, .5f*h },
-					30))->add(
-				new property_change_action<vec2f, quadratic_tween>(
-					stage_text_.pos,
-					vec2f { -.5f*stage_text_.get_width(), .5f*h + 60 },
-					vec2f { .5f*w, .5f*h + 60 },
-					30))->add(
-				new property_change_action<vec2f, quadratic_tween>(
-					name_text_.pos,
-					vec2f { -.5f*name_text_.get_width(), .5f*h - 60 },
-					vec2f { .5f*w, .5f*h - 60 },
-					30)))->add(
-			new delay_action(60)));
+		(new parallel_action_group)->add(
+			(new sequential_action_group)->add(
+				new property_change_action<float, linear_tween>(
+					text_alpha_,
+					0,
+					1,
+					20))->add(
+				new delay_action(30))->add(
+				new property_change_action<float, linear_tween>(
+					text_alpha_,
+					1,
+					0,
+					20)))->add(
+			(new sequential_action_group)->add(
+				new property_change_action<float, linear_tween>(
+					shadow_offset_,
+					480,
+					0,
+					20))->add(
+				new delay_action(30))->add(
+				new property_change_action<float, linear_tween>(
+					shadow_offset_,
+					0,
+					480,
+					20))));
 
 	action_->set_properties();
 }
@@ -167,11 +179,36 @@ level_intro_state::draw() const
 void
 level_intro_state::draw_overlay() const
 {
+	auto w = game_.viewport_width;
+	auto h = game_.viewport_height;
+
+	const float y0 = .5f*h + 30;
+	const float y1 = .5f*h - 30;
+
+	auto draw_text = [](const std::unique_ptr<text_quad>& t, float x, float y)
+		{
+			glPushMatrix();
+			glTranslatef(x, y, 0);
+			t->draw();
+			glPopMatrix();
+		};
+
+	// shadow
+
 	glColor4f(1, 1, 1, 1);
 
-	portrait_.draw();
-	stage_text_.draw();
-	name_text_.draw();
+	draw_text(stage_text_border_, .5f*w + shadow_offset_, y0);
+	draw_text(stage_text_border_, .5f*w - shadow_offset_, y0);
+
+	draw_text(start_text_border_, .5f*w + shadow_offset_, y1);
+	draw_text(start_text_border_, .5f*w - shadow_offset_, y1);
+
+	// text
+
+	glColor4f(1, 1, 1, text_alpha_);
+
+	draw_text(stage_text_, .5f*w, y0);
+	draw_text(start_text_, .5f*w, y1);
 }
 
 void
