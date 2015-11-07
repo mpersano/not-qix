@@ -74,21 +74,7 @@ public:
 	bool done() const override;
 
 protected:
-	template <typename BaseType>
-	action_ptr do_clone() const
-	{
-		static_assert(std::is_base_of<action_group, BaseType>::value, "eh?");
-
-		action_ptr rv { new BaseType };
-
-		std::transform(
-			std::begin(children_),
-			std::end(children_),
-			std::back_inserter(static_cast<action_group *>(rv.get())->children_),
-			[](const action_ptr& p) { return p->clone(); });
-
-		return rv;
-	}
+	template <typename BaseType> action_ptr do_clone() const;
 
 	std::list<action_ptr> children_;
 };
