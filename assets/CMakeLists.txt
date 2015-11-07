@@ -1,8 +1,8 @@
 set(ASSET_DIR assets)
 
-# scripts/images/data
+# scripts/images/animations/data
 
-foreach(NAME scripts images data)
+foreach(NAME scripts images animations data)
 	add_custom_command(
 		OUTPUT ${ASSET_DIR}/${NAME}
 		COMMAND mkdir -p ${ASSET_DIR}

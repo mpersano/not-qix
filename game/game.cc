@@ -8,12 +8,12 @@
 #include <ggl/font.h>
 #include <ggl/vertex_array.h>
 #include <ggl/resources.h>
+#include <ggl/action.h>
 #include <ggl/util.h>
 
 #include "util.h"
 #include "tween.h"
 #include "quad.h"
-#include "action.h"
 #include "level.h"
 #include "boss.h"
 #include "percent_widget.h"
@@ -41,7 +41,7 @@ private:
 	float shadow_alpha_;
 	float shadow_offset_;
 
-	std::unique_ptr<abstract_action> action_;
+	ggl::action_ptr action_;
 };
 
 class select_initial_offset_state : public game_state
@@ -131,6 +131,7 @@ button_pressed(unsigned dpad_state, ggl::dpad_button button)
 
 level_intro_state::level_intro_state(game& g)
 : game_state { g }
+, action_ { ggl::load_action("animations/level-intro.xml") }
 {
 	const std::basic_string<wchar_t> stage_text { L"STAGE 1" };
 
@@ -142,33 +143,8 @@ level_intro_state::level_intro_state(game& g)
 	start_text_.reset(new text_quad { ggl::res::get_font("fonts/title-red.spr"), start_text });
 	start_text_border_.reset(new text_quad { ggl::res::get_font("fonts/title-border.spr"), start_text });
 
-	action_.reset(
-		(new parallel_action_group)->add(
-			(new sequential_action_group)->add(
-				new property_change_action<float, linear_tween>(
-					text_alpha_,
-					0,
-					1,
-					20))->add(
-				new delay_action(30))->add(
-				new property_change_action<float, linear_tween>(
-					text_alpha_,
-					1,
-					0,
-					20)))->add(
-			(new sequential_action_group)->add(
-				new property_change_action<float, linear_tween>(
-					shadow_offset_,
-					480,
-					0,
-					20))->add(
-				new delay_action(30))->add(
-				new property_change_action<float, linear_tween>(
-					shadow_offset_,
-					0,
-					480,
-					20))));
-
+	action_->bind("text-alpha", &text_alpha_);
+	action_->bind("shadow-offset", &shadow_offset_);
 	action_->set_properties();
 }
 
@@ -214,7 +190,7 @@ level_intro_state::draw_overlay() const
 void
 level_intro_state::update(unsigned dpad_state)
 {
-	action_->step();
+	action_->update();
 
 	if (action_->done())
 		game_.enter_select_initial_offset_state();

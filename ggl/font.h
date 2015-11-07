@@ -25,7 +25,7 @@ struct glyph
 class font
 {
 public:
-	font(const std::string& path_base);
+	font(const std::string& path);
 	~font();
 
 	const glyph *find_glyph(wchar_t ch) const

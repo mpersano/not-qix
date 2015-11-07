@@ -26,6 +26,7 @@ set(GGL_SOURCES
 	font.cc
 	image.cc
 	sprite.cc
+	action.cc
 	resources.cc
 	sprite_manager.cc
 	vec2_util.cc)
