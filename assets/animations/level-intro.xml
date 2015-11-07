@@ -1,4 +1,4 @@
-<action>
+<animation>
 	<parallel>
 		<sequence>
 			<property name="text-alpha" from="0" to="1" tics="30" />
@@ -6,9 +6,14 @@
 			<property name="text-alpha" from="1" to="0" tics="30" />
 		</sequence>
 		<sequence>
-			<property name="shadow-offset" from="480" to="0" tics="30" />
+			<property name="shadow-offset" from="480" to="0" tics="30" tween="out-quadratic" />
 			<delay tics="30" />
-			<property name="shadow-offset" from="0" to="480" tics="30" />
+			<property name="shadow-offset" from="0" to="480" tics="30" tween="in-quadratic" />
+		</sequence>
+		<sequence>
+			<property name="shadow-alpha" from="0" to="1" tics="30" />
+			<delay tics="30" />
+			<property name="shadow-alpha" from="1" to="0" tics="30" />
 		</sequence>
 	</parallel>
-</action>
+</animation>

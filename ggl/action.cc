@@ -6,6 +6,7 @@
 
 #include <ggl/core.h>
 #include <ggl/asset.h>
+#include <ggl/tween.h>
 #include <ggl/action.h>
 
 namespace ggl {
@@ -203,6 +204,14 @@ parse_group_children(action_group& g, TiXmlElement *el)
 		g.add(parse_action(node));
 }
 
+static std::map<std::string, property_change_action::tween_fn> tweens
+	{
+		{ "linear", tween::linear },
+		{ "in-quadratic", tween::in_quadratic },
+		{ "out-quadratic", tween::out_quadratic },
+		{ "in-out-quadratic", tween::in_out_quadratic },
+	};
+
 static std::map<std::string, std::function<action_ptr(TiXmlElement *el)>> action_parsers
 	{
 		{
@@ -213,7 +222,15 @@ static std::map<std::string, std::function<action_ptr(TiXmlElement *el)>> action
 				const float from = atof(el->Attribute("from"));
 				const float to = atof(el->Attribute("to"));
 				const int tics = atoi(el->Attribute("tics"));
-				property_change_action::tween_fn tween = [](float u) { return u; }; // XXX
+
+				property_change_action::tween_fn tween = tween::linear;
+
+				if (const char *tween_name = el->Attribute("tween")) {
+					auto it = tweens.find(el->Attribute("tween"));
+					if (it != std::end(tweens))
+						tween = it->second;
+				}
+
 				return action_ptr { new property_change_action { name, from, to, tics, tween } };
 			}
 		},

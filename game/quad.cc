@@ -225,24 +225,3 @@ shiny_sprite_quad::draw_quad() const
 	glActiveTexture(GL_TEXTURE0);
 	glDisable(GL_TEXTURE_2D);
 }
-
-quad_frame::quad_frame(std::unique_ptr<quad> q)
-: pos { 0.f, 0.f }
-, scale { 1.f, 1.f }
-, alpha { 1.f }
-, quad_ { std::move(q) }
-{ }
-
-void
-quad_frame::draw(quad::horiz_align ha, quad::vert_align va) const
-{
-	glColor4f(1, 1, 1, alpha);
-
-	glPushMatrix();
-	glTranslatef(pos.x, pos.y, 0.f);
-	glScalef(scale.x, scale.y, 1.f);
-
-	quad_->draw(ha, va);
-
-	glPopMatrix();
-}

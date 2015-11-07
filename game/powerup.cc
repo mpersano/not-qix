@@ -4,13 +4,12 @@
 
 #include <ggl/gl.h>
 #include <ggl/sprite.h>
+#include <ggl/action.h>
 #include <ggl/resources.h>
 
 #include "game.h"
 #include "effect.h"
 #include "quad.h"
-#include "action.h"
-#include "tween.h"
 #include "powerup.h"
 
 namespace {
@@ -30,48 +29,41 @@ public:
 	{ return true; }
 
 private:
-	quad_frame text_;
-	std::unique_ptr<abstract_action> action_;
+	vec2f pos_;
+	text_quad text_;
+
+	float delta_y_;
+	float text_alpha_;
+
+	ggl::action_ptr action_;
 };
 
 picked_effect::picked_effect(const vec2f& pos)
-: text_ { std::unique_ptr<quad> { new text_quad { ggl::res::get_font("fonts/tiny.spr"), L"power up!" } } }
+: pos_ { pos }
+, text_ { ggl::res::get_font("fonts/tiny.spr"), L"power up!" }
+, action_ { ggl::res::get_action("animations/powerup.xml") }
 {
-	action_.reset(
-		(new parallel_action_group)->add(
-			new property_change_action<vec2f, cos_tween>(
-				text_.pos,
-				pos + vec2f { 0, 8 },
-				pos + vec2f { 0, 40 },
-				60))->add(
-			(new sequential_action_group)->add(
-				new property_change_action<float, linear_tween>(
-					text_.alpha,
-					0,
-					1,
-					20))->add(
-				new delay_action(30))->add(
-				new property_change_action<float, linear_tween>(
-					text_.alpha,
-					1,
-					0,
-					20))));
-
+	action_->bind("delta-y", &delta_y_);
+	action_->bind("text-alpha", &text_alpha_);
 	action_->set_properties();
 }
 
 bool
 picked_effect::update()
 {
-	action_->step();
+	action_->update();
 	return !action_->done();
 }
 
 void
 picked_effect::draw() const
 {
-	glColor4f(1, 1, 1, 1);
+	glColor4f(1, 1, 1, text_alpha_);
+
+	glPushMatrix();
+	glTranslatef(pos_.x, pos_.y + delta_y_, 0.f);
 	text_.draw();
+	glPopMatrix();
 }
 
 };

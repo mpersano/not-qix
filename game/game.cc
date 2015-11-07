@@ -131,7 +131,7 @@ button_pressed(unsigned dpad_state, ggl::dpad_button button)
 
 level_intro_state::level_intro_state(game& g)
 : game_state { g }
-, action_ { ggl::load_action("animations/level-intro.xml") }
+, action_ { ggl::res::get_action("animations/level-intro.xml") }
 {
 	const std::basic_string<wchar_t> stage_text { L"STAGE 1" };
 
@@ -145,6 +145,7 @@ level_intro_state::level_intro_state(game& g)
 
 	action_->bind("text-alpha", &text_alpha_);
 	action_->bind("shadow-offset", &shadow_offset_);
+	action_->bind("shadow-alpha", &shadow_alpha_);
 	action_->set_properties();
 }
 
@@ -171,7 +172,7 @@ level_intro_state::draw_overlay() const
 
 	// shadow
 
-	glColor4f(1, 1, 1, 1);
+	glColor4f(1, 1, 1, shadow_alpha_);
 
 	draw_text(stage_text_border_, .5f*w + shadow_offset_, y0);
 	draw_text(stage_text_border_, .5f*w - shadow_offset_, y0);

@@ -1,11 +1,13 @@
 #pragma once
 
 #include <string>
+#include <memory>
 
 namespace ggl {
 class texture;
 class font;
 class sprite;
+class action;
 }
 
 namespace ggl { namespace res {
@@ -21,6 +23,9 @@ get_font(const std::string& name);
 
 const sprite *
 get_sprite(const std::string& name);
+
+std::unique_ptr<action>
+get_action(const std::string& name);
 
 void
 load_sprite_sheet(const std::string& name);

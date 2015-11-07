@@ -7,6 +7,7 @@
 #include <ggl/texture.h>
 #include <ggl/font.h>
 #include <ggl/sprite_manager.h>
+#include <ggl/action.h>
 #include <ggl/resources.h>
 
 namespace ggl { namespace res {
@@ -57,6 +58,15 @@ public:
 
 sprite_manager *g_sprite_manager;
 
+class action_manager : public resource_manager<action, action_manager>
+{
+public:
+	std::unique_ptr<action> load(const std::string& name)
+	{
+		return load_action(name);
+	}
+} *g_action_manager;
+
 void
 texture_manager::load_all()
 {
@@ -78,6 +88,7 @@ void init()
 	g_texture_manager = new texture_manager;
 	g_font_manager = new font_manager;
 	g_sprite_manager = new sprite_manager;
+	g_action_manager = new action_manager;
 }
 
 const texture *
@@ -96,6 +107,12 @@ const sprite *
 get_sprite(const std::string& name)
 {
 	return g_sprite_manager->get(name);
+}
+
+action_ptr
+get_action(const std::string& name)
+{
+	return g_action_manager->get(name)->clone();
 }
 
 void

@@ -1,0 +1,10 @@
+<animation>
+	<parallel>
+		<property name="delta-y" from="8" to="40" tics="70" tween="out-quadratic" />
+		<sequence>
+			<property name="text-alpha" from="0" to="1" tics="20" />
+			<delay tics="30" />
+			<property name="text-alpha" from="1" to="0" tics="20" />
+		</sequence>
+	</parallel>
+</animation>

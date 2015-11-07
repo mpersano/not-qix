@@ -55,7 +55,6 @@ set(GAME_SOURCES
 	debug_gfx.cc
 	tween.cc
 	quad.cc
-	action.cc
 	game.cc
 	player.cc
 	script_interface.cc

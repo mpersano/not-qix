@@ -84,24 +84,3 @@ private:
 	float tex_offset_;
 	float speed_;
 };
-
-class quad_frame
-{
-public:
-	quad_frame(std::unique_ptr<quad> q);
-
-	void draw(quad::horiz_align ha = quad::horiz_align::CENTER, quad::vert_align va = quad::vert_align::CENTER) const;
-
-	unsigned get_width() const
-	{ return quad_->get_width(); }
-
-	unsigned get_height() const
-	{ return quad_->get_height(); }
-
-	vec2f pos;
-	vec2f scale;
-	float alpha;
-
-private:
-	std::unique_ptr<quad> quad_;
-};
