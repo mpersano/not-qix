@@ -1,6 +1,7 @@
 #include <ggl/resources.h>
 #include <ggl/font.h>
 #include <ggl/texture.h>
+#include <ggl/sprite.h>
 #include <ggl/util.h>
 
 #include "tween.h"
@@ -19,8 +20,9 @@ percent_widget::percent_widget(game& g)
 : widget { g }
 , position_top_ { true }
 , cur_value_ { 0 }
-, large_font_ { ggl::res::get_font("fonts/small.spr") }
-, small_font_ { ggl::res::get_font("fonts/tiny.spr") }
+, large_font_ { ggl::res::get_font("fonts/hud-big.spr") }
+, small_font_ { ggl::res::get_font("fonts/hud-small.spr") }
+, frame_ { ggl::res::get_sprite("percent-frame.png") }
 , updating_ { false }
 , update_tics_ { 0 }
 , hidden_ { true }
@@ -125,26 +127,28 @@ int
 percent_widget::get_base_y() const
 {
 	if (position_top_)
-		return game_.viewport_height - TOP_MARGIN - HEIGHT;
+		return game_.viewport_height - frame_->height;
 	else
-		return TOP_MARGIN;
+		return 0;
 }
 
 int
 percent_widget::get_base_x() const
 {
+	const int w = frame_->width;
+
 	switch (state_) {
 		case state::HIDDEN:
-			return -WIDTH;
+			return -w;
 
 		case state::INTRO:
-			return -WIDTH + (LEFT_MARGIN + WIDTH)*quadratic_tween(static_cast<float>(state_tics_)/INTRO_TICS);
+			return -w*(1.f - quadratic_tween(static_cast<float>(state_tics_)/INTRO_TICS));
 
 		case state::IDLE:
-			return LEFT_MARGIN;
+			return 0;
 
 		case state::OUTRO:
-			return LEFT_MARGIN + (-WIDTH - LEFT_MARGIN)*quadratic_tween(static_cast<float>(state_tics_)/OUTRO_TICS);
+			return -w*quadratic_tween(static_cast<float>(state_tics_)/OUTRO_TICS);
 	}
 }
 
@@ -169,21 +173,17 @@ percent_widget::draw() const
 void
 percent_widget::draw_frame() const
 {
-	glColor4f(1, 0, 0, .6);
-
-	const short x0 = get_base_x();
-	const short x1 = x0 + WIDTH;
-	const short y0 = get_base_y();
-	const short y1 = y0 + HEIGHT;
-
-	(ggl::vertex_array_flat<GLshort, 2>
-		{ { x0, y0 }, { x1, y0 }, { x0, y1 }, { x1, y1 } }).draw(GL_TRIANGLE_STRIP);
+	frame_->draw(
+		get_base_x(), get_base_y(),
+		ggl::sprite::horiz_align::LEFT,
+		ggl::sprite::vert_align::BOTTOM);
 }
 
 void
 percent_widget::draw_digits() const
 {
 	ggl::enable_texture _;
+	ggl::enable_alpha_blend __;
 
 	const int BIG_DIGIT_WIDTH = 20;
 	const int SMALL_DIGIT_WIDTH = 16;
@@ -211,7 +211,7 @@ percent_widget::draw_digits() const
 	draw_char(small_font_, L'.', x, base_y);
 	draw_char(small_font_, L'0' + (fract_part/10)%10, x + SMALL_DIGIT_WIDTH, base_y);
 	draw_char(small_font_, L'0' + (fract_part)%10, x + 2*SMALL_DIGIT_WIDTH, base_y);
-	draw_char(small_font_, L'%', x + 3*SMALL_DIGIT_WIDTH, base_y);
+	draw_char(small_font_, L'%', x + 3*SMALL_DIGIT_WIDTH + 12, base_y);
 }
 
 void

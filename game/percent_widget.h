@@ -32,13 +32,6 @@ private:
 	void draw_digits() const;
 	void draw_char(const ggl::font *f, wchar_t ch, int base_x, int base_y) const;
 
-	enum {
-		TOP_MARGIN = 20,
-		LEFT_MARGIN = 20,
-		WIDTH = 160,
-		HEIGHT = 60,
-	};
-
 	bool position_top_;
 	unsigned cur_value_, next_value_;
 
@@ -52,6 +45,7 @@ private:
 	bool hidden_;
 
 	const ggl::font *large_font_, *small_font_;
+	const ggl::sprite *frame_;
 
 	ggl::event_connection_ptr cover_update_conn_;
 	ggl::event_connection_ptr game_start_conn_;

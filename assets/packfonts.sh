@@ -8,28 +8,38 @@ ${PACKFONT} \
 	-s 20 \
 	-g 2 \
 	-t fonts \
-	-d 2 -e 2 -S .6 -B 4 \
-	-i ffff0000-ffffff00-ffffffff \
-	-o ff800000-ff808000-ff808080 \
+	-i ffffffff \
+	-o ff404040 \
 	${FONT} \
-	small \
+	hud-big \
 	x20-x7e
 
 ${PACKFONT} \
 	-w 512 -h 256 \
-	-s 12 \
+	-s 16 \
+	-g 2 \
+	-t fonts \
+	-i ffffffff \
+	-o ff404040 \
+	${FONT} \
+	hud-small \
+	x20-x7e
+
+${PACKFONT} \
+	-w 512 -h 256 \
+	-s 20 \
 	-g 2 \
 	-t fonts \
 	-d 2 -e 2 -S .6 -B 4 \
 	-i ffff0000-ffffff00-ffffffff \
 	-o ff800000-ff808000-ff808080 \
 	${FONT} \
-	tiny \
+	powerup \
 	x20-x7e
 
 ${PACKFONT} \
 	-w 512 -h 256 \
-	-s 40 \
+	-s 42 \
 	-g 2 \
 	-t fonts \
 	-d 2 -e 2 -S .6 -B 2 \
@@ -41,7 +51,7 @@ ${PACKFONT} \
 
 ${PACKFONT} \
 	-w 512 -h 256 \
-	-s 40 \
+	-s 42 \
 	-g 2 \
 	-t fonts \
 	-d 2 -e 2 -S .6 -B 2 \
@@ -53,7 +63,7 @@ ${PACKFONT} \
 
 ${PACKFONT} \
 	-w 512 -h 256 \
-	-s 40 \
+	-s 42 \
 	-g 2 \
 	-t fonts \
 	-d 2 -e 2 -S .6 -B 2 \

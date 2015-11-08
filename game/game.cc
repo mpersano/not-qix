@@ -467,7 +467,7 @@ level_completed_state::update(unsigned dpad_state)
 
 game_over_state::game_over_state(game& g)
 : game_state { g }
-, text_(ggl::res::get_font("fonts/small.spr"), L"game over")
+, text_(ggl::res::get_font("fonts/title-red.spr"), L"GAME OVER")
 { }
 
 void

@@ -46,7 +46,7 @@ lives_widget::initialize_text(int lives_left)
 	else
 		ss << "LAST PLAYER";
 
-	text_.reset(new text_quad { ggl::res::get_font("fonts/tiny.spr"), ss.str() });
+	text_.reset(new text_quad { ggl::res::get_font("fonts/hud-small.spr"), ss.str() });
 }
 
 bool

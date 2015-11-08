@@ -40,7 +40,7 @@ private:
 
 picked_effect::picked_effect(const vec2f& pos)
 : pos_ { pos }
-, text_ { ggl::res::get_font("fonts/tiny.spr"), L"power up!" }
+, text_ { ggl::res::get_font("fonts/powerup.spr"), L"POWER UP!" }
 , action_ { ggl::res::get_action("animations/powerup.xml") }
 {
 	action_->bind("delta-y", &delta_y_);

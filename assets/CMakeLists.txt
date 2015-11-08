@@ -15,7 +15,7 @@ endforeach()
 
 set(FONT_DIR "${ASSET_DIR}/fonts")
 
-set(FONTS ${FONT_DIR}/small.png ${FONT_DIR}/tiny.png)
+set(FONTS ${FONT_DIR}/hud-big.png ${FONT_DIR}/hud-small.png)
 
 add_custom_command(
 	OUTPUT ${FONTS}
@@ -23,7 +23,7 @@ add_custom_command(
 	COMMAND cd ${FONT_DIR} && ${CMAKE_CURRENT_SOURCE_DIR}/packfonts.sh
 	DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/packfonts.sh)
 
-list(APPEND DEST_FILES ${FONT_DIR}/small.png)
+list(APPEND DEST_FILES ${FONTS})
 
 # sprites
 
