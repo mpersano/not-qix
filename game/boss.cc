@@ -143,8 +143,8 @@ boss::boss(game& g, const vec2f& pos)
 , pod_angle_ { 0 }
 , miniboss_spawned_ { 0 }
 , core_sprite_ { ggl::res::get_sprite("boss-core.png") }
-, danger_frame_sprite_ { ggl::res::get_sprite("danger-frame.png") }
-, danger_text_  { ggl::res::get_font("fonts/tiny.spr"), L"DANGER" }
+, danger_up_sprite_ { ggl::res::get_sprite("danger-up.png") }
+, danger_down_sprite_ { ggl::res::get_sprite("danger-down.png") }
 , script_thread_ { create_script_thread("scripts/boss.lua") }
 {
 	for (int i = 0; i < NUM_PODS; i++)
@@ -233,32 +233,20 @@ boss::draw_core() const
 {
 	auto screen_pos = pos_ + game_.offset;
 
-	auto draw_danger_sign = [this](const vec2f& frame_pos, float frame_sy, const vec2f& text_pos, quad::vert_align text_va)
-		{
-			glPushMatrix();
-
-			glTranslatef(frame_pos.x, frame_pos.y, 0);
-			glScalef(1, frame_sy, 1);
-			danger_frame_sprite_->draw(ggl::sprite::horiz_align::CENTER, ggl::sprite::vert_align::TOP);
-
-			glPopMatrix();
-
-			glPushMatrix();
-
-			glTranslatef(text_pos.x, text_pos.y, 0);
-			danger_text_.draw(quad::horiz_align::CENTER, text_va);
-
-			glPopMatrix();
-		};
-
 	if (screen_pos.y + radius_ < 0) {
-		draw_danger_sign(
-			vec2f(screen_pos.x, 0) - game_.offset, -1,
-			vec2f(screen_pos.x, 20) - game_.offset, quad::vert_align::TOP);
+		auto p = vec2f { screen_pos.x, 0 } - game_.offset;
+
+		glPushMatrix();
+		glTranslatef(p.x, p.y, 0);
+		danger_down_sprite_->draw(ggl::sprite::horiz_align::CENTER, ggl::sprite::vert_align::BOTTOM);
+		glPopMatrix();
 	} else if (screen_pos.y - radius_ > game_.viewport_height) {
-		draw_danger_sign(
-			vec2f(screen_pos.x, game_.viewport_height) - game_.offset, 1,
-			vec2f(screen_pos.x, game_.viewport_height - 20) - game_.offset, quad::vert_align::BOTTOM);
+		auto p = vec2f { screen_pos.x, game_.viewport_height } - game_.offset;
+
+		glPushMatrix();
+		glTranslatef(p.x, p.y, 0);
+		danger_up_sprite_->draw(ggl::sprite::horiz_align::CENTER, ggl::sprite::vert_align::TOP);
+		glPopMatrix();
 	} else {
 		core_sprite_->draw(pos_.x, pos_.y, ggl::sprite::horiz_align::CENTER, ggl::sprite::vert_align::CENTER);
 	}
