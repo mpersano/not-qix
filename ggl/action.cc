@@ -243,7 +243,7 @@ const std::map<std::string, std::function<action_ptr(TiXmlElement *el)>> action_
 				property_change_action::tween_fn tween = tween::linear;
 
 				if (const char *tween_name = el->Attribute("tween")) {
-					auto it = tweens.find(el->Attribute("tween"));
+					auto it = tweens.find(tween_name);
 					if (it != std::end(tweens))
 						tween = it->second;
 				}
