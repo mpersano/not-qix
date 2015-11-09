@@ -1,4 +1,4 @@
-set(ASSET_DIR assets)
+set(ASSET_DIR "${CMAKE_CURRENT_BINARY_DIR}/assets")
 
 # scripts/images/animations/data
 
@@ -27,12 +27,21 @@ list(APPEND DEST_FILES ${FONTS})
 
 # sprites
 
+set(GENSPRITE_DIR "${CMAKE_CURRENT_BINARY_DIR}/gensprites")
+
+add_custom_command(
+	OUTPUT ${GENSPRITE_DIR}/player-core-00.png
+	COMMAND mkdir -p ${GENSPRITE_DIR}
+	COMMAND cd ${GENSPRITE_DIR} && ${CMAKE_CURRENT_SOURCE_DIR}/gensprites.sh
+	DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/gensprites.sh)
+
 set(SPRITE_DIR "${ASSET_DIR}/sprites")
 
 add_custom_command(
 	OUTPUT ${SPRITE_DIR}/sprites.png
 	COMMAND mkdir -p ${SPRITE_DIR}
-	COMMAND cd ${SPRITE_DIR} && packsprites -w 1024 -h 1024 -t sprites sprites ${CMAKE_CURRENT_SOURCE_DIR}/sprites)
+	COMMAND cd ${SPRITE_DIR} && packsprites -w 1024 -h 1024 -t sprites sprites ${CMAKE_CURRENT_SOURCE_DIR}/sprites ${GENSPRITE_DIR}
+	DEPENDS ${GENSPRITE_DIR}/player-core-00.png)
 
 # FIXME it would be nice to add the actual list of sprites to the dependency list, so sprites
 # would be repacked when we update something.
