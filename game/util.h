@@ -1,4 +1,10 @@
 #pragma once
 
-int
-rand(int from, int to); // [from:to)
+#include <cstdlib>
+
+template <typename T>
+T
+rand(T from, T to) // [from:to)
+{
+	return from + rand()%(to - from);
+}
