@@ -1,18 +1,120 @@
+#include <sstream>
+
 #include <ggl/resources.h>
 #include <ggl/font.h>
 #include <ggl/texture.h>
 #include <ggl/sprite.h>
+#include <ggl/action.h>
 #include <ggl/util.h>
 
 #include "tween.h"
 #include "game.h"
+#include "effect.h"
+#include "quad.h"
+#include "util.h"
 #include "percent_widget.h"
 
 namespace {
 
 static const int INTRO_TICS = 10;
 static const int OUTRO_TICS = 10;
-static const int UPDATE_TICS = 5;
+static const int UPDATE_TICS = 20;
+
+template <typename T>
+struct bezier
+{
+	bezier(const T& c0, const T& c1, const T& c2)
+	: c0 { c0 }, c1 { c1 }, c2 { c2 }
+	{ }
+
+	T operator()(float u) const
+	{
+		const float w0 = (1 - u)*(1 - u);
+		const float w1 = 2*u*(1 - u);
+		const float w2 = u*u;
+
+		return c0*w0 + c1*w1 + c2*w2;
+	}
+
+	T c0, c1, c2;
+};
+
+class update_effect : public effect
+{
+public:
+	update_effect(const vec2f& start_pos, const vec2f& end_pos, unsigned value);
+
+	void draw() const override;
+
+	bool is_position_absolute() const override
+	{ return true; }
+
+private:
+	bool do_update() override;
+
+	std::unique_ptr<bezier<vec2f>> path_;
+	std::unique_ptr<text_quad> text_;
+
+	float path_u_;
+	float text_alpha_;
+	float text_scale_;
+
+	ggl::action_ptr action_;
+};
+
+update_effect::update_effect(const vec2f& start_pos, const vec2f& end_pos, unsigned value)
+: path_u_ { 0 }
+, text_alpha_ { 1 }
+, text_scale_ { 1 }
+, action_ { ggl::res::get_action("animations/percent-update.xml") }
+{
+	// text
+
+	std::basic_stringstream<wchar_t> ss;
+	ss << "+" << (value/100) << "." << (value%100) << "%";
+	text_.reset(new text_quad { ggl::res::get_font("fonts/powerup.spr"), ss.str() });
+
+	// path
+
+	auto d = end_pos - start_pos;
+
+	auto cm = .5f*(end_pos + start_pos);
+	auto cn = normalized(vec2f { -d.y, d.x });
+
+	float l = length(d);
+
+	cm += cn*rand(-.5*l, .5*l);
+
+	path_.reset(new bezier<vec2f> { start_pos, cm, end_pos });
+
+	// action
+
+	action_->bind("u", &path_u_);
+	action_->bind("alpha", &text_alpha_);
+	action_->bind("scale", &text_scale_);
+	action_->set_properties();
+}
+
+bool
+update_effect::do_update()
+{
+	action_->update();
+	return !action_->done();
+}
+
+void
+update_effect::draw() const
+{
+	auto pos = (*path_)(path_u_);
+
+	glColor4f(1, 1, 1, text_alpha_);
+
+	glPushMatrix();
+	glTranslatef(pos.x, pos.y, 0.f);
+	glScalef(text_scale_, text_scale_, 1.f);
+	text_->draw();
+	glPopMatrix();
+}
 
 }
 
@@ -20,6 +122,7 @@ percent_widget::percent_widget(game& g)
 : widget { g }
 , position_top_ { true }
 , cur_value_ { 0 }
+, next_value_ { 0 }
 , large_font_ { ggl::res::get_font("fonts/hud-big.spr") }
 , small_font_ { ggl::res::get_font("fonts/hud-small.spr") }
 , frame_ { ggl::res::get_sprite("percent-frame.png") }
@@ -118,9 +221,20 @@ percent_widget::update()
 void
 percent_widget::on_cover_update(unsigned percent)
 {
-	next_value_ = percent;
-	updating_ = true;
-	update_tics_ = 0;
+	auto effect = std::unique_ptr<update_effect> {
+			new update_effect {
+				game_.get_player_screen_position(),
+				vec2f { get_base_x() + .5f*frame_->width, get_base_y() + .5f*frame_->height },
+				percent - cur_value_ } };
+
+	effect_finished_conn_ =
+		static_cast<update_effect *>(effect.get())->get_finished_event().connect(
+			[=]() {
+				next_value_ = percent;
+				updating_ = true;
+				update_tics_ = 0; });
+
+	game_.add_effect(std::move(effect));
 }
 
 int

@@ -57,6 +57,7 @@ set(GAME_SOURCES
 	game.cc
 	player.cc
 	script_interface.cc
+	effect.cc
 	entity.cc
 	foe.cc
 	boss.cc

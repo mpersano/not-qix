@@ -16,7 +16,7 @@ explosion::explosion(const vec2f& pos)
 { }
 
 bool
-explosion::update()
+explosion::do_update()
 {
 	radius_ *= 1.05f;
 

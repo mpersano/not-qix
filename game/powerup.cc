@@ -22,13 +22,14 @@ class picked_effect : public effect
 public:
 	picked_effect(const vec2f& pos);
 
-	bool update() override;
 	void draw() const override;
 
 	bool is_position_absolute() const override
 	{ return true; }
 
 private:
+	bool do_update() override;
+
 	vec2f pos_;
 	text_quad text_;
 
@@ -49,7 +50,7 @@ picked_effect::picked_effect(const vec2f& pos)
 }
 
 bool
-picked_effect::update()
+picked_effect::do_update()
 {
 	action_->update();
 	return !action_->done();

@@ -6,5 +6,5 @@ template <typename T>
 T
 rand(T from, T to) // [from:to)
 {
-	return from + rand()%(to - from);
+	return from + (static_cast<float>(rand())/RAND_MAX)*(to - from);
 }

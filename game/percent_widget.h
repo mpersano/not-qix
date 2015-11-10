@@ -50,4 +50,5 @@ private:
 	ggl::event_connection_ptr cover_update_conn_;
 	ggl::event_connection_ptr game_start_conn_;
 	ggl::event_connection_ptr game_stop_conn_;
+	ggl::event_connection_ptr effect_finished_conn_;
 };

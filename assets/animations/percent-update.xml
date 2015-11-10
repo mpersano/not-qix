@@ -1,0 +1,13 @@
+<animation>
+	<sequence>
+		<parallel>
+			<property name="scale" from=".1" to="1" tics="40" tween="out-quadratic" />
+			<property name="alpha" from="0" to="1" tics="40" tween="linear" />
+		</parallel>
+		<parallel>
+			<property name="u" from="0" to="1" tics="40" tween="in-quadratic" />
+			<property name="scale" from="1" to=".5" tics="40" tween="in-quadratic" />
+			<property name="alpha" from="1" to="0" tics="40" tween="in-quadratic" />
+		</parallel>
+	</sequence>
+</animation>
