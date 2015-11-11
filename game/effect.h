@@ -8,7 +8,7 @@ class effect : private ggl::noncopyable
 public:
 	virtual ~effect() = default;
 
-	virtual bool update();
+	bool update();
 	virtual void draw() const = 0;
 
 	virtual bool is_position_absolute() const = 0;
