@@ -96,7 +96,7 @@ image_quad::draw_quad() const
 }
 
 text_quad::text_quad(const ggl::font *font, const std::basic_string<wchar_t> text)
-: tex_ { font->tex }
+: tex_ { nullptr /* font->tex */ }
 {
 	font->render(text, va_);
 
@@ -138,11 +138,13 @@ text_quad::get_height() const
 void
 text_quad::draw_quad() const
 {
+#if 0
 	ggl::enable_alpha_blend _;
 	ggl::enable_texture __;
 
 	tex_->bind();
 	va_.draw(GL_TRIANGLES);
+#endif
 }
 
 // XXX: we only need game& for game_.tics, should be global somewhere?

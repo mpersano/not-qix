@@ -32,10 +32,7 @@ public:
 
 	unsigned get_string_width(const std::basic_string<wchar_t>& str) const;
 
-	void render(const std::basic_string<wchar_t>& str) const;
 	void render(const std::basic_string<wchar_t>& str, ggl::vertex_array_texcoord<GLshort, 2, GLfloat, 2>& va) const;
-
-	const texture *tex;
 
 private:
 	glyph *glyph_map_[1<<16];

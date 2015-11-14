@@ -32,38 +32,44 @@ font::font(const std::string& path)
 	TiXmlDocument doc;
 	doc.Parse(&xml[0]);
 
-	TiXmlElement *root_el = doc.RootElement();
+	auto root_el = doc.RootElement();
 
 	// texture
 
-	if (TiXmlElement *texture_el = root_el->FirstChildElement("texture")) {
-		tex = res::get_texture(texture_el->Attribute("path"));
-	}
+	std::vector<const texture *> textures;
 
+	if (auto textures_el  = root_el->FirstChildElement("textures")) {
+		for (auto node = textures_el->FirstChild(); node; node = node->NextSibling()) {
+			if (auto el = node->ToElement())
+				textures.push_back(res::get_texture(el->Attribute("path")));
+		}
+	}
 	// glyphs
 
 	std::fill(std::begin(glyph_map_), std::end(glyph_map_), nullptr);
 
-	if (TiXmlElement *glyphs_el = root_el->FirstChildElement("sprites")) {
-		for (TiXmlNode *node = glyphs_el->FirstChild(); node; node = node->NextSibling()) {
-			TiXmlElement *el = node->ToElement();
+	if (auto glyphs_el = root_el->FirstChildElement("sprites")) {
+		for (auto node = glyphs_el->FirstChild(); node; node = node->NextSibling()) {
+			auto el = node->ToElement();
 			if (!el)
 				continue;
 
 			// XXX: error checking
 
-			wchar_t code = atoi(el->Attribute("code"));
+			int tex = atoi(el->Attribute("tex"));
 
 			int u = atoi(el->Attribute("x"));
 			int v = atoi(el->Attribute("y"));
 			int width = atoi(el->Attribute("w"));
 			int height = atoi(el->Attribute("h"));
 
+			wchar_t code = atoi(el->Attribute("code"));
+
 			int left = atoi(el->Attribute("left"));
 			int top = atoi(el->Attribute("top"));
 			int advance_x = atoi(el->Attribute("advancex"));
 
-			glyph_map_[code] = new glyph { tex, u, v, width, height, left, top, advance_x };
+			glyph_map_[code] = new glyph { textures[tex], u, v, width, height, left, top, advance_x };
 		}
 	}
 }
@@ -87,20 +93,6 @@ font::get_string_width(const std::basic_string<wchar_t>& str) const
 			{
 				return width + glyph_map_[ch]->advance_x;
 			});
-}
-
-void
-font::render(const std::basic_string<wchar_t>& str) const
-{
-	enable_alpha_blend _;
-	enable_texture __;
-
-	vertex_array_texcoord<GLshort, 2, GLfloat, 2> va;
-	render(str, va);
-
-	tex->bind();
-
-	va.draw(GL_TRIANGLES);
 }
 
 void

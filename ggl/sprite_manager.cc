@@ -31,34 +31,39 @@ sprite_manager::load_sprite_sheet(const std::string& path)
 	TiXmlDocument doc;
 	doc.Parse(&xml[0]);
 
-	TiXmlElement *root_el = doc.RootElement();
+	auto root_el = doc.RootElement();
 
-	// texture
+	// textures
 
-	const ggl::texture *tex;
+	std::vector<const ggl::texture *> textures;
 
-	if (TiXmlElement *texture_el = root_el->FirstChildElement("texture")) {
-		tex = res::get_texture(texture_el->Attribute("path"));
+	if (auto textures_el  = root_el->FirstChildElement("textures")) {
+		for (auto node = textures_el->FirstChild(); node; node = node->NextSibling()) {
+			if (auto el = node->ToElement())
+				textures.push_back(res::get_texture(el->Attribute("path")));
+		}
 	}
 
 	// sprites
 
-	if (TiXmlElement *glyphs_el = root_el->FirstChildElement("sprites")) {
-		for (TiXmlNode *node = glyphs_el->FirstChild(); node; node = node->NextSibling()) {
-			TiXmlElement *el = node->ToElement();
+	if (auto glyphs_el = root_el->FirstChildElement("sprites")) {
+		for (auto node = glyphs_el->FirstChild(); node; node = node->NextSibling()) {
+			auto el = node->ToElement();
 			if (!el)
 				continue;
 
-			// XXX: error checking
+			// TODO: error checking
 
-			std::string name = el->Attribute("name");
+			std::string name { el->Attribute("name") };
 
-			int x = atoi(el->Attribute("x"));
-			int y = atoi(el->Attribute("y"));
+			int tex = atoi(el->Attribute("tex"));
+
+			int u = atoi(el->Attribute("x"));
+			int v = atoi(el->Attribute("y"));
 			int w = atoi(el->Attribute("w"));
 			int h = atoi(el->Attribute("h"));
 
-			auto sp = std::unique_ptr<sprite>(new sprite(tex, x, y, w, h));
+			auto sp = std::unique_ptr<sprite>(new sprite(textures[tex], u, v, w, h));
 			sprite_map_.insert(std::make_pair(name, std::move(sp)));
 		}
 	}
