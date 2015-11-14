@@ -5,7 +5,7 @@
 
 namespace ggl {
 
-sprite::sprite(const texture *tex, int left, int top, int width, int height)
+sprite::sprite(const texture *tex, int u, int v, int width, int height)
 : tex { tex }
 , width { width }
 , height { height }
@@ -16,10 +16,10 @@ sprite::sprite(const texture *tex, int left, int top, int width, int height)
 	const float du = static_cast<float>(width)/tex_width;
 	const float dv = static_cast<float>(height)/tex_height;
 
-	u0 = static_cast<float>(left)/tex_width;
+	u0 = static_cast<float>(u)/tex_width;
 	u1 = u0 + du;
 
-	v0 = static_cast<float>(tex_height - top)/tex_height;
+	v0 = static_cast<float>(tex_height - v)/tex_height;
 	v1 = v0 - dv;
 }
 

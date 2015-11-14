@@ -331,19 +331,19 @@ percent_widget::draw_digits() const
 void
 percent_widget::draw_char(const ggl::font *f, wchar_t ch, int base_x, int base_y) const
 {
-	auto *g = f->find_glyph(ch);
+	auto *g = f->get_glyph(ch);
 
-	float x0 = base_x - .5f*g->width;
-	float x1 = x0 + g->width;
+	float x0 = base_x - .5f*g->spr.width;
+	float x1 = x0 + g->spr.width;
 	float y0 = base_y + 20 + g->top;
-	float y1 = y0 - g->height;
+	float y1 = y0 - g->spr.height;
 
-	const float u0 = g->u0;
-	const float u1 = g->u1;
-	const float v0 = g->v0;
-	const float v1 = g->v1;
+	const float u0 = g->spr.u0;
+	const float u1 = g->spr.u1;
+	const float v0 = g->spr.v0;
+	const float v1 = g->spr.v1;
 
-	g->tex->bind();
+	g->spr.tex->bind();
 
 	(ggl::vertex_array_texcoord<GLfloat, 2, GLfloat, 2>
 		{ { x0, y0, u0, v0 },

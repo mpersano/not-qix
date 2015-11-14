@@ -502,8 +502,8 @@ game::game(int width, int height)
 , viewport_height { height }
 , player_ { *this }
 {
-	widgets_.push_back(std::unique_ptr<widget>(new percent_widget(*this)));
-	widgets_.push_back(std::unique_ptr<widget>(new lives_widget(*this)));
+	widgets_.emplace_back(new percent_widget(*this));
+	widgets_.emplace_back(new lives_widget(*this));
 }
 
 void

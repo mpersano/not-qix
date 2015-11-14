@@ -7,7 +7,7 @@ class texture;
 class sprite
 {
 public:
-	sprite(const texture *tex, int left, int top, int width, int height);
+	sprite(const texture *tex, int u, int v, int width, int height);
 
 	enum class vert_align { TOP, CENTER, BOTTOM };
 	enum class horiz_align { LEFT, CENTER, RIGHT };
