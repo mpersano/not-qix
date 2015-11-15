@@ -175,28 +175,34 @@ sprite_batch::render(const texture *tex, const sprite_info **sprites, size_t num
 	for (size_t i = 0; i < num_sprites; i++) {
 		auto sp = sprites[i];
 
-		const GLfloat x0 = sp->dest_coords.p0.x;
-		const GLfloat y0 = sp->dest_coords.p0.y;
+		const auto& dest_coords = sp->dest_coords;
 
-		const GLfloat x1 = sp->dest_coords.p1.x;
-		const GLfloat y1 = sp->dest_coords.p1.y;
+		const GLfloat x0 = dest_coords.p0.x;
+		const GLfloat y0 = dest_coords.p0.y;
 
-		const GLfloat x2 = sp->dest_coords.p2.x;
-		const GLfloat y2 = sp->dest_coords.p2.y;
+		const GLfloat x1 = dest_coords.p1.x;
+		const GLfloat y1 = dest_coords.p1.y;
 
-		const GLfloat x3 = sp->dest_coords.p3.x;
-		const GLfloat y3 = sp->dest_coords.p3.y;
+		const GLfloat x2 = dest_coords.p2.x;
+		const GLfloat y2 = dest_coords.p2.y;
 
-		const GLfloat u0 = sp->tex_coords.min.x;
-		const GLfloat u1 = sp->tex_coords.max.x;
+		const GLfloat x3 = dest_coords.p3.x;
+		const GLfloat y3 = dest_coords.p3.y;
 
-		const GLfloat v0 = sp->tex_coords.min.y;
-		const GLfloat v1 = sp->tex_coords.max.y;
+		const auto& tex_coords = sp->tex_coords;
 
-		const GLfloat r = sp->color.r;
-		const GLfloat g = sp->color.g;
-		const GLfloat b = sp->color.b;
-		const GLfloat a = sp->color.a;
+		const GLfloat u0 = tex_coords.min.x;
+		const GLfloat u1 = tex_coords.max.x;
+
+		const GLfloat v0 = tex_coords.min.y;
+		const GLfloat v1 = tex_coords.max.y;
+
+		const auto& color = sp->color;
+
+		const GLfloat r = color.r;
+		const GLfloat g = color.g;
+		const GLfloat b = color.b;
+		const GLfloat a = color.a;
 
 		*vert_ptr++ = { { x0, y0 }, { u0, v0 }, { r, g, b, a } };
 		*vert_ptr++ = { { x1, y1 }, { u0, v1 }, { r, g, b, a } };
