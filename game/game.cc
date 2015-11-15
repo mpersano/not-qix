@@ -513,27 +513,46 @@ game::reset(const level *l)
 void
 game::draw()
 {
+	// relative to grid
+
 	glPushMatrix();
 	glTranslatef(offset.x, offset.y, 0);
 
 	draw_background();
 
-	sb_->begin();
+	auto& sb = *sb_;
 
-	draw_entities(*sb_);
-	state_->draw(*sb_);
+	sb.begin();
 
-	sb_->end();
+	state_->draw(sb);
+
+	for (auto& e : entities)
+		e->draw(sb);
+
+	for (auto& e : effects_) {
+		if (!e->is_position_absolute())
+			e->draw(sb);
+	}
+
+	sb.end();
 
 	glPopMatrix();
 
-	sb_->begin();
+	// relative to screen
 
-	draw_effects(*sb_);
-	draw_hud(*sb_);
-	state_->draw_overlay(*sb_);
+	sb.begin();
 
-	sb_->end();
+	state_->draw_overlay(sb);
+
+	for (auto& w : widgets_)
+		w->draw(sb);
+
+	for (auto& e : effects_) {
+		if (e->is_position_absolute())
+			e->draw(sb);
+	}
+
+	sb.end();
 }
 
 void
@@ -953,13 +972,6 @@ game::enter_level_completed_state()
 }
 
 void
-game::draw_entities(ggl::sprite_batch& sb) const
-{
-	for (auto& e : entities)
-		e->draw(sb);
-}
-
-void
 game::draw_player(ggl::sprite_batch& sb) const
 {
 	player_.draw(sb);
@@ -1014,30 +1026,6 @@ game::update_effects()
 			it = effects_.erase(it);
 		else
 			++it;
-	}
-}
-
-void
-game::draw_hud(ggl::sprite_batch& sb) const
-{
-	for (auto& w : widgets_)
-		w->draw(sb);
-}
-
-void
-game::draw_effects(ggl::sprite_batch& sb) const
-{
-	for (auto& e : effects_) {
-		if (e->is_position_absolute()) {
-			e->draw(sb);
-		} else {
-#if 0
-			glPushMatrix();
-			glTranslatef(offset.x, offset.y, 0);
-			e->draw(sb);
-			glPopMatrix();
-#endif
-		}
 	}
 }
 

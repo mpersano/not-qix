@@ -101,9 +101,6 @@ private:
 	void set_state(std::unique_ptr<game_state> next_state);
 
 	void draw_background() const;
-	void draw_hud(ggl::sprite_batch& sb) const;
-	void draw_effects(ggl::sprite_batch& sb) const;
-	void draw_entities(ggl::sprite_batch& sb) const;
 
 	void update_hud();
 	void update_effects();

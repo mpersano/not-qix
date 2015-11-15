@@ -12,6 +12,8 @@
 #include "effect.h"
 #include "quad.h"
 #include "util.h"
+#include "bezier.h"
+#include "particles.h"
 #include "percent_widget.h"
 
 namespace {
@@ -19,25 +21,6 @@ namespace {
 static const int INTRO_TICS = 10;
 static const int OUTRO_TICS = 10;
 static const int UPDATE_TICS = 20;
-
-template <typename T>
-struct bezier
-{
-	bezier(const T& c0, const T& c1, const T& c2)
-	: c0 { c0 }, c1 { c1 }, c2 { c2 }
-	{ }
-
-	T operator()(float u) const
-	{
-		const float w0 = (1 - u)*(1 - u);
-		const float w1 = 2*u*(1 - u);
-		const float w2 = u*u;
-
-		return c0*w0 + c1*w1 + c2*w2;
-	}
-
-	T c0, c1, c2;
-};
 
 class update_effect : public effect
 {
@@ -115,7 +98,7 @@ update_effect::draw(ggl::sprite_batch& sb) const
 	sb.push_matrix();
 	sb.translate(pos.x, pos.y);
 	sb.scale(text_scale_);
-	font_->draw(sb, 0, text_);
+	font_->draw(sb, 1, text_);
 	sb.pop_matrix();
 }
 
@@ -224,20 +207,28 @@ percent_widget::update()
 void
 percent_widget::on_cover_update(unsigned percent)
 {
-	auto effect = std::unique_ptr<update_effect> {
+	if (percent > cur_value_) {
+		auto pos = game_.get_player_screen_position();
+
+		auto e = std::unique_ptr<effect> {
 			new update_effect {
-				game_.get_player_screen_position(),
+				pos,
 				vec2f { get_base_x() + .5f*frame_->width, get_base_y() + .5f*frame_->height },
 				percent - cur_value_ } };
 
-	effect_finished_conn_ =
-		static_cast<update_effect *>(effect.get())->get_finished_event().connect(
-			[=]() {
-				next_value_ = percent;
-				updating_ = true;
-				update_tics_ = 0; });
+		effect_finished_conn_ =
+			static_cast<update_effect *>(e.get())->get_finished_event().connect([=]()
+				{
+					next_value_ = percent;
+					updating_ = true;
+					update_tics_ = 0;
+				});
 
-	game_.add_effect(std::move(effect));
+		game_.add_effect(std::move(e));
+
+		const gradient particle_colors { { 1.f, .5f, 0.f }, { 1.f, 1.f, 0.f }, { 1.f, 1.f, 1.f } };
+		game_.add_effect(std::unique_ptr<effect> { new particles { pos, 20, particle_colors } });
+	}
 }
 
 int

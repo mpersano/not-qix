@@ -64,6 +64,7 @@ set(GAME_SOURCES
 	miniboss.cc
 	powerup.cc
 	explosion.cc
+	particles.cc
 	in_game_state.cc
 	widget.cc
 	lives_widget.cc
