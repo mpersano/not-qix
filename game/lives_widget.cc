@@ -14,7 +14,7 @@
 namespace {
 
 const int INTRO_TICS = 30;
-const int IDLE_TICS = 240;
+const int IDLE_TICS = 90;
 const int OUTRO_TICS = 30;
 
 };

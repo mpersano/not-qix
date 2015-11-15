@@ -192,7 +192,7 @@ level_intro_state::update(unsigned dpad_state)
 select_initial_offset_state::select_initial_offset_state(game& g)
 : game_state { g }
 , scroll_tics_ { SCROLL_TICS }
-, scroll_dir_ { false }
+, scroll_dir_ { true }
 , prev_dpad_state_ { ~0u }
 { }
 
@@ -314,6 +314,7 @@ void
 select_initial_area_state::reset_initial_area()
 {
 	static const int BORDER = 1;
+	static const int MAX_INITIAL_AREA = 200;
 
 	const int screen_cols = game_.viewport_width/CELL_SIZE;
 	const int screen_rows = game_.viewport_height/CELL_SIZE;
@@ -324,10 +325,14 @@ select_initial_area_state::reset_initial_area()
 		std::min(game_.grid_cols, v0.x + screen_cols),
 		std::min(game_.grid_rows, v0.y + screen_rows) };
 
-	vec2i from { rand(v0.x + BORDER, v1.x - BORDER), rand(v0.y + BORDER, v1.y - BORDER) };
-	vec2i to { rand(from.x + 1, v1.x - BORDER + 1), rand(from.y + 1, v1.y - BORDER + 1) };
+	do {
+		vec2i from { rand(v0.x + BORDER, v1.x - BORDER), rand(v0.y + BORDER, v1.y - BORDER) };
+		vec2i to { rand(from.x + 1, v1.x - BORDER + 1), rand(from.y + 1, v1.y - BORDER + 1) };
 
-	initial_area_ = std::make_pair(from, to);
+		initial_area_ = std::make_pair(from, to);
+	} while ((initial_area_.second.x - initial_area_.first.x)*
+		 (initial_area_.second.y - initial_area_.first.y) > MAX_INITIAL_AREA);
+	// XXX don't need this ugly loop, just pick a width then max height = MAX_AREA/width
 
 	change_tics_ = 5;
 }
@@ -500,7 +505,7 @@ game::reset(const level *l)
 	grid.resize(grid_rows*grid_cols);
 	std::fill(std::begin(grid), std::end(grid), 0);
 
-	offset = vec2i { 0, 0 };
+	offset = vec2i { 0, -(grid_rows*CELL_SIZE - viewport_height) };
 	cover_percent_ = 0u;
 
 	update_background();
