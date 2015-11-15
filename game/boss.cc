@@ -264,6 +264,7 @@ boss::pod::pod(game& g)
 , game_ { g }
 , sprite_ { ggl::res::get_sprite("boss-spike.png") }
 , muzzle_flash_sprite_ { ggl::res::get_sprite("muzzle-flash.png") }
+, laser_flash_sprite_ { ggl::res::get_sprite("laser-flash.png") }
 , laser_segment_texture_ { ggl::res::get_texture("images/laser-segment.png") }
 , fire_tics_ { 0 }
 , laser_power_ { 0 }
@@ -297,7 +298,15 @@ boss::pod::draw(ggl::sprite_batch& sb) const
 
 	if (laser_power_) {
 		float radius = get_laser_radius();
-		sb.draw(laser_segment_texture_, { { 0, 0 }, { 1, 1 } }, ggl::bbox { { -radius, LASER_DISTANCE }, { radius, 500 } }, 0);
+		sb.draw(laser_segment_texture_, { { 0, 0 }, { 1, 1 } }, ggl::bbox { { -radius, LASER_DISTANCE }, { radius, 1000 } }, 0);
+
+		float r = laser_power_*1.1f*(1.f + .15f*sinf(.1f*game_.tics));
+
+		sb.push_matrix();
+		sb.translate(0, LASER_DISTANCE);
+		sb.scale(r);
+		laser_flash_sprite_->draw(sb, 1);
+		sb.pop_matrix();
 	}
 
 	sb.pop_matrix();

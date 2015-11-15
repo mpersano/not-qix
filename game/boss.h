@@ -62,6 +62,7 @@ private:
 		game& game_;
 		const ggl::sprite *sprite_;
 		const ggl::sprite *muzzle_flash_sprite_;
+		const ggl::sprite *laser_flash_sprite_;
 		const ggl::texture *laser_segment_texture_;
 		int fire_tics_;
 		float laser_power_;

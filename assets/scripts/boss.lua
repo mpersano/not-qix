@@ -135,9 +135,15 @@ end
 local function update_laser(self)
 	local TICS = 120
 	local AIM_TICS = 40
+	local COOL_DOWN_TICS = 20
 
 	if v.state_tics < AIM_TICS then
 		local t = v.state_tics/AIM_TICS
+		fire_all_lasers(self, t)
+	end
+
+	if v.state_tics > TICS - COOL_DOWN_TICS then
+		local t = 1 - (v.state_tics - (TICS - COOL_DOWN_TICS))/COOL_DOWN_TICS
 		fire_all_lasers(self, t)
 	end
 
