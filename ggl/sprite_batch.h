@@ -64,7 +64,8 @@ private:
 	std::stack<mat3> matrix_stack_;
 	std::vector<sprite_info> sprites_;
 
-	std::unique_ptr<gl_buffer_object> vbo_;
+	std::unique_ptr<gl_buffer_object> vbo_verts_;
+	std::unique_ptr<gl_buffer_object> vbo_indices_;
 };
 
 }

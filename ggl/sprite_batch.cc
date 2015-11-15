@@ -9,6 +9,7 @@ namespace ggl {
 
 namespace {
 
+const size_t INDICES_PER_SPRITE = 6;
 const size_t VERTS_PER_SPRITE = 4;
 const size_t MAX_SPRITES_PER_BATCH = 32;
 
@@ -22,13 +23,30 @@ struct gl_vertex
 };
 
 sprite_batch::sprite_batch()
-: vbo_ { new gl_buffer_object { GL_ARRAY_BUFFER } }
+: vbo_verts_ { new gl_buffer_object { GL_ARRAY_BUFFER } }
+, vbo_indices_ { new gl_buffer_object { GL_ELEMENT_ARRAY_BUFFER } }
 {
-	const size_t size = MAX_SPRITES_PER_BATCH*VERTS_PER_SPRITE*sizeof(gl_vertex);
+	vbo_verts_->bind();
+	vbo_verts_->buffer_data(MAX_SPRITES_PER_BATCH*VERTS_PER_SPRITE*sizeof(gl_vertex), nullptr, GL_DYNAMIC_DRAW);
+	vbo_verts_->unbind();
 
-	vbo_->bind();
-	vbo_->buffer_data(size, nullptr, GL_DYNAMIC_DRAW);
-	vbo_->unbind();
+	vbo_indices_->bind();
+	vbo_indices_->buffer_data(MAX_SPRITES_PER_BATCH*INDICES_PER_SPRITE*sizeof(GLushort), nullptr, GL_STATIC_DRAW);
+
+	auto index_ptr = reinterpret_cast<GLushort *>(vbo_indices_->map(GL_WRITE_ONLY));
+
+	for (int i = 0; i < MAX_SPRITES_PER_BATCH; i++) {
+		*index_ptr++ = i*4;
+		*index_ptr++ = i*4 + 1;
+		*index_ptr++ = i*4 + 2;
+
+		*index_ptr++ = i*4 + 2;
+		*index_ptr++ = i*4 + 3;
+		*index_ptr++ = i*4;
+	}
+
+	vbo_indices_->unmap();
+	vbo_indices_->unbind();
 }
 
 void
@@ -168,9 +186,9 @@ sprite_batch::render(const texture *tex, const sprite_info **sprites, size_t num
 {
 	tex->bind();
 
-	vbo_->bind();
+	vbo_verts_->bind();
 
-	auto vert_ptr = reinterpret_cast<gl_vertex *>(vbo_->map(GL_WRITE_ONLY));
+	auto vert_ptr = reinterpret_cast<gl_vertex *>(vbo_verts_->map(GL_WRITE_ONLY));
 
 	for (size_t i = 0; i < num_sprites; i++) {
 		auto sp = sprites[i];
@@ -210,7 +228,8 @@ sprite_batch::render(const texture *tex, const sprite_info **sprites, size_t num
 		*vert_ptr++ = { { x3, y3 }, { u1, v0 }, { r, g, b, a } };
 	}
 
-	vbo_->unmap();
+	vbo_verts_->unmap();
+	vbo_indices_->bind();
 
 	glVertexPointer(2, GL_FLOAT, sizeof(gl_vertex), reinterpret_cast<GLvoid *>(offsetof(gl_vertex, pos)));
 	glTexCoordPointer(2, GL_FLOAT, sizeof(gl_vertex), reinterpret_cast<GLvoid *>(offsetof(gl_vertex, texcoord)));
@@ -220,13 +239,14 @@ sprite_batch::render(const texture *tex, const sprite_info **sprites, size_t num
 	glEnableClientState(GL_TEXTURE_COORD_ARRAY);
 	glEnableClientState(GL_COLOR_ARRAY);
 
-	glDrawArrays(GL_QUADS, 0, num_sprites*VERTS_PER_SPRITE);
+	glDrawElements(GL_TRIANGLES, num_sprites*INDICES_PER_SPRITE, GL_UNSIGNED_SHORT, 0);
 
 	glDisableClientState(GL_VERTEX_ARRAY);
 	glDisableClientState(GL_TEXTURE_COORD_ARRAY);
 	glDisableClientState(GL_COLOR_ARRAY);
 
-	vbo_->unbind();
+	vbo_indices_->unbind();
+	vbo_verts_->unbind();
 }
 
 }
