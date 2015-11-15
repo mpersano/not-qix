@@ -280,10 +280,11 @@ player::update_exploding(unsigned dpad_state)
 		if (index == extend_trail_.size()) {
 			set_state(state::DEATH);
 		} else {
-			vec2f v0 = extend_trail_[index]*CELL_SIZE;
-			vec2f v1 = index < extend_trail_.size() - 1 ? extend_trail_[index + 1]*CELL_SIZE : get_position();
-
-			game_.add_effect(std::unique_ptr<effect>(new explosion(.5f*(v0 + v1))));
+			if (index%2 == 0) {
+				vec2f v0 = extend_trail_[index]*CELL_SIZE;
+				vec2f v1 = index < extend_trail_.size() - 1 ? extend_trail_[index + 1]*CELL_SIZE : get_position();
+				game_.add_effect(std::unique_ptr<effect>(new explosion(.5f*(v0 + v1), 1)));
+			}
 		}
 	}
 }
@@ -357,6 +358,8 @@ player::die()
 
 		a += da;
 	}
+
+	game_.add_effect(std::unique_ptr<effect>(new explosion(get_position(), 2)));
 
 	set_state(state::EXPLODING);
 

@@ -26,17 +26,19 @@ public:
 private:
 	bool do_update() override;
 
-	struct particle {
+	class particle {
+	public:
 		particle(const vec2f& origin, const gradient& g);
 
 		void draw(ggl::sprite_batch& sb) const;
 		bool update();
 
-		const ggl::sprite *sprite;
-		vec2f pos, speed;
-		float angle, angle_speed;
-		int tics, ttl;
-		rgb color;
+	private:
+		const ggl::sprite *sprite_;
+		vec2f pos_, speed_;
+		float angle_, angle_speed_;
+		int tics_, ttl_;
+		rgb color_;
 	};
 
 	std::vector<particle> particles_;
