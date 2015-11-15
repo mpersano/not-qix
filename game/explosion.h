@@ -9,7 +9,7 @@ class explosion : public effect
 public:
 	explosion(const vec2f& pos);
 
-	void draw() const override;
+	void draw(ggl::sprite_batch& sb) const override;
 
 	bool is_position_absolute() const override
 	{ return false; }

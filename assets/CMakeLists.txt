@@ -15,7 +15,7 @@ endforeach()
 
 set(FONT_DIR "${ASSET_DIR}/fonts")
 
-set(FONTS ${FONT_DIR}/hud-big.png ${FONT_DIR}/hud-small.png)
+set(FONTS ${FONT_DIR}/hud-big.0.png ${FONT_DIR}/hud-small.0.png)
 
 add_custom_command(
 	OUTPUT ${FONTS}
@@ -37,8 +37,10 @@ add_custom_command(
 
 set(SPRITE_DIR "${ASSET_DIR}/sprites")
 
+set(SPRITESHEETS ${SPRITE_DIR}/sprites.0.png)
+
 add_custom_command(
-	OUTPUT ${SPRITE_DIR}/sprites.png
+	OUTPUT ${SPRITESHEETS}
 	COMMAND mkdir -p ${SPRITE_DIR}
 	COMMAND cd ${SPRITE_DIR} && packsprites -w 1024 -h 1024 -t sprites sprites ${CMAKE_CURRENT_SOURCE_DIR}/sprites ${GENSPRITE_DIR}
 	DEPENDS ${GENSPRITE_DIR}/player-core-00.png)
@@ -46,7 +48,7 @@ add_custom_command(
 # FIXME it would be nice to add the actual list of sprites to the dependency list, so sprites
 # would be repacked when we update something.
 
-list(APPEND DEST_FILES ${SPRITE_DIR}/sprites.png)
+list(APPEND DEST_FILES ${SPRITESHEETS})
 
 add_custom_target(
 	genassets ALL

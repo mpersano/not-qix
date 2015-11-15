@@ -46,7 +46,7 @@ in_game_state::connect_events()
 }
 
 void
-in_game_state::draw() const
+in_game_state::draw()
 {
 	game_.draw();
 }

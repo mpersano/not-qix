@@ -14,7 +14,7 @@ class core
 {
 public:
 	core(app& a);
-	virtual ~core() = default;
+	virtual ~core();
 
 	virtual void run() = 0;
 

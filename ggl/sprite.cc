@@ -2,6 +2,7 @@
 #include <ggl/vertex_array.h>
 #include <ggl/util.h>
 #include <ggl/sprite.h>
+#include <ggl/sprite_batch.h>
 
 namespace ggl {
 
@@ -92,6 +93,54 @@ sprite::draw(float x0, float y0, float x1, float y1) const
 		  { x1, y0, u1, v1 },
 		  { x0, y1, u0, v0 },
 		  { x1, y1, u1, v0 } }).draw(GL_TRIANGLE_STRIP);
+}
+
+void
+sprite::draw(sprite_batch& sb, float depth) const
+{
+	draw(sb, depth, { 0.f, 0.f });
+}
+
+void
+sprite::draw(sprite_batch& sb, float depth, const vec2f& pos) const
+{
+	draw(sb, depth, pos, vert_align::CENTER, horiz_align::CENTER);
+}
+
+void
+sprite::draw(sprite_batch& sb, float depth, const vec2f& pos, vert_align va, horiz_align ha) const
+{
+	vec2f p0 = pos;
+
+	switch (ha) {
+		case horiz_align::LEFT:
+			break;
+
+		case horiz_align::CENTER:
+			p0.x -= .5f*width;
+			break;
+
+		case horiz_align::RIGHT:
+			p0.x -= width;
+			break;
+	}
+
+	switch (va) {
+		case vert_align::BOTTOM:
+			break;
+
+		case vert_align::CENTER:
+			p0.y -= .5f*height;
+			break;
+
+		case vert_align::TOP:
+			p0.y -= height;
+			break;
+	}
+
+	vec2f p1 = p0 + vec2f { width, height };
+
+	sb.draw(tex, { { u0, v1 }, { u1, v0 } }, bbox { p0, p1 }, depth );
 }
 
 }

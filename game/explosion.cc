@@ -24,7 +24,7 @@ explosion::do_update()
 }
 
 void
-explosion::draw() const
+explosion::draw(ggl::sprite_batch& sb) const
 {
 	glColor4f(1, 1, 0, 1);
 	draw_circle(pos_, radius_);

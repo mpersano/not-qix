@@ -3,6 +3,7 @@
 
 #include <ggl/sprite.h>
 #include <ggl/resources.h>
+#include <ggl/sprite_batch.h>
 #include <ggl/dpad_button.h>
 
 #include "game.h"
@@ -370,7 +371,7 @@ player::set_state(state next_state)
 }
 
 void
-player::draw() const
+player::draw(ggl::sprite_batch& sb) const
 {
 	switch (state_) {
 		case state::EXTENDING:
@@ -380,7 +381,7 @@ player::draw() const
 
 		case state::IDLE:
 		case state::SLIDING:
-			draw_head();
+			draw_head(sb);
 			break;
 
 		case state::EXPLODING:
@@ -472,14 +473,14 @@ player::draw_trail(int start_index) const
 }
 
 void
-player::draw_head() const
+player::draw_head(ggl::sprite_batch& sb) const
 {
 	auto pos = get_position();
 
-	glColor4f(1, 1, 1, 1);
-
 	auto s = (state_ == state::EXTENDING || state_ == state::EXTENDING_IDLE ? sprites_core_ : sprites_shield_)[game_.tics%NUM_FRAMES];
-	s->draw(pos.x, pos.y, ggl::sprite::horiz_align::CENTER, ggl::sprite::vert_align::CENTER);
+
+	sb.set_color(ggl::white);
+	s->draw(sb, 0, vec2f { pos.x, pos.y });
 }
 
 const vec2i

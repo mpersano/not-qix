@@ -8,6 +8,8 @@ core::core(app& a)
 : app_ { a }
 { }
 
+core::~core() = default;
+
 connectable_event<core::dpad_button_event_handler>&
 core::get_dpad_button_down_event()
 {

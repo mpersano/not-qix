@@ -30,6 +30,8 @@ set(GGL_SOURCES
 	tween.cc
 	resources.cc
 	sprite_manager.cc
+	buffer_object.cc
+	sprite_batch.cc
 	vec2_util.cc)
 
 if (ANDROID)

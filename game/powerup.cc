@@ -6,6 +6,7 @@
 #include <ggl/sprite.h>
 #include <ggl/action.h>
 #include <ggl/resources.h>
+#include <ggl/font.h>
 
 #include "game.h"
 #include "effect.h"
@@ -22,7 +23,7 @@ class picked_effect : public effect
 public:
 	picked_effect(const vec2f& pos);
 
-	void draw() const override;
+	void draw(ggl::sprite_batch& sb) const override;
 
 	bool is_position_absolute() const override
 	{ return true; }
@@ -31,7 +32,9 @@ private:
 	bool do_update() override;
 
 	vec2f pos_;
-	text_quad text_;
+
+	std::wstring text_;
+	const ggl::font *font_;
 
 	float delta_y_;
 	float text_alpha_;
@@ -41,7 +44,8 @@ private:
 
 picked_effect::picked_effect(const vec2f& pos)
 : pos_ { pos }
-, text_ { ggl::res::get_font("fonts/powerup.spr"), L"POWER UP!" }
+, text_ { L"POWER UP!" }
+, font_ { ggl::res::get_font("fonts/powerup.spr") }
 , action_ { ggl::res::get_action("animations/powerup.xml") }
 {
 	action_->bind("delta-y", &delta_y_);
@@ -57,14 +61,10 @@ picked_effect::do_update()
 }
 
 void
-picked_effect::draw() const
+picked_effect::draw(ggl::sprite_batch& sb) const
 {
-	glColor4f(1, 1, 1, text_alpha_);
-
-	glPushMatrix();
-	glTranslatef(pos_.x, pos_.y + delta_y_, 0.f);
-	text_.draw();
-	glPopMatrix();
+	sb.set_color({ 1, 1, 1, text_alpha_ });
+	font_->draw(sb, 0, text_, { pos_.x, pos_.y + delta_y_ });
 }
 
 };
@@ -79,14 +79,14 @@ powerup::powerup(game& g, const vec2f& pos, const vec2f& dir)
 { }
 
 void
-powerup::draw() const
+powerup::draw(ggl::sprite_batch& sb) const
 {
 	glPushMatrix();
 	glTranslatef(pos_.x, pos_.y, 0);
 
 	glPushMatrix();
 	glRotatef(3.f*game_.tics, 0, 0, 1);
-	outer_sprite_->draw(ggl::sprite::horiz_align::CENTER, ggl::sprite::vert_align::CENTER);
+	outer_sprite_->draw(ggl::horiz_align::CENTER, ggl::vert_align::CENTER);
 	glPopMatrix();
 
 	text_->draw();

@@ -5,6 +5,7 @@
 #include <ggl/sprite.h>
 #include <ggl/texture.h>
 #include <ggl/resources.h>
+#include <ggl/font.h>
 #include <ggl/util.h>
 
 #include "game.h"
@@ -20,6 +21,7 @@ const int OUTRO_TICS = 30;
 
 lives_widget::lives_widget(game& g)
 : widget { g }
+, font_ { ggl::res::get_font("fonts/hud-small.spr") }
 , hide_ { true }
 , circle_ { new shiny_sprite_quad { ggl::res::get_sprite("lives-left-circle.png"), game_, .5, -.02 } }
 {
@@ -46,7 +48,7 @@ lives_widget::initialize_text(int lives_left)
 	else
 		ss << "LAST PLAYER";
 
-	text_.reset(new text_quad { ggl::res::get_font("fonts/hud-small.spr"), ss.str() });
+	text_ = ss.str();
 }
 
 bool
@@ -80,7 +82,7 @@ lives_widget::update()
 }
 
 void
-lives_widget::draw() const
+lives_widget::draw(ggl::sprite_batch& sb) const
 {
 	if (state_ == state::HIDDEN)
 		return;
@@ -88,23 +90,23 @@ lives_widget::draw() const
 	auto pos = game_.get_player_screen_position();
 
 	vec2f circle_scale, text_pos;
-	quad::horiz_align text_ha;
-	quad::vert_align text_va;
+	ggl::horiz_align text_ha;
+	ggl::vert_align text_va;
 
 	if (pos.x < .5f*game_.viewport_width) {
 		circle_scale.x = -1.f;
-		text_ha = quad::horiz_align::RIGHT;
+		text_ha = ggl::horiz_align::RIGHT;
 	} else {
 		circle_scale.x = 1.f;
-		text_ha = quad::horiz_align::LEFT;
+		text_ha = ggl::horiz_align::LEFT;
 	}
 
 	if (pos.y < .5f*game_.viewport_height) {
 		circle_scale.y = -1;
-		text_va = quad::vert_align::BOTTOM;
+		text_va = ggl::vert_align::TOP;
 	} else {
 		circle_scale.y = 1;
-		text_va = quad::vert_align::TOP;
+		text_va = ggl::vert_align::BOTTOM;
 	}
 
 	float scale;
@@ -136,16 +138,15 @@ lives_widget::draw() const
 	circle_->draw();
 	glPopMatrix();
 
+	glPopMatrix();
+
 	// text
 
-	assert(text_);
-
-	glPushMatrix();
-	glTranslatef(text_pos.x, text_pos.y, 0);
-	text_->draw(text_ha, text_va);
-	glPopMatrix();
-
-	glPopMatrix();
+	sb.push_matrix();
+	sb.translate(pos.x, pos.y);
+	sb.scale(scale);
+	font_->draw(sb, 0, text_, text_pos, text_va, text_ha);
+	sb.pop_matrix();
 }
 
 void

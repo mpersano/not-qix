@@ -44,7 +44,7 @@ class update_effect : public effect
 public:
 	update_effect(const vec2f& start_pos, const vec2f& end_pos, unsigned value);
 
-	void draw() const override;
+	void draw(ggl::sprite_batch& sb) const override;
 
 	bool is_position_absolute() const override
 	{ return true; }
@@ -53,7 +53,9 @@ private:
 	bool do_update() override;
 
 	std::unique_ptr<bezier<vec2f>> path_;
-	std::unique_ptr<text_quad> text_;
+
+	std::wstring text_;
+	const ggl::font *font_;
 
 	float path_u_;
 	float text_alpha_;
@@ -63,7 +65,8 @@ private:
 };
 
 update_effect::update_effect(const vec2f& start_pos, const vec2f& end_pos, unsigned value)
-: path_u_ { 0 }
+: font_ { ggl::res::get_font("fonts/powerup.spr") }
+, path_u_ { 0 }
 , text_alpha_ { 1 }
 , text_scale_ { 1 }
 , action_ { ggl::res::get_action("animations/percent-update.xml") }
@@ -72,7 +75,7 @@ update_effect::update_effect(const vec2f& start_pos, const vec2f& end_pos, unsig
 
 	std::basic_stringstream<wchar_t> ss;
 	ss << "+" << (value/100) << "." << (value%100) << "%";
-	text_.reset(new text_quad { ggl::res::get_font("fonts/powerup.spr"), ss.str() });
+	text_ = ss.str();
 
 	// path
 
@@ -103,17 +106,17 @@ update_effect::do_update()
 }
 
 void
-update_effect::draw() const
+update_effect::draw(ggl::sprite_batch& sb) const
 {
 	auto pos = (*path_)(path_u_);
 
-	glColor4f(1, 1, 1, text_alpha_);
+	sb.set_color({ 1, 1, 1, text_alpha_ });
 
-	glPushMatrix();
-	glTranslatef(pos.x, pos.y, 0.f);
-	glScalef(text_scale_, text_scale_, 1.f);
-	text_->draw();
-	glPopMatrix();
+	sb.push_matrix();
+	sb.translate(pos.x, pos.y);
+	sb.scale(text_scale_);
+	font_->draw(sb, 0, text_);
+	sb.pop_matrix();
 }
 
 }
@@ -276,29 +279,26 @@ percent_widget::get_value() const
 }
 
 void
-percent_widget::draw() const
+percent_widget::draw(ggl::sprite_batch& sb) const
 {
-	ggl::enable_alpha_blend _;
+	sb.set_color(ggl::white);
 
-	draw_frame();
-	draw_digits();
+	draw_frame(sb);
+	draw_digits(sb);
 }
 
 void
-percent_widget::draw_frame() const
+percent_widget::draw_frame(ggl::sprite_batch& sb) const
 {
-	frame_->draw(
-		get_base_x(), get_base_y(),
-		ggl::sprite::horiz_align::LEFT,
-		ggl::sprite::vert_align::BOTTOM);
+	frame_->draw(sb,
+		0,
+		vec2f { get_base_x(), get_base_y() },
+		ggl::vert_align::BOTTOM, ggl::horiz_align::LEFT);
 }
 
 void
-percent_widget::draw_digits() const
+percent_widget::draw_digits(ggl::sprite_batch& sb) const
 {
-	ggl::enable_texture _;
-	ggl::enable_alpha_blend __;
-
 	const int BIG_DIGIT_WIDTH = 20;
 	const int SMALL_DIGIT_WIDTH = 16;
 
@@ -310,44 +310,26 @@ percent_widget::draw_digits() const
 	const int base_y = get_base_y();
 	const int base_x = get_base_x();
 
-	glColor4f(1, 1, 1, 1);
-
 	int x = get_base_x() + 8 + BIG_DIGIT_WIDTH/2;
-	draw_char(large_font_, L'0' + int_part%10, x + 2*BIG_DIGIT_WIDTH, base_y);
+	draw_char(sb, large_font_, L'0' + int_part%10, x + 2*BIG_DIGIT_WIDTH, base_y);
 	if (int_part >= 10) {
-		draw_char(large_font_, L'0' + (int_part/10)%10, x + BIG_DIGIT_WIDTH, base_y);
+		draw_char(sb, large_font_, L'0' + (int_part/10)%10, x + BIG_DIGIT_WIDTH, base_y);
 		if (int_part >= 100) {
-			draw_char(large_font_, L'0' + (int_part/100)%10, x, base_y);
+			draw_char(sb, large_font_, L'0' + (int_part/100)%10, x, base_y);
 		}
 	}
 
 	x += 2*BIG_DIGIT_WIDTH + BIG_DIGIT_WIDTH/2 + SMALL_DIGIT_WIDTH/2;
-	draw_char(small_font_, L'.', x, base_y);
-	draw_char(small_font_, L'0' + (fract_part/10)%10, x + SMALL_DIGIT_WIDTH, base_y);
-	draw_char(small_font_, L'0' + (fract_part)%10, x + 2*SMALL_DIGIT_WIDTH, base_y);
-	draw_char(small_font_, L'%', x + 3*SMALL_DIGIT_WIDTH + 12, base_y);
+	draw_char(sb, small_font_, L'.', x, base_y);
+	draw_char(sb, small_font_, L'0' + (fract_part/10)%10, x + SMALL_DIGIT_WIDTH, base_y);
+	draw_char(sb, small_font_, L'0' + (fract_part)%10, x + 2*SMALL_DIGIT_WIDTH, base_y);
+	draw_char(sb, small_font_, L'%', x + 3*SMALL_DIGIT_WIDTH + 12, base_y);
 }
 
 void
-percent_widget::draw_char(const ggl::font *f, wchar_t ch, int base_x, int base_y) const
+percent_widget::draw_char(ggl::sprite_batch& sb, const ggl::font *f, wchar_t ch, int base_x, int base_y) const
 {
 	auto *g = f->get_glyph(ch);
-
-	float x0 = base_x - .5f*g->spr.width;
-	float x1 = x0 + g->spr.width;
-	float y0 = base_y + 20 + g->top;
-	float y1 = y0 - g->spr.height;
-
-	const float u0 = g->spr.u0;
-	const float u1 = g->spr.u1;
-	const float v0 = g->spr.v0;
-	const float v1 = g->spr.v1;
-
-	g->spr.tex->bind();
-
-	(ggl::vertex_array_texcoord<GLfloat, 2, GLfloat, 2>
-		{ { x0, y0, u0, v0 },
-		  { x1, y0, u1, v0 },
-		  { x0, y1, u0, v1 },
-		  { x1, y1, u1, v1 } }).draw(GL_TRIANGLE_STRIP);
+	vec2f pos = vec2f { base_x, base_y + 20 + g->top - g->spr.height };
+	g->spr.draw(sb, 1, pos, ggl::vert_align::BOTTOM, ggl::horiz_align::CENTER);
 }

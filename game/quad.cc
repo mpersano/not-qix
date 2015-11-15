@@ -98,6 +98,7 @@ image_quad::draw_quad() const
 text_quad::text_quad(const ggl::font *font, const std::basic_string<wchar_t> text)
 : tex_ { nullptr /* font->tex */ }
 {
+#if 0
 	font->render(text, va_);
 
 	using vert = decltype(va_)::value_type;
@@ -121,6 +122,7 @@ text_quad::text_quad(const ggl::font *font, const std::basic_string<wchar_t> tex
 		v.pos[0] += dx;
 		v.pos[1] += dy;
 	}
+#endif
 }
 
 unsigned

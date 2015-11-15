@@ -11,6 +11,7 @@
 #include <ggl/texture.h>
 #include <ggl/resources.h>
 #include <ggl/util.h>
+#include <ggl/sprite_batch.h>
 #include <ggl/font.h>
 
 namespace ggl {
@@ -82,46 +83,87 @@ font::~font()
 	}
 }
 
-unsigned
-font::get_string_width(const std::basic_string<wchar_t>& str) const
+void
+font::draw(sprite_batch& sb, float depth, const std::wstring& str) const
 {
-	return std::accumulate(
-		std::begin(str),
-		std::end(str),
-		0u,
-		[this](unsigned width, wchar_t ch)
-			{
-				return width + glyph_map_[ch]->advance_x;
-			});
+	draw(sb, depth, str, { 0.f, 0.f });
 }
 
 void
-font::render(const std::basic_string<wchar_t>& str, ggl::vertex_array_texcoord<GLshort, 2, GLfloat, 2>& va) const
+font::draw(sprite_batch& sb, float depth, const std::wstring& str, const vec2f& pos) const
 {
-	va.reserve(6*str.size());
+	draw(sb, depth, str, pos, vert_align::CENTER, horiz_align::CENTER);
+}
 
-	int x = 0;
+void
+font::draw(sprite_batch& sb, float depth, const std::wstring& str, const vec2f& pos, vert_align va, horiz_align ha) const
+{
+	assert(!str.empty());
 
-	for (wchar_t ch : str) {
+	int x_min = glyph_map_[str.front()]->left;
+
+	int x_max =
+		std::accumulate(
+			std::begin(str),
+			std::end(str) - 1,
+			x_min,
+			[this](int s, wchar_t ch) { return s + glyph_map_[ch]->advance_x; }) +
+		[this, &str] { auto g = glyph_map_[str.back()]; return g->left + g->spr.width; }(); // tee-hee
+
+	int y_max =
+		std::accumulate(
+			std::begin(str),
+			std::end(str),
+			0,
+			[this](int s, wchar_t ch) { return std::max(s, glyph_map_[ch]->top); });
+
+	int y_min =
+		std::accumulate(
+			std::begin(str),
+			std::end(str),
+			0,
+			[this](int s, wchar_t ch) { auto g = glyph_map_[ch]; return std::min(s, g->top - g->spr.height); });
+
+	float x = pos.x;
+
+	switch (ha) {
+		case horiz_align::LEFT:
+			x -= x_min;
+			break;
+
+		case horiz_align::CENTER:
+			x -= .5f*(x_max + x_min);
+			break;
+
+		case horiz_align::RIGHT:
+			x -= x_max;
+			break;
+	}
+
+	float y = pos.y;
+
+	switch (va) {
+		case vert_align::BOTTOM:
+			y -= y_min;
+			break;
+
+		case vert_align::CENTER:
+			y -= .5f*(y_max + y_min);
+			break;
+
+		case vert_align::TOP:
+			y -= y_max;
+			break;
+	}
+
+	for (auto ch : str) {
 		auto g = glyph_map_[ch];
 
-		short x0 = x + g->left;
-		short x1 = x0 + g->spr.width;
-		short y0 = g->top;
-		short y1 = y0 - g->spr.height;
+		vec2f p0 { x + g->left, y + g->top };
+		vec2f p1 = p0 + vec2f { g->spr.width, -g->spr.height };
 
-		const float u0 = g->spr.u0;
-		const float u1 = g->spr.u1;
-		const float v0 = g->spr.v0;
-		const float v1 = g->spr.v1;
-
-		va.push_back({ x0, y0, u0, v0 });
-		va.push_back({ x1, y0, u1, v0 });
-		va.push_back({ x1, y1, u1, v1 });
-
-		va.push_back({ x1, y1, u1, v1 });
-		va.push_back({ x0, y1, u0, v1 });
-		va.push_back({ x0, y0, u0, v0 });
+		const auto& sp = g->spr;
+		sb.draw(sp.tex, { { sp.u0, sp.v0 }, { sp.u1, sp.v1 } }, bbox { p0, p1 }, depth );
 
 		x += g->advance_x;
 	}

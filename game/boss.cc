@@ -23,7 +23,7 @@ class bullet : public entity
 public:
 	bullet(game& g, const vec2f& pos, const vec2f& dir);
 
-	void draw() const override;
+	void draw(ggl::sprite_batch& sb) const override;
 	bool update() override;
 
 	bool intersects(const vec2i& from, const vec2i& to) const override;
@@ -45,11 +45,8 @@ bullet::bullet(game& g, const vec2f& pos, const vec2f& dir)
 { }
 
 void
-bullet::draw() const
+bullet::draw(ggl::sprite_batch& sb) const
 {
-	ggl::enable_alpha_blend _;
-	ggl::enable_texture __;
-
 	const int w = sprite_->width;
 	const int h = sprite_->height;
 
@@ -57,9 +54,9 @@ bullet::draw() const
 	vec2f right = dir_*static_cast<float>(w);
 
 	const vec2f p0 = pos_ + up;
-	const vec2f p1 = pos_ + up + right;
-	const vec2f p2 = pos_ - up;
-	const vec2f p3 = pos_ - up + right;
+	const vec2f p1 = pos_ - up;
+	const vec2f p2 = pos_ - up + right;
+	const vec2f p3 = pos_ + up + right;
 
 	const float u0 = sprite_->u0;
 	const float u1 = sprite_->u1;
@@ -67,15 +64,7 @@ bullet::draw() const
 	const float v0 = sprite_->v0;
 	const float v1 = sprite_->v1;
 
-	glColor4f(1, 1, 1, 1);
-
-	sprite_->tex->bind();
-
-	(ggl::vertex_array_texcoord<GLfloat, 2, GLfloat, 2>
-		{ { p0.x, p0.y, u0, v1 },
-		  { p1.x, p1.y, u1, v1 },
-		  { p2.x, p2.y, u0, v0 },
-		  { p3.x, p3.y, u1, v0 } }).draw(GL_TRIANGLE_STRIP);
+	sb.draw(sprite_->tex, { { u0, v1 }, { u1, v0 } }, ggl::quad { p0, p1, p2, p3 }, 0);
 }
 
 bool
@@ -222,48 +211,39 @@ boss::fire_laser(int pod, float power)
 }
 
 void
-boss::draw() const
+boss::draw(ggl::sprite_batch& sb) const
 {
-	draw_core();
-	draw_pods();
+	draw_core(sb);
+	draw_pods(sb);
 }
 
 void
-boss::draw_core() const
+boss::draw_core(ggl::sprite_batch& sb) const
 {
 	auto screen_pos = pos_ + game_.offset;
 
 	if (screen_pos.y + radius_ < 0) {
 		auto p = vec2f { screen_pos.x, 0 } - game_.offset;
-
-		glPushMatrix();
-		glTranslatef(p.x, p.y, 0);
-		danger_down_sprite_->draw(ggl::sprite::horiz_align::CENTER, ggl::sprite::vert_align::BOTTOM);
-		glPopMatrix();
+		danger_down_sprite_->draw(sb, 0, p, ggl::vert_align::BOTTOM, ggl::horiz_align::CENTER);
 	} else if (screen_pos.y - radius_ > game_.viewport_height) {
 		auto p = vec2f { screen_pos.x, game_.viewport_height } - game_.offset;
-
-		glPushMatrix();
-		glTranslatef(p.x, p.y, 0);
-		danger_up_sprite_->draw(ggl::sprite::horiz_align::CENTER, ggl::sprite::vert_align::TOP);
-		glPopMatrix();
+		danger_up_sprite_->draw(sb, 0, p, ggl::vert_align::TOP, ggl::horiz_align::CENTER);
 	} else {
-		core_sprite_->draw(pos_.x, pos_.y, ggl::sprite::horiz_align::CENTER, ggl::sprite::vert_align::CENTER);
+		core_sprite_->draw(sb, 0, pos_);
 	}
 }
 
 void
-boss::draw_pods() const
+boss::draw_pods(ggl::sprite_batch& sb) const
 {
-	glPushMatrix();
-
-	glTranslatef(pos_.x, pos_.y, 0.f);
-	glRotatef(pod_angle_*180.f/M_PI - 90.f, 0, 0, 1);
+	sb.push_matrix();
+	sb.translate(pos_);
+	sb.rotate(pod_angle_ - .5f*M_PI);
 
 	for (auto& p : pods_)
-		p->draw();
+		p->draw(sb);
 
-	glPopMatrix();
+	sb.pop_matrix();
 }
 
 void
@@ -274,7 +254,7 @@ boss::on_miniboss_killed()
 
 namespace {
 
-const int MUZZLE_FLASH_TICS = 10;
+const int MUZZLE_FLASH_TICS = 6;
 
 } // (anonymous namespace)
 
@@ -283,6 +263,8 @@ boss::pod::pod(game& g)
 , rotation { 0 }
 , game_ { g }
 , sprite_ { ggl::res::get_sprite("boss-spike.png") }
+, muzzle_flash_sprite_ { ggl::res::get_sprite("muzzle-flash.png") }
+, laser_segment_texture_ { ggl::res::get_texture("images/laser-segment.png") }
 , fire_tics_ { 0 }
 , laser_power_ { 0 }
 { }
@@ -293,29 +275,32 @@ vec2f touch_pos;
 }
 
 void
-boss::pod::draw() const
+boss::pod::draw(ggl::sprite_batch& sb) const
 {
-	glPushMatrix();
+	sb.push_matrix();
 
-	glRotatef(ang_offset*180.f/M_PI, 0, 0, 1);
-	glTranslatef(0, POD_DISTANCE, 0);
-	glRotatef(rotation*180.f/M_PI, 0, 0, 1);
+	sb.rotate(ang_offset);
+	sb.translate(0, POD_DISTANCE);
+	sb.rotate(rotation);
 
-	sprite_->draw(ggl::sprite::horiz_align::CENTER, ggl::sprite::vert_align::BOTTOM);
+	sprite_->draw(sb, 0, { 0, 0 }, ggl::vert_align::BOTTOM, ggl::horiz_align::CENTER);
 
 	if (fire_tics_) {
-		glColor4f(1, 1, 1, 1);
 		const float t = static_cast<float>(fire_tics_)/MUZZLE_FLASH_TICS;
-		draw_circle(vec2f { 0, LASER_DISTANCE }, t*10.f);
+
+		sb.push_matrix();
+		sb.translate(0, LASER_DISTANCE);
+		sb.scale(t*1.1f);
+		muzzle_flash_sprite_->draw(sb, 1);
+		sb.pop_matrix();
 	}
 
 	if (laser_power_) {
-		glColor4f(0, 1, 0, 1);
 		float radius = get_laser_radius();
-		draw_box(vec2f { -radius, LASER_DISTANCE }, vec2f { radius, 500 });
+		sb.draw(laser_segment_texture_, { { 0, 0 }, { 1, 1 } }, ggl::bbox { { -radius, LASER_DISTANCE }, { radius, 500 } }, 0);
 	}
 
-	glPopMatrix();
+	sb.pop_matrix();
 }
 
 void

@@ -22,9 +22,9 @@ miniboss::miniboss(game& g, const vec2f& pos, boss *parent)
 }
 
 void
-miniboss::draw() const
+miniboss::draw(ggl::sprite_batch& sb) const
 {
-	sprite_->draw(pos_.x, pos_.y, ggl::sprite::horiz_align::CENTER, ggl::sprite::vert_align::CENTER);
+	sprite_->draw(pos_.x, pos_.y, ggl::horiz_align::CENTER, ggl::vert_align::CENTER);
 }
 
 bool

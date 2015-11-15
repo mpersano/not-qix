@@ -15,7 +15,7 @@ public:
 	lives_widget(game& g);
 
 	bool update() override;
-	void draw() const override;
+	void draw(ggl::sprite_batch& sb) const override;
 
 private:
 	void initialize_text(int lives_left);
@@ -29,7 +29,9 @@ private:
 	void set_state(state next_state);
 	int state_tics_;
 
-	std::unique_ptr<quad> text_;
+	std::wstring text_;
+	const ggl::font *font_;
+
 	std::unique_ptr<quad> circle_;
 
 	ggl::event_connection_ptr respawn_conn_;

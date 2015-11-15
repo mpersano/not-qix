@@ -13,7 +13,7 @@ class miniboss : public foe
 public:
 	miniboss(game& g, const vec2f& pos, boss *parent);
 
-	void draw() const override;
+	void draw(ggl::sprite_batch& sb) const override;
 	bool update() override;
 
 private:

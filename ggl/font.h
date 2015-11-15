@@ -7,11 +7,14 @@
 
 #include <ggl/gl.h>
 #include <ggl/sprite.h>
-#include <ggl/vertex_array.h>
+#include <ggl/align.h>
+#include <ggl/vec2.h>
+#include <ggl/rgba.h>
 
 namespace ggl {
 
 class texture;
+class sprite_batch;
 
 struct glyph
 {
@@ -30,9 +33,9 @@ public:
 	const glyph *get_glyph(wchar_t ch) const
 	{ return glyph_map_[ch]; }
 
-	unsigned get_string_width(const std::basic_string<wchar_t>& str) const;
-
-	void render(const std::basic_string<wchar_t>& str, ggl::vertex_array_texcoord<GLshort, 2, GLfloat, 2>& va) const;
+	void draw(sprite_batch& sb, float depth, const std::wstring& str) const;
+	void draw(sprite_batch& sb, float depth, const std::wstring& str, const vec2f& pos) const;
+	void draw(sprite_batch& sb, float depth, const std::wstring& str, const vec2f& pos, vert_align va, horiz_align ha) const;
 
 private:
 	glyph *glyph_map_[1<<16];
