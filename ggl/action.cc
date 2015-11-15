@@ -224,9 +224,18 @@ parse_group_children(action_group& g, TiXmlElement *el)
 const std::map<std::string, property_change_action::tween_fn> tweens
 	{
 		{ "linear", tween::linear },
+
 		{ "in-quadratic", tween::in_quadratic },
 		{ "out-quadratic", tween::out_quadratic },
 		{ "in-out-quadratic", tween::in_out_quadratic },
+
+		{ "in-back", tween::in_back },
+		{ "out-back", tween::out_back },
+		{ "in-out-back", tween::in_out_back },
+
+		{ "in-bounce", tween::in_bounce },
+		{ "out-bounce", tween::out_bounce },
+		{ "in-out-bounce", tween::in_out_bounce },
 	};
 
 const std::map<std::string, std::function<action_ptr(TiXmlElement *el)>> action_parsers
