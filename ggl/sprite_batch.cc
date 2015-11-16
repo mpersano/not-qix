@@ -146,15 +146,13 @@ sprite_batch::end()
 		std::begin(sorted_sprites),
 		[](const sprite_info& v) { return &v; });
 
-	std::sort(
-		std::begin(sorted_sprites),
-		std::end(sorted_sprites),
-		[](const sprite_info *a, const sprite_info *b) { return a->tex < b->tex; });
-
 	std::stable_sort(
 		std::begin(sorted_sprites),
 		std::end(sorted_sprites),
-		[](const sprite_info *a, const sprite_info *b) { return a->depth < b->depth; });
+		[](const sprite_info *a, const sprite_info *b)
+		{
+			return a->depth < b->depth || (a->depth == b->depth && a->tex < b->tex);
+		});
 
 	enable_alpha_blend _;
 	enable_texture __;
