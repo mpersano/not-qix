@@ -32,6 +32,8 @@ set(GGL_SOURCES
 	sprite_manager.cc
 	gl_buffer.cc
 	gl_vertex_array.cc
+	gl_shader.cc
+	gl_program.cc
 	sprite_batch.cc
 	vec2_util.cc)
 

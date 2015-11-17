@@ -7,10 +7,12 @@
 #include <ggl/noncopyable.h>
 #include <ggl/sprite.h>
 #include <ggl/vec2.h>
+#include <ggl/vec3.h>
 #include <ggl/mat3.h>
 #include <ggl/rgba.h>
 #include <ggl/gl_vertex_array.h>
 #include <ggl/gl_buffer.h>
+#include <ggl/gl_program.h>
 
 namespace ggl {
 
@@ -30,6 +32,8 @@ class sprite_batch : private noncopyable
 {
 public:
 	sprite_batch();
+
+	void set_viewport(const bbox& viewport);
 
 	void begin();
 
@@ -55,6 +59,10 @@ public:
 	void end();
 
 private:
+	void init_buffers();
+	void init_vaos();
+	void init_programs();
+
 	struct sprite_info
 	{
 		const texture *tex0, *tex1;
@@ -72,11 +80,16 @@ private:
 	std::stack<mat3> matrix_stack_;
 	std::vector<sprite_info> sprites_;
 
-	gl_buffer verts_buffer_;
-	gl_buffer indices_buffer_;
+	gl_buffer vert_buffer_;
+	gl_buffer index_buffer_;
 
 	gl_vertex_array vao_single_;
 	gl_vertex_array vao_multi_;
+
+	gl_program program_single_;
+	gl_program program_multi_;
+
+	mat4 proj_modelview_;
 };
 
 }

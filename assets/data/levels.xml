@@ -1,9 +1,9 @@
 <game>
 	<levels>
 		<level>
-			<foreground path="images/girl-foreground.png" />
-			<background path="images/girl-background.png" />
-			<mask path="images/girl-mask.png" />
+			<foreground path="images/kurisu-foreground.png" />
+			<background path="images/kurisu-background.png" />
+			<mask path="images/kurisu-mask.png" />
 			<portrait path="images/girl-portrait.png" />
 		</level>
 	</levels>

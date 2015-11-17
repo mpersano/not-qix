@@ -3,7 +3,75 @@
 #include <ggl/util.h>
 #include <ggl/gl_buffer.h>
 #include <ggl/texture.h>
+#include <ggl/gl_check.h>
 #include <ggl/sprite_batch.h>
+
+namespace {
+
+const char *vert_shader_single =
+	"uniform mat4 proj_modelview;\n"
+	"\n"
+	"attribute vec2 position;\n"
+	"attribute vec2 texcoord;\n"
+	"attribute vec4 color;\n"
+	"\n"
+	"varying vec2 frag_texcoord;\n"
+	"varying vec4 frag_color;\n"
+	"\n"
+	"void main(void)\n"
+	"{\n"
+	"	gl_Position = proj_modelview*vec4(position, 0, 1);\n"
+	"	frag_texcoord = texcoord;\n"
+	"	frag_color = color;\n"
+	"}";
+
+const char *frag_shader_single =
+	"uniform sampler2D texture;\n"
+	"\n"
+	"varying vec2 frag_texcoord;\n"
+	"varying vec4 frag_color;\n"
+	"\n"
+	"void main(void)\n"
+	"{\n"
+	"	gl_FragColor = texture2D(texture, frag_texcoord)*frag_color;\n"
+	"}";
+
+const char *vert_shader_multi =
+	"uniform mat4 proj_modelview;\n"
+	"\n"
+	"attribute vec2 position;\n"
+	"attribute vec2 texcoord0;\n"
+	"attribute vec2 texcoord1;\n"
+	"attribute vec4 color;\n"
+	"\n"
+	"varying vec2 frag_texcoord0;\n"
+	"varying vec2 frag_texcoord1;\n"
+	"varying vec4 frag_color;\n"
+	"\n"
+	"void main(void)\n"
+	"{\n"
+	"	gl_Position = proj_modelview*vec4(position, 0, 1);\n"
+	"	frag_texcoord0 = texcoord0;\n"
+	"	frag_texcoord1 = texcoord1;\n"
+	"	frag_color = color;\n"
+	"}";
+
+const char *frag_shader_multi =
+	"uniform sampler2D texture0;\n"
+	"uniform sampler2D texture1;\n"
+	"\n"
+	"varying vec2 frag_texcoord0;\n"
+	"varying vec2 frag_texcoord1;\n"
+	"varying vec4 frag_color;\n"
+	"\n"
+	"void main(void)\n"
+	"{\n"
+	"	vec4 c0 = texture2D(texture0, frag_texcoord0);\n"
+	"	vec4 c1 = texture2D(texture1, frag_texcoord1);\n"
+	"	gl_FragColor = vec4(c0.rgb + c1.rgb, c0.a)*frag_color;\n"
+	"}";
+
+}
 
 namespace ggl {
 
@@ -15,14 +83,14 @@ const size_t MAX_SPRITES_PER_BATCH = 32;
 
 struct gl_vertex_single
 {
-	GLfloat pos[2];
+	GLfloat position[2];
 	GLfloat texcoord[2];
 	GLfloat color[4];
 };
 
 struct gl_vertex_multi
 {
-	GLfloat pos[2];
+	GLfloat position[2];
 	GLfloat texcoord0[2];
 	GLfloat texcoord1[2];
 	GLfloat color[4];
@@ -31,21 +99,50 @@ struct gl_vertex_multi
 };
 
 sprite_batch::sprite_batch()
-: verts_buffer_ { GL_ARRAY_BUFFER }
-, indices_buffer_ { GL_ELEMENT_ARRAY_BUFFER }
+: vert_buffer_ { GL_ARRAY_BUFFER }
+, index_buffer_ { GL_ELEMENT_ARRAY_BUFFER }
+, proj_modelview_ { mat4::identity() }
+{
+	init_buffers();
+	init_programs();
+	init_vaos();
+}
+
+void
+sprite_batch::set_viewport(const bbox& viewport)
+{
+	const float NEAR = -1.f;
+	const float FAR = 1.f;
+
+	const float a = 2.f/(viewport.max.x - viewport.min.x);
+	const float b = 2.f/(viewport.max.y - viewport.min.y);
+	const float c = -2.f/(FAR - NEAR);
+
+	const float tx = -(viewport.max.x + viewport.min.x)/(viewport.max.x - viewport.min.x);
+	const float ty = -(viewport.max.y + viewport.min.y)/(viewport.max.y - viewport.min.y);
+	const float tz = -(FAR + NEAR)/(FAR - NEAR);
+
+	proj_modelview_ = mat4(
+				a, 0, 0, tx,
+				0, b, 0, ty,
+				0, 0, c, tz);
+}
+
+void
+sprite_batch::init_buffers()
 {
 	// vertex buffer
 
-	verts_buffer_.bind();
-	verts_buffer_.buffer_data(MAX_SPRITES_PER_BATCH*VERTS_PER_SPRITE*sizeof(gl_vertex_multi), nullptr, GL_DYNAMIC_DRAW);
-	verts_buffer_.unbind();
+	vert_buffer_.bind();
+	vert_buffer_.buffer_data(MAX_SPRITES_PER_BATCH*VERTS_PER_SPRITE*sizeof(gl_vertex_multi), nullptr, GL_DYNAMIC_DRAW);
+	vert_buffer_.unbind();
 
 	// index buffer
 
-	indices_buffer_.bind();
-	indices_buffer_.buffer_data(MAX_SPRITES_PER_BATCH*INDICES_PER_SPRITE*sizeof(GLushort), nullptr, GL_STATIC_DRAW);
+	index_buffer_.bind();
+	index_buffer_.buffer_data(MAX_SPRITES_PER_BATCH*INDICES_PER_SPRITE*sizeof(GLushort), nullptr, GL_STATIC_DRAW);
 
-	auto index_ptr = reinterpret_cast<GLushort *>(indices_buffer_.map(GL_WRITE_ONLY));
+	auto index_ptr = reinterpret_cast<GLushort *>(index_buffer_.map(GL_WRITE_ONLY));
 
 	for (int i = 0; i < MAX_SPRITES_PER_BATCH; i++) {
 		*index_ptr++ = i*4;
@@ -57,49 +154,62 @@ sprite_batch::sprite_batch()
 		*index_ptr++ = i*4;
 	}
 
-	indices_buffer_.unmap();
-	indices_buffer_.unbind();
+	index_buffer_.unmap();
+	index_buffer_.unbind();
+}
+
+void
+sprite_batch::init_programs()
+{
+	auto init_program = [](gl_program& prog, const char *vert_source, const char *frag_source)
+		{
+			gl_shader vert_single { GL_VERTEX_SHADER };
+			vert_single.set_source(vert_source);
+			vert_single.compile();
+
+			gl_shader frag_single { GL_FRAGMENT_SHADER };
+			frag_single.set_source(frag_source);
+			frag_single.compile();
+
+			prog.attach(vert_single);
+			prog.attach(frag_single);
+			prog.link();
+		};
+
+	init_program(program_single_, vert_shader_single, frag_shader_single);
+	init_program(program_multi_, vert_shader_multi, frag_shader_multi);
+}
+
+void
+sprite_batch::init_vaos()
+{
+#define INIT_ATTRIB_POINTER(prog, st, field, size) \
+	{ \
+		GLint location = prog.get_attribute_location(#field); \
+		gl_check(glVertexAttribPointer(location, size, GL_FLOAT, GL_FALSE, sizeof(st), reinterpret_cast<const GLvoid *>(offsetof(st, field)))); \
+		gl_check(glEnableVertexAttribArray(location)); \
+	}
 
 	// vao for single texture sprites
 
 	vao_single_.bind();
-
-	verts_buffer_.bind();
-
-	glEnableClientState(GL_VERTEX_ARRAY);
-	glVertexPointer(2, GL_FLOAT, sizeof(gl_vertex_single), reinterpret_cast<GLvoid *>(offsetof(gl_vertex_single, pos)));
-
-	glEnableClientState(GL_TEXTURE_COORD_ARRAY);
-	glTexCoordPointer(2, GL_FLOAT, sizeof(gl_vertex_single), reinterpret_cast<GLvoid *>(offsetof(gl_vertex_single, texcoord)));
-
-	glEnableClientState(GL_COLOR_ARRAY);
-	glColorPointer(4, GL_FLOAT, sizeof(gl_vertex_single), reinterpret_cast<GLvoid *>(offsetof(gl_vertex_single, color)));
+	vert_buffer_.bind();
+	INIT_ATTRIB_POINTER(program_single_, gl_vertex_single, position, 2)
+	INIT_ATTRIB_POINTER(program_single_, gl_vertex_single, texcoord, 2)
+	INIT_ATTRIB_POINTER(program_single_, gl_vertex_single, color, 4)
 
 	// vao for multi texture sprites
 
-	verts_buffer_.unbind();
 	vao_multi_.bind();
+	vert_buffer_.bind(); // XXX need this?
+	INIT_ATTRIB_POINTER(program_multi_, gl_vertex_multi, position, 2)
+	INIT_ATTRIB_POINTER(program_multi_, gl_vertex_multi, texcoord0, 2)
+	INIT_ATTRIB_POINTER(program_multi_, gl_vertex_multi, texcoord1, 2)
+	INIT_ATTRIB_POINTER(program_multi_, gl_vertex_multi, color, 4)
 
-	verts_buffer_.bind(); // XXX need this?
-
-	glEnableClientState(GL_VERTEX_ARRAY);
-	glVertexPointer(2, GL_FLOAT, sizeof(gl_vertex_multi), reinterpret_cast<GLvoid *>(offsetof(gl_vertex_multi, pos)));
-
-	glClientActiveTexture(GL_TEXTURE0);
-	glEnableClientState(GL_TEXTURE_COORD_ARRAY);
-	glTexCoordPointer(2, GL_FLOAT, sizeof(gl_vertex_multi), reinterpret_cast<GLvoid *>(offsetof(gl_vertex_multi, texcoord0)));
-
-	glClientActiveTexture(GL_TEXTURE1);
-	glEnableClientState(GL_TEXTURE_COORD_ARRAY);
-	glTexCoordPointer(2, GL_FLOAT, sizeof(gl_vertex_multi), reinterpret_cast<GLvoid *>(offsetof(gl_vertex_multi, texcoord1)));
-
-	glEnableClientState(GL_COLOR_ARRAY);
-	glColorPointer(4, GL_FLOAT, sizeof(gl_vertex_multi), reinterpret_cast<GLvoid *>(offsetof(gl_vertex_multi, color)));
-
-	glClientActiveTexture(GL_TEXTURE0);
-
-	verts_buffer_.unbind();
 	gl_vertex_array::unbind();
+
+#undef INIT_ATTRIB_POINTER
 }
 
 void
@@ -211,6 +321,8 @@ sprite_batch::end()
 	if (sprites_.empty())
 		return;
 
+	// sort sprites
+
 	std::vector<const sprite_info *> sorted_sprites(sprites_.size());
 
 	std::transform(
@@ -236,11 +348,22 @@ sprite_batch::end()
 				return a->tex1 < b->tex1;
 		});
 
-	enable_alpha_blend _;
-	glColor4f(1, 1, 1, 1); // XXX for now
+	// initialize program uniforms
 
-	glActiveTexture(GL_TEXTURE0);
-	glEnable(GL_TEXTURE_2D);
+	program_single_.use();
+	program_single_.set_uniform_i("texture", 0); // texunit 0
+	program_single_.set_uniform_mat4("proj_modelview", proj_modelview_);
+
+	program_multi_.use();
+	program_multi_.set_uniform_i("texture0", 0); // texunit 0
+	program_multi_.set_uniform_i("texture1", 1); // texunit 0
+	program_multi_.set_uniform_mat4("proj_modelview", proj_modelview_);
+
+	// do the dance, do the dance
+
+	enable_alpha_blend _;
+
+	vert_buffer_.bind();
 
 	const texture *batch_tex0 = nullptr;
 	const texture *batch_tex1 = nullptr;
@@ -275,11 +398,16 @@ sprite_batch::end()
 
 	do_render(num_sprites);
 
-	glActiveTexture(GL_TEXTURE1);
-	glDisable(GL_TEXTURE_2D);
+	// cleanup
+
+	vert_buffer_.unbind();
+	index_buffer_.unbind();
+
+	gl_vertex_array::unbind();
+
+	glUseProgram(0);
 
 	glActiveTexture(GL_TEXTURE0);
-	glDisable(GL_TEXTURE_2D);
 }
 
 void
@@ -289,12 +417,11 @@ sprite_batch::render(const texture *tex0, const texture *tex1, const sprite_info
 	tex0->bind();
 
 	glActiveTexture(GL_TEXTURE1);
-	glEnable(GL_TEXTURE_2D);
 	tex1->bind();
 
-	verts_buffer_.bind();
+	program_multi_.use();
 
-	auto vert_ptr = reinterpret_cast<gl_vertex_multi *>(verts_buffer_.map(GL_WRITE_ONLY));
+	auto vert_ptr = reinterpret_cast<gl_vertex_multi *>(vert_buffer_.map(GL_WRITE_ONLY));
 
 	for (size_t i = 0; i < num_sprites; i++) {
 		auto sp = sprites[i];
@@ -344,17 +471,11 @@ sprite_batch::render(const texture *tex0, const texture *tex1, const sprite_info
 		*vert_ptr++ = { { x3, y3 }, { u10, v00 }, { u11, v01 }, { r, g, b, a } };
 	}
 
-	verts_buffer_.unmap();
+	vert_buffer_.unmap();
 
 	vao_multi_.bind();
-
-	indices_buffer_.bind();
+	index_buffer_.bind();
 	glDrawElements(GL_TRIANGLES, num_sprites*INDICES_PER_SPRITE, GL_UNSIGNED_SHORT, 0);
-	indices_buffer_.unbind();
-
-	gl_vertex_array::unbind();
-
-	verts_buffer_.unbind(); // XXX need this?
 }
 
 void
@@ -363,12 +484,9 @@ sprite_batch::render(const texture *tex, const sprite_info **sprites, size_t num
 	glActiveTexture(GL_TEXTURE0);
 	tex->bind();
 
-	glActiveTexture(GL_TEXTURE1);
-	glDisable(GL_TEXTURE_2D);
+	program_single_.use();
 
-	verts_buffer_.bind();
-
-	auto vert_ptr = reinterpret_cast<gl_vertex_single *>(verts_buffer_.map(GL_WRITE_ONLY));
+	auto vert_ptr = reinterpret_cast<gl_vertex_single *>(vert_buffer_.map(GL_WRITE_ONLY));
 
 	for (size_t i = 0; i < num_sprites; i++) {
 		auto sp = sprites[i];
@@ -408,17 +526,11 @@ sprite_batch::render(const texture *tex, const sprite_info **sprites, size_t num
 		*vert_ptr++ = { { x3, y3 }, { u1, v0 }, { r, g, b, a } };
 	}
 
-	verts_buffer_.unmap();
+	vert_buffer_.unmap();
 
 	vao_single_.bind();
-
-	indices_buffer_.bind();
+	index_buffer_.bind();
 	glDrawElements(GL_TRIANGLES, num_sprites*INDICES_PER_SPRITE, GL_UNSIGNED_SHORT, 0);
-	indices_buffer_.unbind();
-
-	gl_vertex_array::unbind();
-
-	verts_buffer_.unbind(); // XXX need this?
 }
 
 }

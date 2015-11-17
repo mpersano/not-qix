@@ -526,6 +526,10 @@ game::draw()
 
 	auto& sb = *sb_;
 
+	sb.set_viewport(
+		{ { -offset.x, -offset.y },
+		  { viewport_width - offset.x, viewport_height - offset.y } });
+
 	sb.begin();
 
 	state_->draw(sb);
@@ -543,6 +547,8 @@ game::draw()
 	glPopMatrix();
 
 	// relative to screen
+
+	sb.set_viewport({ { 0, 0 }, { viewport_width, viewport_height } });
 
 	sb.begin();
 
