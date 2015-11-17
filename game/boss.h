@@ -1,11 +1,11 @@
 #pragma once
 
 #include "script_interface.h"
-#include "quad.h"
 #include "foe.h"
 
 namespace ggl {
 class sprite;
+class texture;
 }
 
 class boss : public foe

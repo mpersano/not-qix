@@ -29,6 +29,8 @@ public:
 	void update_and_render(float dt) override;
 
 private:
+	void init_gl_state();
+
 	std::unique_ptr<app_state> cur_state_;
 	float update_t_;
 
@@ -57,6 +59,41 @@ game_app::init(int viewport_width, int viewport_height)
 	cur_state_.reset(new in_game_state { scene_width_, scene_height_ });
 
 	update_t_ = 0;
+
+	init_gl_state();
+}
+
+void
+game_app::init_gl_state()
+{
+	// default state
+
+	glDisable(GL_CULL_FACE);
+	glDisable(GL_LIGHTING);
+	glDisable(GL_DEPTH_TEST);
+	glDisable(GL_ALPHA_TEST);
+
+	// texture environment parameters
+
+	glActiveTexture(GL_TEXTURE0);
+	glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
+
+	glActiveTexture(GL_TEXTURE1);
+	glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_COMBINE);
+
+	// add RGB
+	glTexEnvi(GL_TEXTURE_ENV, GL_COMBINE_RGB, GL_ADD);
+	glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE0_RGB, GL_PREVIOUS);
+	glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE1_RGB, GL_TEXTURE);
+	glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND0_RGB, GL_SRC_COLOR);
+	glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND1_RGB, GL_SRC_COLOR);
+
+	// use alpha of first texture
+	glTexEnvi(GL_TEXTURE_ENV, GL_COMBINE_ALPHA, GL_REPLACE);
+	glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE0_ALPHA, GL_PREVIOUS);
+	glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND0_ALPHA, GL_SRC_ALPHA);
+
+	glActiveTexture(GL_TEXTURE0);
 }
 
 void

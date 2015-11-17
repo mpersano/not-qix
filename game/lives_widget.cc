@@ -23,7 +23,7 @@ lives_widget::lives_widget(game& g)
 : widget { g }
 , font_ { ggl::res::get_font("fonts/hud-small.spr") }
 , hide_ { true }
-, circle_ { new shiny_sprite_quad { ggl::res::get_sprite("lives-left-circle.png"), game_, .5, -.02 } }
+, circle_ { ggl::res::get_sprite("lives-left-circle.png"), game_, .5, -.02 }
 {
 	auto& p = game_.get_player();
 
@@ -127,25 +127,22 @@ lives_widget::draw(ggl::sprite_batch& sb) const
 
 	text_pos = circle_scale*vec2f { -110, -80 };
 
-	glPushMatrix();
-	glTranslatef(pos.x, pos.y, 0);
-	glScalef(scale, scale, 1.f);
+	sb.push_matrix();
+
+	sb.translate(pos.x, pos.y);
+	sb.scale(scale);
 
 	// circle
 
-	glPushMatrix();
-	glScalef(circle_scale.x, circle_scale.y, 1);
-	circle_->draw();
-	glPopMatrix();
-
-	glPopMatrix();
+	sb.push_matrix();
+	sb.scale(circle_scale.x, circle_scale.y);
+	circle_.draw(sb, 2);
+	sb.pop_matrix();
 
 	// text
 
-	sb.push_matrix();
-	sb.translate(pos.x, pos.y);
-	sb.scale(scale);
 	font_->draw(sb, 0, text_, text_pos, text_va, text_ha);
+
 	sb.pop_matrix();
 }
 

@@ -2,7 +2,7 @@
 
 #include <ggl/event.h>
 
-#include "quad.h"
+#include "shiny_sprite.h"
 #include "widget.h"
 
 namespace ggl {
@@ -32,7 +32,7 @@ private:
 	std::wstring text_;
 	const ggl::font *font_;
 
-	std::unique_ptr<quad> circle_;
+	shiny_sprite circle_;
 
 	ggl::event_connection_ptr respawn_conn_;
 	ggl::event_connection_ptr death_conn_;

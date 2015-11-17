@@ -53,7 +53,7 @@ set(GAME_SOURCES
 	level.cc
 	debug_gfx.cc
 	tween.cc
-	quad.cc
+	shiny_sprite.cc
 	game.cc
 	player.cc
 	script_interface.cc

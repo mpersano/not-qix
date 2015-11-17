@@ -10,7 +10,6 @@
 
 #include "game.h"
 #include "effect.h"
-#include "quad.h"
 #include "powerup.h"
 
 namespace {
@@ -75,23 +74,23 @@ powerup::powerup(game& g, const vec2f& pos, const vec2f& dir)
 , dir_ { dir }
 , state_ { state::MOVING }
 , outer_sprite_ { ggl::res::get_sprite("powerup-outer.png") }
-, text_ { new shiny_sprite_quad { ggl::res::get_sprite("powerup-inner.png"), game_, .5, -.02 } }
+, text_ { ggl::res::get_sprite("powerup-inner.png"), game_, .5, -.02 }
 { }
 
 void
 powerup::draw(ggl::sprite_batch& sb) const
 {
-	glPushMatrix();
-	glTranslatef(pos_.x, pos_.y, 0);
+	sb.push_matrix();
+	sb.translate(pos_.x, pos_.y);
 
-	glPushMatrix();
-	glRotatef(3.f*game_.tics, 0, 0, 1);
-	outer_sprite_->draw(ggl::horiz_align::CENTER, ggl::vert_align::CENTER);
-	glPopMatrix();
+	sb.push_matrix();
+	sb.rotate(.1f*game_.tics);
+	outer_sprite_->draw(sb, 0);
+	sb.pop_matrix();
 
-	text_->draw();
+	text_.draw(sb, 1);
 
-	glPopMatrix();
+	sb.pop_matrix();
 }
 
 bool

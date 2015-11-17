@@ -13,7 +13,6 @@
 
 #include "util.h"
 #include "tween.h"
-#include "quad.h"
 #include "level.h"
 #include "boss.h"
 #include "percent_widget.h"

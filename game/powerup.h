@@ -1,6 +1,6 @@
 #pragma once
 
-#include "quad.h"
+#include "shiny_sprite.h"
 #include "entity.h"
 
 namespace ggl {
@@ -31,5 +31,5 @@ private:
 	vec2f dir_;
 
 	const ggl::sprite *outer_sprite_;
-	std::unique_ptr<quad> text_;
+	shiny_sprite text_;
 };

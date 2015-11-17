@@ -34,9 +34,12 @@ public:
 
 	void translate(const vec2f& p);
 	void translate(float x, float y);
+
 	void scale(float s);
 	void scale(float sx, float sy);
+
 	void rotate(float a);
+
 	void push_matrix();
 	void pop_matrix();
 
@@ -45,19 +48,23 @@ public:
 	void draw(const texture *tex, const bbox& tex_coords, const bbox& dest_coords, float depth);
 	void draw(const texture *tex, const bbox& tex_coords, const quad& dest_coords, float depth);
 
+	void draw(const texture *tex0, const texture *tex1, const bbox& tex_coords0, const bbox& tex_coords1, const bbox& dest_coords, float depth);
+	void draw(const texture *tex0, const texture *tex1, const bbox& tex_coords0, const bbox& tex_coords1, const quad& dest_coords, float depth);
+
 	void end();
 
 private:
 	struct sprite_info
 	{
-		const texture *tex;
-		bbox tex_coords;
+		const texture *tex0, *tex1;
+		bbox tex0_coords, tex1_coords;
 		quad dest_coords;
 		rgba color;
 		float depth;
 	};
 
 	void render(const texture *tex, const sprite_info **sprites, size_t num_sprites);
+	void render(const texture *tex0, const texture *tex1, const sprite_info **sprites, size_t num_sprites);
 
 	rgba color_;
 	mat3 matrix_;

@@ -10,7 +10,6 @@
 #include "tween.h"
 #include "game.h"
 #include "effect.h"
-#include "quad.h"
 #include "util.h"
 #include "bezier.h"
 #include "particles.h"
