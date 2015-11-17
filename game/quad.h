@@ -51,22 +51,6 @@ private:
 	unsigned width_, height_;
 };
 
-class text_quad : public quad
-{
-public:
-	text_quad(const ggl::font *font, const std::basic_string<wchar_t> text);
-
-	unsigned get_width() const override;
-	unsigned get_height() const override;
-
-private:
-	void draw_quad() const override;
-
-	const ggl::texture *tex_;
-	ggl::vertex_array_texcoord<GLshort, 2, GLfloat, 2> va_;
-	int width_, height_;
-};
-
 class shiny_sprite_quad : public quad
 {
 public:

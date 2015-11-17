@@ -95,60 +95,6 @@ image_quad::draw_quad() const
 	va_.draw(GL_TRIANGLE_STRIP);
 }
 
-text_quad::text_quad(const ggl::font *font, const std::basic_string<wchar_t> text)
-: tex_ { nullptr /* font->tex */ }
-{
-#if 0
-	font->render(text, va_);
-
-	using vert = decltype(va_)::value_type;
-
-	auto cmp_x = [](const vert& a, const vert& b) { return a.pos[0] < b.pos[0]; };
-	auto cmp_y = [](const vert& a, const vert& b) { return a.pos[1] < b.pos[1]; };
-
-	auto x_min = std::min_element(std::begin(va_), std::end(va_), cmp_x)->pos[0];
-	auto x_max = std::max_element(std::begin(va_), std::end(va_), cmp_x)->pos[0];
-
-	auto y_min = std::min_element(std::begin(va_), std::end(va_), cmp_y)->pos[1];
-	auto y_max = std::max_element(std::begin(va_), std::end(va_), cmp_y)->pos[1];
-
-	width_ = x_max - x_min;
-	height_ = y_max - y_min;
-
-	const int dx = -x_min - .5*width_;
-	const int dy = -y_min - .5*height_;
-
-	for (auto& v : va_) {
-		v.pos[0] += dx;
-		v.pos[1] += dy;
-	}
-#endif
-}
-
-unsigned
-text_quad::get_width() const
-{
-	return width_;
-}
-
-unsigned
-text_quad::get_height() const
-{
-	return height_;
-}
-
-void
-text_quad::draw_quad() const
-{
-#if 0
-	ggl::enable_alpha_blend _;
-	ggl::enable_texture __;
-
-	tex_->bind();
-	va_.draw(GL_TRIANGLES);
-#endif
-}
-
 // XXX: we only need game& for game_.tics, should be global somewhere?
 
 shiny_sprite_quad::shiny_sprite_quad(const ggl::sprite *sprite, const game& g, float tex_offset, float speed)
