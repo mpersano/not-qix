@@ -9,7 +9,8 @@
 #include <ggl/vec2.h>
 #include <ggl/mat3.h>
 #include <ggl/rgba.h>
-#include <ggl/buffer_object.h>
+#include <ggl/gl_vertex_array.h>
+#include <ggl/gl_buffer.h>
 
 namespace ggl {
 
@@ -71,8 +72,11 @@ private:
 	std::stack<mat3> matrix_stack_;
 	std::vector<sprite_info> sprites_;
 
-	std::unique_ptr<gl_buffer_object> vbo_verts_;
-	std::unique_ptr<gl_buffer_object> vbo_indices_;
+	gl_buffer verts_buffer_;
+	gl_buffer indices_buffer_;
+
+	gl_vertex_array vao_single_;
+	gl_vertex_array vao_multi_;
 };
 
 }

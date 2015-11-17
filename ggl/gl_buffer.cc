@@ -1,44 +1,44 @@
-#include <ggl/buffer_object.h>
+#include <ggl/gl_buffer.h>
 
 namespace ggl {
 
-gl_buffer_object::gl_buffer_object(GLenum target)
+gl_buffer::gl_buffer(GLenum target)
 : target_ { target }
 {
 	glGenBuffers(1, &id_);
 }
 
-gl_buffer_object::~gl_buffer_object()
+gl_buffer::~gl_buffer()
 {
 	glDeleteBuffers(1, &id_);
 }
 
 void
-gl_buffer_object::bind()
+gl_buffer::bind()
 {
 	glBindBuffer(target_, id_);
 }
 
 void
-gl_buffer_object::unbind()
+gl_buffer::unbind()
 {
 	glBindBuffer(target_, 0);
 }
 
 void
-gl_buffer_object::buffer_data(GLsizei size, const void *data, GLenum usage)
+gl_buffer::buffer_data(GLsizei size, const void *data, GLenum usage)
 {
 	glBufferData(target_, size, data, usage);
 }
 
 void *
-gl_buffer_object::map(GLenum access)
+gl_buffer::map(GLenum access)
 {
 	return glMapBuffer(target_, access);
 }
 
 void
-gl_buffer_object::unmap()
+gl_buffer::unmap()
 {
 	glUnmapBuffer(target_);
 }

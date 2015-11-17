@@ -6,15 +6,20 @@ namespace ggl {
 
 struct enable_texture
 {
-	enable_texture()
+	enable_texture(GLenum unit)
+	: unit_ { unit }
 	{
+		glActiveTexture(unit_);
 		glEnable(GL_TEXTURE_2D);
 	}
 
 	~enable_texture()
 	{
+		glActiveTexture(unit_);
 		glDisable(GL_TEXTURE_2D);
 	}
+
+	GLenum unit_;
 };
 
 template <GLenum SFactor, GLenum DFactor>

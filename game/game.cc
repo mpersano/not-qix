@@ -723,7 +723,7 @@ game::draw_background() const
 	glColor4f(1, 1, 1, 1);
 
 	{
-	ggl::enable_texture _;
+	ggl::enable_texture _ { GL_TEXTURE0 };
 
 	cur_level->fg_texture->bind();
 	background_filled_va_.draw(GL_TRIANGLES);

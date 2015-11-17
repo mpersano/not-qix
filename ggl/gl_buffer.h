@@ -5,11 +5,11 @@
 
 namespace ggl {
 
-class gl_buffer_object : private noncopyable
+class gl_buffer : private noncopyable
 {
 public:
-	gl_buffer_object(GLenum target);
-	~gl_buffer_object();
+	gl_buffer(GLenum target);
+	~gl_buffer();
 
 	void bind();
 	void unbind();

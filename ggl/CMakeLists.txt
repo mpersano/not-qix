@@ -30,7 +30,8 @@ set(GGL_SOURCES
 	tween.cc
 	resources.cc
 	sprite_manager.cc
-	buffer_object.cc
+	gl_buffer.cc
+	gl_vertex_array.cc
 	sprite_batch.cc
 	vec2_util.cc)
 
