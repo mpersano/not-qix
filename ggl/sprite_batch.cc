@@ -411,7 +411,7 @@ sprite_batch::end()
 }
 
 void
-sprite_batch::render(const texture *tex0, const texture *tex1, const sprite_info **sprites, size_t num_sprites)
+sprite_batch::render(const texture *tex0, const texture *tex1, const sprite_info *const *sprites, size_t num_sprites)
 {
 	glActiveTexture(GL_TEXTURE0);
 	tex0->bind();
@@ -479,7 +479,7 @@ sprite_batch::render(const texture *tex0, const texture *tex1, const sprite_info
 }
 
 void
-sprite_batch::render(const texture *tex, const sprite_info **sprites, size_t num_sprites)
+sprite_batch::render(const texture *tex, const sprite_info *const *sprites, size_t num_sprites)
 {
 	glActiveTexture(GL_TEXTURE0);
 	tex->bind();

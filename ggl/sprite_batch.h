@@ -72,8 +72,8 @@ private:
 		float depth;
 	};
 
-	void render(const texture *tex, const sprite_info **sprites, size_t num_sprites);
-	void render(const texture *tex0, const texture *tex1, const sprite_info **sprites, size_t num_sprites);
+	void render(const texture *tex, const sprite_info *const *sprites, size_t num_sprites);
+	void render(const texture *tex0, const texture *tex1, const sprite_info *const *sprites, size_t num_sprites);
 
 	rgba color_;
 	mat3 matrix_;
