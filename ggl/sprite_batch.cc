@@ -98,7 +98,64 @@ struct gl_vertex_multi
 
 };
 
-sprite_batch::sprite_batch()
+class sprite_batch::impl : private noncopyable
+{
+public:
+	impl();
+
+	void set_viewport(const bbox& viewport);
+
+	void begin();
+
+	void translate(const vec2f& p);
+	void scale(const vec2f& s);
+
+	void rotate(float a);
+
+	void push_matrix();
+	void pop_matrix();
+
+	void set_color(const rgba& color);
+
+	void draw(const texture *tex0, const texture *tex1, const bbox& tex_coords0, const bbox& tex_coords1, const quad& dest_coords, float depth);
+
+	void end();
+
+private:
+	void init_buffers();
+	void init_vaos();
+	void init_programs();
+
+	struct sprite_info
+	{
+		const texture *tex0, *tex1;
+		bbox tex0_coords, tex1_coords;
+		quad dest_coords;
+		rgba color;
+		float depth;
+	};
+
+	void render(const texture *tex, const sprite_info *const *sprites, size_t num_sprites);
+	void render(const texture *tex0, const texture *tex1, const sprite_info *const *sprites, size_t num_sprites);
+
+	rgba color_;
+	mat3 matrix_;
+	std::stack<mat3> matrix_stack_;
+	std::vector<sprite_info> sprites_;
+
+	gl_buffer vert_buffer_;
+	gl_buffer index_buffer_;
+
+	gl_vertex_array vao_single_;
+	gl_vertex_array vao_multi_;
+
+	gl_program program_single_;
+	gl_program program_multi_;
+
+	mat4 proj_modelview_;
+};
+
+sprite_batch::impl::impl()
 : vert_buffer_ { GL_ARRAY_BUFFER }
 , index_buffer_ { GL_ELEMENT_ARRAY_BUFFER }
 , proj_modelview_ { mat4::identity() }
@@ -109,7 +166,7 @@ sprite_batch::sprite_batch()
 }
 
 void
-sprite_batch::set_viewport(const bbox& viewport)
+sprite_batch::impl::set_viewport(const bbox& viewport)
 {
 	const float NEAR = -1.f;
 	const float FAR = 1.f;
@@ -129,7 +186,7 @@ sprite_batch::set_viewport(const bbox& viewport)
 }
 
 void
-sprite_batch::init_buffers()
+sprite_batch::impl::init_buffers()
 {
 	// vertex buffer
 
@@ -159,7 +216,7 @@ sprite_batch::init_buffers()
 }
 
 void
-sprite_batch::init_programs()
+sprite_batch::impl::init_programs()
 {
 	auto init_program = [](gl_program& prog, const char *vert_source, const char *frag_source)
 		{
@@ -181,7 +238,7 @@ sprite_batch::init_programs()
 }
 
 void
-sprite_batch::init_vaos()
+sprite_batch::impl::init_vaos()
 {
 #define INIT_ATTRIB_POINTER(prog, st, field, size) \
 	{ \
@@ -213,7 +270,7 @@ sprite_batch::init_vaos()
 }
 
 void
-sprite_batch::begin()
+sprite_batch::impl::begin()
 {
 	sprites_.clear();
 
@@ -223,49 +280,37 @@ sprite_batch::begin()
 }
 
 void
-sprite_batch::set_color(const rgba& color)
+sprite_batch::impl::set_color(const rgba& color)
 {
 	color_ = color;
 }
 
 void
-sprite_batch::translate(float x, float y)
+sprite_batch::impl::translate(const vec2f& p)
 {
-	matrix_ *= mat3::translation(x, y);
+	matrix_ *= mat3::translation(p);
 }
 
 void
-sprite_batch::translate(const vec2f& pos)
+sprite_batch::impl::scale(const vec2f& s)
 {
-	matrix_ *= mat3::translation(pos);
+	matrix_ *= mat3::scale(s);
 }
 
 void
-sprite_batch::scale(float s)
-{
-	matrix_ *= mat3::scale(s, s);
-}
-
-void
-sprite_batch::scale(float sx, float sy)
-{
-	matrix_ *= mat3::scale(sx, sy);
-}
-
-void
-sprite_batch::rotate(float a)
+sprite_batch::impl::rotate(float a)
 {
 	matrix_ *= mat3::rotation(a);
 }
 
 void
-sprite_batch::push_matrix()
+sprite_batch::impl::push_matrix()
 {
 	matrix_stack_.push(matrix_);
 }
 
 void
-sprite_batch::pop_matrix()
+sprite_batch::impl::pop_matrix()
 {
 	// XXX check if empty
 	matrix_ = matrix_stack_.top();
@@ -273,37 +318,7 @@ sprite_batch::pop_matrix()
 }
 
 void
-sprite_batch::draw(const texture *tex, const bbox& tex_coords, const bbox& dest_coords, float depth)
-{
-	const float x0 = dest_coords.min.x;
-	const float x1 = dest_coords.max.x;
-
-	const float y0 = dest_coords.min.y;
-	const float y1 = dest_coords.max.y;
-
-	draw(tex, tex_coords, { { x0, y0 }, { x0, y1 }, { x1, y1 }, { x1, y0 } }, depth);
-}
-
-void
-sprite_batch::draw(const texture *tex, const bbox& tex_coords, const quad& dest_coords, float depth)
-{
-	draw(tex, nullptr, tex_coords, bbox(), dest_coords, depth);
-}
-
-void
-sprite_batch::draw(const texture *tex0, const texture *tex1, const bbox& tex0_coords, const bbox& tex1_coords, const bbox& dest_coords, float depth)
-{
-	const float x0 = dest_coords.min.x;
-	const float x1 = dest_coords.max.x;
-
-	const float y0 = dest_coords.min.y;
-	const float y1 = dest_coords.max.y;
-
-	draw(tex0, tex1, tex0_coords, tex1_coords, { { x0, y0 }, { x0, y1 }, { x1, y1 }, { x1, y0 } }, depth);
-}
-
-void
-sprite_batch::draw(const texture *tex0, const texture *tex1, const bbox& tex0_coords, const bbox& tex1_coords, const quad& dest_coords, float depth)
+sprite_batch::impl::draw(const texture *tex0, const texture *tex1, const bbox& tex0_coords, const bbox& tex1_coords, const quad& dest_coords, float depth)
 {
 	sprites_.push_back(
 		{ tex0,
@@ -316,7 +331,7 @@ sprite_batch::draw(const texture *tex0, const texture *tex1, const bbox& tex0_co
 }
 
 void
-sprite_batch::end()
+sprite_batch::impl::end()
 {
 	if (sprites_.empty())
 		return;
@@ -411,7 +426,7 @@ sprite_batch::end()
 }
 
 void
-sprite_batch::render(const texture *tex0, const texture *tex1, const sprite_info *const *sprites, size_t num_sprites)
+sprite_batch::impl::render(const texture *tex0, const texture *tex1, const sprite_info *const *sprites, size_t num_sprites)
 {
 	glActiveTexture(GL_TEXTURE0);
 	tex0->bind();
@@ -479,7 +494,7 @@ sprite_batch::render(const texture *tex0, const texture *tex1, const sprite_info
 }
 
 void
-sprite_batch::render(const texture *tex, const sprite_info *const *sprites, size_t num_sprites)
+sprite_batch::impl::render(const texture *tex, const sprite_info *const *sprites, size_t num_sprites)
 {
 	glActiveTexture(GL_TEXTURE0);
 	tex->bind();
@@ -531,6 +546,119 @@ sprite_batch::render(const texture *tex, const sprite_info *const *sprites, size
 	vao_single_.bind();
 	index_buffer_.bind();
 	glDrawElements(GL_TRIANGLES, num_sprites*INDICES_PER_SPRITE, GL_UNSIGNED_SHORT, 0);
+}
+
+sprite_batch::sprite_batch()
+: impl_ { new impl }
+{ }
+
+void
+sprite_batch::set_viewport(const bbox& viewport)
+{
+	impl_->set_viewport(viewport);
+}
+
+void
+sprite_batch::begin()
+{
+	impl_->begin();
+}
+
+void
+sprite_batch::translate(const vec2f& p)
+{
+	impl_->translate(p);
+}
+
+void
+sprite_batch::translate(float x, float y)
+{
+	impl_->translate({ x, y });
+}
+
+void
+sprite_batch::scale(float s)
+{
+	impl_->scale({ s, s });
+}
+
+void
+sprite_batch::scale(float sx, float sy)
+{
+	impl_->scale({ sx, sy });
+}
+
+void
+sprite_batch::scale(const vec2f& s)
+{
+	impl_->scale(s);
+}
+
+void
+sprite_batch::rotate(float a)
+{
+	impl_->rotate(a);
+}
+
+void
+sprite_batch::push_matrix()
+{
+	impl_->push_matrix();
+}
+
+void
+sprite_batch::pop_matrix()
+{
+	impl_->pop_matrix();
+}
+
+void
+sprite_batch::set_color(const rgba& color)
+{
+	impl_->set_color(color);
+}
+
+void
+sprite_batch::draw(const texture *tex, const bbox& tex_coords, const bbox& dest_coords, float depth)
+{
+	const float x0 = dest_coords.min.x;
+	const float x1 = dest_coords.max.x;
+
+	const float y0 = dest_coords.min.y;
+	const float y1 = dest_coords.max.y;
+
+	draw(tex, tex_coords, { { x0, y0 }, { x0, y1 }, { x1, y1 }, { x1, y0 } }, depth);
+}
+
+void
+sprite_batch::draw(const texture *tex, const bbox& tex_coords, const quad& dest_coords, float depth)
+{
+	draw(tex, nullptr, tex_coords, bbox(), dest_coords, depth);
+}
+
+void
+sprite_batch::draw(const texture *tex0, const texture *tex1, const bbox& tex0_coords, const bbox& tex1_coords, const bbox& dest_coords, float depth)
+{
+	const float x0 = dest_coords.min.x;
+	const float x1 = dest_coords.max.x;
+
+	const float y0 = dest_coords.min.y;
+	const float y1 = dest_coords.max.y;
+
+	draw(tex0, tex1, tex0_coords, tex1_coords, { { x0, y0 }, { x0, y1 }, { x1, y1 }, { x1, y0 } }, depth);
+}
+
+
+void
+sprite_batch::draw(const texture *tex0, const texture *tex1, const bbox& tex_coords0, const bbox& tex_coords1, const quad& dest_coords, float depth)
+{
+	impl_->draw(tex0, tex1, tex_coords0, tex_coords1, dest_coords, depth);
+}
+
+void
+sprite_batch::end()
+{
+	impl_->end();
 }
 
 }

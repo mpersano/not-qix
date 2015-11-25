@@ -4,13 +4,14 @@
 
 #include <ggl/event.h>
 #include <ggl/app.h>
+#include <ggl/noncopyable.h>
 #include <ggl/dpad_button.h>
 
 namespace ggl {
 
 class asset;
 
-class core
+class core : private noncopyable
 {
 public:
 	core(app& a);

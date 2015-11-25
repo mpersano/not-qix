@@ -129,5 +129,6 @@ private:
 	ggl::event<start_event_handler> start_event_;
 	ggl::event<stop_event_handler> stop_event_;
 
-	std::unique_ptr<ggl::sprite_batch> sb_;
+	// std::unique_ptr<ggl::sprite_batch> sb_;
+	ggl::sprite_batch *sb_;
 };

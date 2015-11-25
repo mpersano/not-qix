@@ -43,6 +43,11 @@ struct mat3
 			 0.f,  sy, 0.f };
 	}
 
+	static mat3 scale(const vec2f& s)
+	{
+		return scale(s.x, s.y);
+	}
+
 	static mat3 rotation(float a)
 	{
 		const float c = cosf(a);

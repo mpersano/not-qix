@@ -40,8 +40,9 @@ public:
 	void translate(const vec2f& p);
 	void translate(float x, float y);
 
-	void scale(float s);
+	void scale(const vec2f& s);
 	void scale(float sx, float sy);
+	void scale(float s);
 
 	void rotate(float a);
 
@@ -53,43 +54,14 @@ public:
 	void draw(const texture *tex, const bbox& tex_coords, const bbox& dest_coords, float depth);
 	void draw(const texture *tex, const bbox& tex_coords, const quad& dest_coords, float depth);
 
-	void draw(const texture *tex0, const texture *tex1, const bbox& tex_coords0, const bbox& tex_coords1, const bbox& dest_coords, float depth);
-	void draw(const texture *tex0, const texture *tex1, const bbox& tex_coords0, const bbox& tex_coords1, const quad& dest_coords, float depth);
+	void draw(const texture *tex0, const texture *tex1, const bbox& tex0_coords, const bbox& tex1_coords, const bbox& dest_coords, float depth);
+	void draw(const texture *tex0, const texture *tex1, const bbox& tex0_coords, const bbox& tex1_coords, const quad& dest_coords, float depth);
 
 	void end();
 
 private:
-	void init_buffers();
-	void init_vaos();
-	void init_programs();
-
-	struct sprite_info
-	{
-		const texture *tex0, *tex1;
-		bbox tex0_coords, tex1_coords;
-		quad dest_coords;
-		rgba color;
-		float depth;
-	};
-
-	void render(const texture *tex, const sprite_info *const *sprites, size_t num_sprites);
-	void render(const texture *tex0, const texture *tex1, const sprite_info *const *sprites, size_t num_sprites);
-
-	rgba color_;
-	mat3 matrix_;
-	std::stack<mat3> matrix_stack_;
-	std::vector<sprite_info> sprites_;
-
-	gl_buffer vert_buffer_;
-	gl_buffer index_buffer_;
-
-	gl_vertex_array vao_single_;
-	gl_vertex_array vao_multi_;
-
-	gl_program program_single_;
-	gl_program program_multi_;
-
-	mat4 proj_modelview_;
+	class impl;
+	std::unique_ptr<impl> impl_;
 };
 
 }
