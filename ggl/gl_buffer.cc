@@ -35,9 +35,7 @@ gl_buffer::buffer_data(GLsizei size, const void *data, GLenum usage)
 void *
 gl_buffer::map(GLenum access)
 {
-	void *rv;
-	gl_check(rv = glMapBuffer(target_, access));
-	return rv;
+	return gl_check_r(glMapBuffer(target_, access));
 }
 
 void

@@ -1,4 +1,4 @@
-#pragma onc3
+#pragma once
 
 #include <string>
 
