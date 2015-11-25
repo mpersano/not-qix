@@ -29,12 +29,12 @@ set(GGL_SOURCES
 	action.cc
 	tween.cc
 	resources.cc
+	render.cc
 	sprite_manager.cc
 	gl_buffer.cc
 	gl_vertex_array.cc
 	gl_shader.cc
 	gl_program.cc
-	sprite_batch.cc
 	vec2_util.cc)
 
 if (ANDROID)

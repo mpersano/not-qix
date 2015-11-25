@@ -2,7 +2,7 @@
 #include <ggl/vertex_array.h>
 #include <ggl/util.h>
 #include <ggl/sprite.h>
-#include <ggl/sprite_batch.h>
+#include <ggl/render.h>
 
 namespace ggl {
 
@@ -25,19 +25,19 @@ sprite::sprite(const texture *tex, int u, int v, int width, int height)
 }
 
 void
-sprite::draw(sprite_batch& sb, float depth) const
+sprite::draw(float depth) const
 {
-	draw(sb, depth, { 0.f, 0.f });
+	draw(depth, { 0.f, 0.f });
 }
 
 void
-sprite::draw(sprite_batch& sb, float depth, const vec2f& pos) const
+sprite::draw(float depth, const vec2f& pos) const
 {
-	draw(sb, depth, pos, vert_align::CENTER, horiz_align::CENTER);
+	draw(depth, pos, vert_align::CENTER, horiz_align::CENTER);
 }
 
 void
-sprite::draw(sprite_batch& sb, float depth, const vec2f& pos, vert_align va, horiz_align ha) const
+sprite::draw(float depth, const vec2f& pos, vert_align va, horiz_align ha) const
 {
 	vec2f p0 = pos;
 
@@ -69,7 +69,7 @@ sprite::draw(sprite_batch& sb, float depth, const vec2f& pos, vert_align va, hor
 
 	vec2f p1 = p0 + vec2f { width, height };
 
-	sb.draw(tex, { { u0, v1 }, { u1, v0 } }, bbox { p0, p1 }, depth );
+	render::draw(tex, { { u0, v1 }, { u1, v0 } }, bbox { p0, p1 }, depth );
 }
 
 }

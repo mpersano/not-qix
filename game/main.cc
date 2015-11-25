@@ -9,6 +9,7 @@
 #include <ggl/gl.h>
 #include <ggl/main.h>
 #include <ggl/app.h>
+#include <ggl/resources.h>
 
 #include "level.h"
 #include "in_game_state.h"

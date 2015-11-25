@@ -7,16 +7,15 @@
 namespace ggl {
 
 class texture;
-class sprite_batch;
 
 class sprite
 {
 public:
 	sprite(const texture *tex, int u, int v, int width, int height);
 
-	void draw(sprite_batch& sb, float depth) const;
-	void draw(sprite_batch& sb, float depth, const vec2f& pos) const;
-	void draw(sprite_batch& sb, float depth, const vec2f& pos, vert_align va, horiz_align ha) const;
+	void draw(float depth) const;
+	void draw(float depth, const vec2f& pos) const;
+	void draw(float depth, const vec2f& pos, vert_align va, horiz_align ha) const;
 
 	const texture *tex;
 	int width, height;

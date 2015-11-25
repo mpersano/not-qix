@@ -1,6 +1,6 @@
 #include <ggl/gl.h>
 #include <ggl/sprite.h>
-#include <ggl/sprite_batch.h>
+#include <ggl/render.h>
 #include <ggl/resources.h>
 
 #include "util.h"
@@ -72,15 +72,15 @@ explosion::do_update()
 }
 
 void
-explosion::draw(ggl::sprite_batch& sb) const
+explosion::draw() const
 {
 	for (auto& p : particles_)
-		p.draw(sb);
+		p.draw();
 
-	sb.set_color(ggl::white);
+	ggl::render::set_color(ggl::white);
 
 	for (auto& p : flares_)
-		p.draw(sb);
+		p.draw();
 }
 
 // particles
@@ -111,7 +111,7 @@ explosion::particle::update()
 }
 
 void
-explosion::particle::draw(ggl::sprite_batch& sb) const
+explosion::particle::draw() const
 {
 	if (tics_ >= ttl_)
 		return;
@@ -135,9 +135,9 @@ explosion::particle::draw(ggl::sprite_batch& sb) const
 	const float v1 = sp_->v1;
 
 	float a = 1.f - static_cast<float>(tics_)/ttl_;
-	sb.set_color({ color_.r, color_.g, color_.b, a });
+	ggl::render::set_color({ color_.r, color_.g, color_.b, a });
 
-	sb.draw(sp_->tex, { { u0, v1 }, { u1, v0 } }, ggl::quad { p0, p1, p2, p3 }, 0);
+	ggl::render::draw(sp_->tex, { { u0, v1 }, { u1, v0 } }, ggl::quad { p0, p1, p2, p3 }, 0);
 }
 
 // flares
@@ -168,17 +168,17 @@ explosion::flare::update()
 }
 
 void
-explosion::flare::draw(ggl::sprite_batch& sb) const
+explosion::flare::draw() const
 {
 	if (tics_ >= ttl_)
 		return;
 
 	auto& s = sprites_[tics_*frames_/ttl_];
 
-	sb.push_matrix();
-	sb.translate(pos_);
-	sb.rotate(angle_);
-	sb.scale(radius_/s->width);
-	s->draw(sb, depth_);
-	sb.pop_matrix();
+	ggl::render::push_matrix();
+	ggl::render::translate(pos_);
+	ggl::render::rotate(angle_);
+	ggl::render::scale(radius_/s->width);
+	s->draw(depth_);
+	ggl::render::pop_matrix();
 }

@@ -9,7 +9,6 @@
 #include <ggl/noncopyable.h>
 #include <ggl/vec2.h>
 #include <ggl/vertex_array.h>
-#include <ggl/sprite_batch.h>
 
 #include "widget.h"
 #include "effect.h"
@@ -27,8 +26,8 @@ public:
 	virtual ~game_state() = default;
 
 	virtual void update(unsigned dpad_state) = 0;
-	virtual void draw(ggl::sprite_batch& sb) const = 0;
-	virtual void draw_overlay(ggl::sprite_batch& sb) const = 0;
+	virtual void draw() const = 0;
+	virtual void draw_overlay() const = 0;
 
 protected:
 	game& game_;
@@ -55,7 +54,7 @@ public:
 	bool update_player(unsigned dpad_state);
 	void update_entities();
 
-	void draw_player(ggl::sprite_batch& sb) const;
+	void draw_player() const;
 
 	void add_entity(std::unique_ptr<entity> f);
 	void add_effect(std::unique_ptr<effect> e);
@@ -128,7 +127,4 @@ private:
 	ggl::event<cover_update_event_handler> cover_update_event_;
 	ggl::event<start_event_handler> start_event_;
 	ggl::event<stop_event_handler> stop_event_;
-
-	// std::unique_ptr<ggl::sprite_batch> sb_;
-	ggl::sprite_batch *sb_;
 };

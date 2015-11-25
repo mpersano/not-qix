@@ -13,7 +13,7 @@ class boss : public foe
 public:
 	boss(game& g, const vec2f& pos);
 
-	void draw(ggl::sprite_batch& sb) const override;
+	void draw() const override;
 	bool update() override;
 
 	void on_miniboss_killed();
@@ -33,8 +33,8 @@ private:
 	bool intersects_children(const vec2i& from, const vec2i& to) const override;
 	bool intersects_children(const vec2i& center, float radius) const override;
 
-	void draw_core(ggl::sprite_batch& sb) const;
-	void draw_pods(ggl::sprite_batch& sb) const;
+	void draw_core() const;
+	void draw_pods() const;
 
 	float pod_angle_;
 	int cur_pod_formation_;
@@ -45,7 +45,7 @@ private:
 	public:
 		pod(game& g);
 
-		void draw(ggl::sprite_batch& sb) const;
+		void draw() const;
 		void update();
 
 		void fire_bullet(const vec2f& center, float angle);

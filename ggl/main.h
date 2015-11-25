@@ -1,7 +1,5 @@
 #pragma once
 
-#include <ggl/resources.h>
-
 #if defined(ANDROID)
 #include <ggl/android/core.h>
 #include <ggl/android/main.h>

@@ -14,7 +14,6 @@
 namespace ggl {
 
 class texture;
-class sprite_batch;
 
 struct glyph
 {
@@ -33,9 +32,9 @@ public:
 	const glyph *get_glyph(wchar_t ch) const
 	{ return glyph_map_[ch]; }
 
-	void draw(sprite_batch& sb, float depth, const std::wstring& str) const;
-	void draw(sprite_batch& sb, float depth, const std::wstring& str, const vec2f& pos) const;
-	void draw(sprite_batch& sb, float depth, const std::wstring& str, const vec2f& pos, vert_align va, horiz_align ha) const;
+	void draw(float depth, const std::wstring& str) const;
+	void draw(float depth, const std::wstring& str, const vec2f& pos) const;
+	void draw(float depth, const std::wstring& str, const vec2f& pos, vert_align va, horiz_align ha) const;
 
 private:
 	glyph *glyph_map_[1<<16];

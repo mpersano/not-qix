@@ -1,5 +1,6 @@
 #include <ggl/resources.h>
-#include <ggl/sprite_batch.h>
+#include <ggl/sprite.h>
+#include <ggl/render.h>
 
 #include "bezier.h"
 #include "util.h"
@@ -14,10 +15,10 @@ particles::particles(const vec2f& pos, int num_particles, const gradient& g)
 }
 
 void
-particles::draw(ggl::sprite_batch& sb) const
+particles::draw() const
 {
 	for (auto& p : particles_)
-		p.draw(sb);
+		p.draw();
 }
 
 bool
@@ -45,7 +46,7 @@ particles::particle::particle(const vec2f& origin, const gradient& g)
 { }
 
 void
-particles::particle::draw(ggl::sprite_batch& sb) const
+particles::particle::draw() const
 {
 	if (tics_ >= ttl_)
 		return;
@@ -53,13 +54,13 @@ particles::particle::draw(ggl::sprite_batch& sb) const
 	const int ft = .8f*ttl_;
 	const float a = tics_ < ft ? 1.f : 1.f - static_cast<float>(tics_ - ft)/(ttl_ - ft);
 
-	sb.set_color({ color_.r, color_.g, color_.b, a });
+	ggl::render::set_color({ color_.r, color_.g, color_.b, a });
 
-	sb.push_matrix();
-	sb.translate(pos_);
-	sb.rotate(angle_);
-	sprite_->draw(sb, 0);
-	sb.pop_matrix();
+	ggl::render::push_matrix();
+	ggl::render::translate(pos_);
+	ggl::render::rotate(angle_);
+	sprite_->draw(0);
+	ggl::render::pop_matrix();
 }
 
 bool

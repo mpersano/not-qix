@@ -10,7 +10,6 @@ class game;
 
 namespace ggl {
 class sprite;
-class sprite_batch;
 };
 
 class player : private ggl::noncopyable
@@ -21,7 +20,7 @@ public:
 	void reset(const vec2i& pos);
 	bool update(unsigned dpad_state);
 
-	void draw(ggl::sprite_batch& sb) const;
+	void draw() const;
 	const vec2i get_position() const;
 
 	vec2i get_grid_position() const;
@@ -39,7 +38,7 @@ private:
 	void respawn(const vec2i& pos);
 
 	void draw_trail(int start_index) const;
-	void draw_head(ggl::sprite_batch& sb) const;
+	void draw_head() const;
 
 	void move_slide(direction dir);
 	void move_extend(direction dir);

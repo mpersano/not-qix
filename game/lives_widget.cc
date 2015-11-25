@@ -6,6 +6,7 @@
 #include <ggl/texture.h>
 #include <ggl/resources.h>
 #include <ggl/font.h>
+#include <ggl/render.h>
 #include <ggl/util.h>
 
 #include "game.h"
@@ -82,7 +83,7 @@ lives_widget::update()
 }
 
 void
-lives_widget::draw(ggl::sprite_batch& sb) const
+lives_widget::draw() const
 {
 	if (state_ == state::HIDDEN)
 		return;
@@ -127,23 +128,23 @@ lives_widget::draw(ggl::sprite_batch& sb) const
 
 	text_pos = circle_scale*vec2f { -110, -80 };
 
-	sb.push_matrix();
+	ggl::render::push_matrix();
 
-	sb.translate(pos.x, pos.y);
-	sb.scale(scale);
+	ggl::render::translate(pos.x, pos.y);
+	ggl::render::scale(scale);
 
 	// circle
 
-	sb.push_matrix();
-	sb.scale(circle_scale.x, circle_scale.y);
-	circle_.draw(sb, 2);
-	sb.pop_matrix();
+	ggl::render::push_matrix();
+	ggl::render::scale(circle_scale.x, circle_scale.y);
+	circle_.draw(2);
+	ggl::render::pop_matrix();
 
 	// text
 
-	font_->draw(sb, 0, text_, text_pos, text_va, text_ha);
+	font_->draw(0, text_, text_pos, text_va, text_ha);
 
-	sb.pop_matrix();
+	ggl::render::pop_matrix();
 }
 
 void

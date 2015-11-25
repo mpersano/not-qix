@@ -15,7 +15,7 @@ public:
 	lives_widget(game& g);
 
 	bool update() override;
-	void draw(ggl::sprite_batch& sb) const override;
+	void draw() const override;
 
 private:
 	void initialize_text(int lives_left);

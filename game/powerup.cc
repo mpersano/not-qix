@@ -6,6 +6,7 @@
 #include <ggl/sprite.h>
 #include <ggl/action.h>
 #include <ggl/resources.h>
+#include <ggl/render.h>
 #include <ggl/font.h>
 
 #include "game.h"
@@ -22,7 +23,7 @@ class picked_effect : public effect
 public:
 	picked_effect(const vec2f& pos);
 
-	void draw(ggl::sprite_batch& sb) const override;
+	void draw() const override;
 
 	bool is_position_absolute() const override
 	{ return true; }
@@ -60,10 +61,10 @@ picked_effect::do_update()
 }
 
 void
-picked_effect::draw(ggl::sprite_batch& sb) const
+picked_effect::draw() const
 {
-	sb.set_color({ 1, 1, 1, text_alpha_ });
-	font_->draw(sb, 0, text_, { pos_.x, pos_.y + delta_y_ });
+	ggl::render::set_color({ 1, 1, 1, text_alpha_ });
+	font_->draw(0, text_, { pos_.x, pos_.y + delta_y_ });
 }
 
 };
@@ -78,19 +79,19 @@ powerup::powerup(game& g, const vec2f& pos, const vec2f& dir)
 { }
 
 void
-powerup::draw(ggl::sprite_batch& sb) const
+powerup::draw() const
 {
-	sb.push_matrix();
-	sb.translate(pos_.x, pos_.y);
+	ggl::render::push_matrix();
+	ggl::render::translate(pos_.x, pos_.y);
 
-	sb.push_matrix();
-	sb.rotate(.1f*game_.tics);
-	outer_sprite_->draw(sb, 0);
-	sb.pop_matrix();
+	ggl::render::push_matrix();
+	ggl::render::rotate(.1f*game_.tics);
+	outer_sprite_->draw(0);
+	ggl::render::pop_matrix();
 
-	text_.draw(sb, 1);
+	text_.draw(1);
 
-	sb.pop_matrix();
+	ggl::render::pop_matrix();
 }
 
 bool

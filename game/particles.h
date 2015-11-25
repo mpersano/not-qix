@@ -18,7 +18,7 @@ class particles : public effect
 public:
 	particles(const vec2f& pos, int num_particles, const gradient& g);
 
-	void draw(ggl::sprite_batch& sb) const override;
+	void draw() const override;
 
 	bool is_position_absolute() const override
 	{ return true; }
@@ -30,7 +30,7 @@ private:
 	public:
 		particle(const vec2f& origin, const gradient& g);
 
-		void draw(ggl::sprite_batch& sb) const;
+		void draw() const;
 		bool update();
 
 	private:

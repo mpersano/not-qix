@@ -3,17 +3,13 @@
 #include <ggl/event.h>
 #include <ggl/noncopyable.h>
 
-namespace ggl {
-class sprite_batch;
-};
-
 class effect : private ggl::noncopyable
 {
 public:
 	virtual ~effect() = default;
 
 	bool update();
-	virtual void draw(ggl::sprite_batch& sb) const = 0;
+	virtual void draw() const = 0;
 
 	virtual bool is_position_absolute() const = 0;
 

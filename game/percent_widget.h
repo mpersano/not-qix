@@ -16,7 +16,7 @@ public:
 	percent_widget(game& g);
 
 	bool update() override;
-	void draw(ggl::sprite_batch& sb) const override;
+	void draw() const override;
 
 private:
 	void on_cover_update(unsigned percent);
@@ -28,9 +28,9 @@ private:
 
 	unsigned get_value() const;
 
-	void draw_frame(ggl::sprite_batch& sb) const;
-	void draw_digits(ggl::sprite_batch& sb) const;
-	void draw_char(ggl::sprite_batch& sb, const ggl::font *f, wchar_t ch, int base_x, int base_y) const;
+	void draw_frame() const;
+	void draw_digits() const;
+	void draw_char(const ggl::font *f, wchar_t ch, int base_x, int base_y) const;
 
 	bool position_top_;
 	unsigned cur_value_, next_value_;

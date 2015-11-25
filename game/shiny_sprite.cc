@@ -3,6 +3,7 @@
 #include <ggl/texture.h>
 #include <ggl/sprite.h>
 #include <ggl/resources.h>
+#include <ggl/render.h>
 #include <ggl/util.h>
 
 #include "game.h"
@@ -19,7 +20,7 @@ shiny_sprite::shiny_sprite(const ggl::sprite *sprite, const game& g, float tex_o
 { }
 
 void
-shiny_sprite::draw(ggl::sprite_batch& sb, float depth) const
+shiny_sprite::draw(float depth) const
 {
 	const short w = sprite_->width;
 	const short h = sprite_->height;
@@ -42,7 +43,7 @@ shiny_sprite::draw(ggl::sprite_batch& sb, float depth) const
 	const float t0 = 0;
 	const float t1 = tex_offset_*static_cast<float>(sprite_->height)/sprite_->width;
 
-	sb.draw(sprite_->tex,
+	ggl::render::draw(sprite_->tex,
 		shine_texture_,
 		{ { u0, v1 }, { u1, v0 } },
 		{ { s0, t0 }, { s1, t1 } },

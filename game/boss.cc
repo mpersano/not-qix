@@ -8,6 +8,7 @@
 #include <ggl/texture.h>
 #include <ggl/sprite.h>
 #include <ggl/resources.h>
+#include <ggl/render.h>
 #include <ggl/util.h>
 
 #include "tween.h"
@@ -23,7 +24,7 @@ class bullet : public entity
 public:
 	bullet(game& g, const vec2f& pos, const vec2f& dir);
 
-	void draw(ggl::sprite_batch& sb) const override;
+	void draw() const override;
 	bool update() override;
 
 	bool intersects(const vec2i& from, const vec2i& to) const override;
@@ -45,7 +46,7 @@ bullet::bullet(game& g, const vec2f& pos, const vec2f& dir)
 { }
 
 void
-bullet::draw(ggl::sprite_batch& sb) const
+bullet::draw() const
 {
 	const int w = sprite_->width;
 	const int h = sprite_->height;
@@ -64,7 +65,7 @@ bullet::draw(ggl::sprite_batch& sb) const
 	const float v0 = sprite_->v0;
 	const float v1 = sprite_->v1;
 
-	sb.draw(sprite_->tex, { { u0, v1 }, { u1, v0 } }, ggl::quad { p0, p1, p2, p3 }, 0);
+	ggl::render::draw(sprite_->tex, { { u0, v1 }, { u1, v0 } }, ggl::quad { p0, p1, p2, p3 }, 0);
 }
 
 bool
@@ -211,39 +212,39 @@ boss::fire_laser(int pod, float power)
 }
 
 void
-boss::draw(ggl::sprite_batch& sb) const
+boss::draw() const
 {
-	draw_core(sb);
-	draw_pods(sb);
+	draw_core();
+	draw_pods();
 }
 
 void
-boss::draw_core(ggl::sprite_batch& sb) const
+boss::draw_core() const
 {
 	auto screen_pos = pos_ + game_.offset;
 
 	if (screen_pos.y + radius_ < 0) {
 		auto p = vec2f { screen_pos.x, 0 } - game_.offset;
-		danger_down_sprite_->draw(sb, 0, p, ggl::vert_align::BOTTOM, ggl::horiz_align::CENTER);
+		danger_down_sprite_->draw(0, p, ggl::vert_align::BOTTOM, ggl::horiz_align::CENTER);
 	} else if (screen_pos.y - radius_ > game_.viewport_height) {
 		auto p = vec2f { screen_pos.x, game_.viewport_height } - game_.offset;
-		danger_up_sprite_->draw(sb, 0, p, ggl::vert_align::TOP, ggl::horiz_align::CENTER);
+		danger_up_sprite_->draw(0, p, ggl::vert_align::TOP, ggl::horiz_align::CENTER);
 	} else {
-		core_sprite_->draw(sb, 0, pos_);
+		core_sprite_->draw(0, pos_);
 	}
 }
 
 void
-boss::draw_pods(ggl::sprite_batch& sb) const
+boss::draw_pods() const
 {
-	sb.push_matrix();
-	sb.translate(pos_);
-	sb.rotate(pod_angle_ - .5f*M_PI);
+	ggl::render::push_matrix();
+	ggl::render::translate(pos_);
+	ggl::render::rotate(pod_angle_ - .5f*M_PI);
 
 	for (auto& p : pods_)
-		p->draw(sb);
+		p->draw();
 
-	sb.pop_matrix();
+	ggl::render::pop_matrix();
 }
 
 void
@@ -276,40 +277,40 @@ vec2f touch_pos;
 }
 
 void
-boss::pod::draw(ggl::sprite_batch& sb) const
+boss::pod::draw() const
 {
-	sb.push_matrix();
+	ggl::render::push_matrix();
 
-	sb.rotate(ang_offset);
-	sb.translate(0, POD_DISTANCE);
-	sb.rotate(rotation);
+	ggl::render::rotate(ang_offset);
+	ggl::render::translate(0, POD_DISTANCE);
+	ggl::render::rotate(rotation);
 
-	sprite_->draw(sb, 0, { 0, 0 }, ggl::vert_align::BOTTOM, ggl::horiz_align::CENTER);
+	sprite_->draw(0, { 0, 0 }, ggl::vert_align::BOTTOM, ggl::horiz_align::CENTER);
 
 	if (fire_tics_) {
 		const float t = static_cast<float>(fire_tics_)/MUZZLE_FLASH_TICS;
 
-		sb.push_matrix();
-		sb.translate(0, LASER_DISTANCE);
-		sb.scale(t*1.1f);
-		muzzle_flash_sprite_->draw(sb, 1);
-		sb.pop_matrix();
+		ggl::render::push_matrix();
+		ggl::render::translate(0, LASER_DISTANCE);
+		ggl::render::scale(t*1.1f);
+		muzzle_flash_sprite_->draw(1);
+		ggl::render::pop_matrix();
 	}
 
 	if (laser_power_) {
 		float radius = get_laser_radius();
-		sb.draw(laser_segment_texture_, { { 0, 0 }, { 1, 1 } }, ggl::bbox { { -radius, LASER_DISTANCE }, { radius, 1000 } }, 0);
+		ggl::render::draw(laser_segment_texture_, { { 0, 0 }, { 1, 1 } }, ggl::bbox { { -radius, LASER_DISTANCE }, { radius, 1000 } }, 0);
 
 		float r = laser_power_*1.1f*(1.f + .15f*sinf(.1f*game_.tics));
 
-		sb.push_matrix();
-		sb.translate(0, LASER_DISTANCE);
-		sb.scale(r);
-		laser_flash_sprite_->draw(sb, 1);
-		sb.pop_matrix();
+		ggl::render::push_matrix();
+		ggl::render::translate(0, LASER_DISTANCE);
+		ggl::render::scale(r);
+		laser_flash_sprite_->draw(1);
+		ggl::render::pop_matrix();
 	}
 
-	sb.pop_matrix();
+	ggl::render::pop_matrix();
 }
 
 void

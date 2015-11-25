@@ -5,7 +5,6 @@
 
 namespace ggl {
 class sprite;
-class sprite_batch;
 }
 
 class powerup : public entity
@@ -13,7 +12,7 @@ class powerup : public entity
 public:
 	powerup(game& g, const vec2f& pos, const vec2f& dir);
 
-	void draw(ggl::sprite_batch& sb) const override;
+	void draw() const override;
 	bool update() override;
 
 	bool intersects(const vec2i&, const vec2i&) const override

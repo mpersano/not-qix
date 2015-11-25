@@ -9,6 +9,7 @@
 #include <ggl/vertex_array.h>
 #include <ggl/resources.h>
 #include <ggl/action.h>
+#include <ggl/render.h>
 #include <ggl/util.h>
 
 #include "util.h"
@@ -29,8 +30,8 @@ public:
 	level_intro_state(game& g);
 
 	void update(unsigned dpad_state) override;
-	void draw(ggl::sprite_batch& sb) const override;
-	void draw_overlay(ggl::sprite_batch& sb) const override;
+	void draw() const override;
+	void draw_overlay() const override;
 
 private:
 	const ggl::font *border_font_;
@@ -50,8 +51,8 @@ public:
 	select_initial_offset_state(game& g);
 
 	void update(unsigned dpad_state) override;
-	void draw(ggl::sprite_batch& sb) const override;
-	void draw_overlay(ggl::sprite_batch& sb) const override;
+	void draw() const override;
+	void draw_overlay() const override;
 
 private:
 	static const int SCROLL_TICS = 30;
@@ -67,8 +68,8 @@ public:
 	select_initial_area_state(game& g);
 
 	void update(unsigned dpad_state) override;
-	void draw(ggl::sprite_batch& sb) const override;
-	void draw_overlay(ggl::sprite_batch& sb) const override;
+	void draw() const override;
+	void draw_overlay() const override;
 
 private:
 	void reset_initial_area();
@@ -85,8 +86,8 @@ public:
 	playing_state(game& g);
 
 	void update(unsigned dpad_state) override;
-	void draw(ggl::sprite_batch& sb) const override;
-	void draw_overlay(ggl::sprite_batch& sb) const override;
+	void draw() const override;
+	void draw_overlay() const override;
 
 private:
 	void update_scroll();
@@ -102,8 +103,8 @@ public:
 	level_completed_state(game& g);
 
 	void update(unsigned dpad_state) override;
-	void draw(ggl::sprite_batch& sb) const override;
-	void draw_overlay(ggl::sprite_batch& sb) const override;
+	void draw() const override;
+	void draw_overlay() const override;
 };
 
 class game_over_state : public game_state
@@ -112,8 +113,8 @@ public:
 	game_over_state(game& g);
 
 	void update(unsigned dpad_state) override;
-	void draw(ggl::sprite_batch& sb) const override;
-	void draw_overlay(ggl::sprite_batch& sb) const override;
+	void draw() const override;
+	void draw_overlay() const override;
 
 private:
 	const ggl::font *font_;
@@ -143,11 +144,11 @@ level_intro_state::level_intro_state(game& g)
 }
 
 void
-level_intro_state::draw(ggl::sprite_batch& sb) const
+level_intro_state::draw() const
 { }
 
 void
-level_intro_state::draw_overlay(ggl::sprite_batch& sb) const
+level_intro_state::draw_overlay() const
 {
 	const std::wstring stage_text { L"STAGE 1" };
 	const std::wstring start_text { L"START !!" };
@@ -160,19 +161,19 @@ level_intro_state::draw_overlay(ggl::sprite_batch& sb) const
 
 	// border
 
-	sb.set_color({ 1, 1, 1, shadow_alpha_ });
+	ggl::render::set_color({ 1, 1, 1, shadow_alpha_ });
 
-	border_font_->draw(sb, 0, stage_text, { .5f*w + shadow_offset_, y0 });
-	border_font_->draw(sb, 0, stage_text, { .5f*w - shadow_offset_, y0 });
+	border_font_->draw(0, stage_text, { .5f*w + shadow_offset_, y0 });
+	border_font_->draw(0, stage_text, { .5f*w - shadow_offset_, y0 });
 
-	border_font_->draw(sb, 0, start_text, { .5f*w + shadow_offset_, y1 });
-	border_font_->draw(sb, 0, start_text, { .5f*w - shadow_offset_, y1 });
+	border_font_->draw(0, start_text, { .5f*w + shadow_offset_, y1 });
+	border_font_->draw(0, start_text, { .5f*w - shadow_offset_, y1 });
 
 	// text
 
-	sb.set_color({ 1, 1, 1, text_alpha_ });
-	yellow_font_->draw(sb, 1, stage_text, { .5f*w, y0 });
-	red_font_->draw(sb, 1, start_text, { .5f*w, y1 });
+	ggl::render::set_color({ 1, 1, 1, text_alpha_ });
+	yellow_font_->draw(1, stage_text, { .5f*w, y0 });
+	red_font_->draw(1, start_text, { .5f*w, y1 });
 }
 
 void
@@ -196,11 +197,11 @@ select_initial_offset_state::select_initial_offset_state(game& g)
 { }
 
 void
-select_initial_offset_state::draw(ggl::sprite_batch&) const
+select_initial_offset_state::draw() const
 { }
 
 void
-select_initial_offset_state::draw_overlay(ggl::sprite_batch&) const
+select_initial_offset_state::draw_overlay() const
 { }
 
 void
@@ -245,7 +246,7 @@ select_initial_area_state::select_initial_area_state(game& g)
 }
 
 void
-select_initial_area_state::draw(ggl::sprite_batch&) const
+select_initial_area_state::draw() const
 {
 	short x0 = initial_area_.first.x*CELL_SIZE;
 	short x1 = initial_area_.second.x*CELL_SIZE;
@@ -290,7 +291,7 @@ select_initial_area_state::draw(ggl::sprite_batch&) const
 }
 
 void
-select_initial_area_state::draw_overlay(ggl::sprite_batch&) const
+select_initial_area_state::draw_overlay() const
 { }
 
 void
@@ -346,13 +347,13 @@ playing_state::playing_state(game& g)
 { }
 
 void
-playing_state::draw(ggl::sprite_batch& sb) const
+playing_state::draw() const
 {
-	game_.draw_player(sb);
+	game_.draw_player();
 }
 
 void
-playing_state::draw_overlay(ggl::sprite_batch&) const
+playing_state::draw_overlay() const
 { }
 
 void
@@ -442,11 +443,11 @@ level_completed_state::level_completed_state(game& g)
 { }
 
 void
-level_completed_state::draw(ggl::sprite_batch&) const
+level_completed_state::draw() const
 { }
 
 void
-level_completed_state::draw_overlay(ggl::sprite_batch&) const
+level_completed_state::draw_overlay() const
 { }
 
 void
@@ -463,14 +464,14 @@ game_over_state::game_over_state(game& g)
 { }
 
 void
-game_over_state::draw(ggl::sprite_batch&) const
+game_over_state::draw() const
 { }
 
 void
-game_over_state::draw_overlay(ggl::sprite_batch& sb) const
+game_over_state::draw_overlay() const
 {
-	sb.set_color(ggl::white);
-	font_->draw(sb, 1, L"GAME OVER", { .5f*game_.viewport_width, .5f*game_.viewport_height });
+	ggl::render::set_color(ggl::white);
+	font_->draw(1, L"GAME OVER", { .5f*game_.viewport_width, .5f*game_.viewport_height });
 }
 
 void
@@ -487,7 +488,6 @@ game::game(int width, int height)
 : viewport_width { width }
 , viewport_height { height }
 , player_ { *this }
-, sb_ { new ggl::sprite_batch }
 {
 	widgets_.emplace_back(new percent_widget(*this));
 	widgets_.emplace_back(new lives_widget(*this));
@@ -524,45 +524,43 @@ game::draw()
 
 	draw_background();
 
-	auto& sb = *sb_;
-
-	sb.set_viewport(
+	ggl::render::set_viewport(
 		{ { -offset.x, -offset.y },
 		  { viewport_width - offset.x, viewport_height - offset.y } });
 
-	sb.begin();
+	ggl::render::begin();
 
-	state_->draw(sb);
+	state_->draw();
 
 	for (auto& e : entities)
-		e->draw(sb);
+		e->draw();
 
 	for (auto& e : effects_) {
 		if (!e->is_position_absolute())
-			e->draw(sb);
+			e->draw();
 	}
 
-	sb.end();
+	ggl::render::end();
 
 	glPopMatrix();
 
 	// relative to screen
 
-	sb.set_viewport({ { 0, 0 }, { viewport_width, viewport_height } });
+	ggl::render::set_viewport({ { 0, 0 }, { viewport_width, viewport_height } });
 
-	sb.begin();
+	ggl::render::begin();
 
-	state_->draw_overlay(sb);
+	state_->draw_overlay();
 
 	for (auto& w : widgets_)
-		w->draw(sb);
+		w->draw();
 
 	for (auto& e : effects_) {
 		if (e->is_position_absolute())
-			e->draw(sb);
+			e->draw();
 	}
 
-	sb.end();
+	ggl::render::end();
 }
 
 void
@@ -982,9 +980,9 @@ game::enter_level_completed_state()
 }
 
 void
-game::draw_player(ggl::sprite_batch& sb) const
+game::draw_player() const
 {
-	player_.draw(sb);
+	player_.draw();
 }
 
 void

@@ -11,7 +11,7 @@
 #include <ggl/texture.h>
 #include <ggl/resources.h>
 #include <ggl/util.h>
-#include <ggl/sprite_batch.h>
+#include <ggl/render.h>
 #include <ggl/font.h>
 
 namespace ggl {
@@ -84,19 +84,19 @@ font::~font()
 }
 
 void
-font::draw(sprite_batch& sb, float depth, const std::wstring& str) const
+font::draw(float depth, const std::wstring& str) const
 {
-	draw(sb, depth, str, { 0.f, 0.f });
+	draw(depth, str, { 0.f, 0.f });
 }
 
 void
-font::draw(sprite_batch& sb, float depth, const std::wstring& str, const vec2f& pos) const
+font::draw(float depth, const std::wstring& str, const vec2f& pos) const
 {
-	draw(sb, depth, str, pos, vert_align::CENTER, horiz_align::CENTER);
+	draw(depth, str, pos, vert_align::CENTER, horiz_align::CENTER);
 }
 
 void
-font::draw(sprite_batch& sb, float depth, const std::wstring& str, const vec2f& pos, vert_align va, horiz_align ha) const
+font::draw(float depth, const std::wstring& str, const vec2f& pos, vert_align va, horiz_align ha) const
 {
 	assert(!str.empty());
 
@@ -163,7 +163,7 @@ font::draw(sprite_batch& sb, float depth, const std::wstring& str, const vec2f& 
 		vec2f p1 = p0 + vec2f { g->spr.width, -g->spr.height };
 
 		const auto& sp = g->spr;
-		sb.draw(sp.tex, { { sp.u0, sp.v0 }, { sp.u1, sp.v1 } }, bbox { p0, p1 }, depth );
+		render::draw(sp.tex, { { sp.u0, sp.v0 }, { sp.u1, sp.v1 } }, bbox { p0, p1 }, depth );
 
 		x += g->advance_x;
 	}

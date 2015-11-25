@@ -14,7 +14,7 @@ class explosion : public effect
 public:
 	explosion(const vec2f& pos, float bang);
 
-	void draw(ggl::sprite_batch& sb) const override;
+	void draw() const override;
 
 	bool is_position_absolute() const override
 	{ return false; }
@@ -38,7 +38,7 @@ private:
 		flare(const ggl::sprite **sprites, int frames, const vec2f& pos, float radius, float radius_factor, int ttl, float depth);
 
 		bool update();
-		void draw(ggl::sprite_batch& sb) const;
+		void draw() const;
 
 	private:
 		const ggl::sprite **sprites_;
@@ -56,7 +56,7 @@ private:
 		particle(const ggl::sprite *sp, const vec2f& pos);
 
 		bool update();
-		void draw(ggl::sprite_batch& sb) const;
+		void draw() const;
 
 	private:
 		const ggl::sprite *sp_;

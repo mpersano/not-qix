@@ -1,6 +1,9 @@
 #include <ggl/asset.h>
 #include <ggl/panic.h>
 
+#include <ggl/resources.h>
+#include <ggl/render.h>
+
 #include <ggl/sdl/asset.h>
 #include <ggl/sdl/core.h>
 
@@ -44,6 +47,9 @@ core::~core()
 void
 core::run()
 {
+	res::init();
+	render::init();
+
 	app_.init(width_, height_);
 
 	float last_update = now();
