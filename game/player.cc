@@ -398,8 +398,6 @@ player::draw_trail(int start_index) const
 {
 	static const int TRAIL_RADIUS = 1;
 
-	glColor4f(1, 1, 0, 1);
-
 	if (extend_trail_.size() - start_index > 1) {
 		ggl::vertex_array_flat<GLshort, 2> va;
 
@@ -456,7 +454,7 @@ player::draw_trail(int start_index) const
 			va.push_back({ p1.x, p1.y });
 		}
 
-		va.draw(GL_TRIANGLE_STRIP);
+		va.draw(GL_TRIANGLE_STRIP, ggl::rgba { 1, 1, 0, 1 });
 	}
 
 	// last bit
@@ -472,7 +470,7 @@ player::draw_trail(int start_index) const
 
 	(ggl::vertex_array_flat<GLshort, 2>
 		{ { x0, y0 }, { x1, y0 },
-		  { x0, y1 }, { x1, y1 } }).draw(GL_TRIANGLE_STRIP);
+		  { x0, y1 }, { x1, y1 } }).draw(GL_TRIANGLE_STRIP, ggl::rgba { 1, 1, 0, 1 });
 }
 
 void

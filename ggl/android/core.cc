@@ -3,6 +3,8 @@
 #include <ggl/log.h>
 #include <ggl/gl.h>
 #include <ggl/resources.h>
+#include <ggl/render.h>
+#include <ggl/programs.h>
 #include <ggl/android/asset.h>
 #include <ggl/android/core.h>
 
@@ -37,7 +39,7 @@ core::init_display()
 	eglInitialize(display_, 0, 0);
 
 	const EGLint attribs[] = {
-		// EGL_RENDERABLE_TYPE, EGL_OPENGL_ES2_BIT, // request ES2.0
+		EGL_RENDERABLE_TYPE, EGL_OPENGL_ES2_BIT,
 		EGL_SURFACE_TYPE, EGL_WINDOW_BIT,
 		EGL_BLUE_SIZE, 8,
 		EGL_GREEN_SIZE, 8,
@@ -66,7 +68,7 @@ core::init_display()
 	//
 
 	const EGLint context_attribs[] = {
-			// EGL_CONTEXT_CLIENT_VERSION, 2, // request ES2.0
+			EGL_CONTEXT_CLIENT_VERSION, 3, // request ES3.0
 			EGL_NONE };
 	context_ = eglCreateContext(display_, config, NULL, context_attribs);
 
@@ -177,6 +179,10 @@ core::handle_cmd(int32_t cmd)
 				res::load_gl_resources();
 
 				if (!app_initialized_) {
+					res::init();
+					programs::init();
+					render::init();
+
 					app_.init(width_, height_);
 					app_initialized_ = true;
 				}

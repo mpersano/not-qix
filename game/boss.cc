@@ -14,7 +14,6 @@
 #include "tween.h"
 #include "game.h"
 #include "miniboss.h"
-#include "debug_gfx.h"
 #include "boss.h"
 
 namespace {

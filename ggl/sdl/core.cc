@@ -3,6 +3,7 @@
 
 #include <ggl/resources.h>
 #include <ggl/render.h>
+#include <ggl/programs.h>
 
 #include <ggl/sdl/asset.h>
 #include <ggl/sdl/core.h>
@@ -48,6 +49,7 @@ void
 core::run()
 {
 	res::init();
+	programs::init();
 	render::init();
 
 	app_.init(width_, height_);

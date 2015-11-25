@@ -11,7 +11,7 @@ public:
 	gl_vertex_array();
 	~gl_vertex_array();
 
-	void bind();
+	void bind() const;
 	static void unbind();
 
 private:

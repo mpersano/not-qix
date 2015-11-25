@@ -256,19 +256,15 @@ select_initial_area_state::draw() const
 
 	// interior
 
-	glColor4f(1, 1, 1, .5);
-
 	{
 	ggl::enable_alpha_blend _;
 
 	(ggl::vertex_array_flat<GLshort, 2>
 		{ { x0, y0 }, { x1, y0 },
-		  { x0, y1 }, { x1, y1 } }).draw(GL_TRIANGLE_STRIP);
+		  { x0, y1 }, { x1, y1 } }).draw(GL_TRIANGLE_STRIP, ggl::rgba { 1, 1, 1, .5 });
 	}
 
 	// border
-
-	glColor4f(1, 1, 1, 1);
 
 	short x00 = x0 - BORDER_RADIUS;
 	short x01 = x0 + BORDER_RADIUS;
@@ -287,7 +283,7 @@ select_initial_area_state::draw() const
 		  { x11, y00 }, { x10, y01 },
 		  { x11, y11 }, { x10, y10 },
 		  { x00, y11 }, { x01, y10 },
-		  { x00, y00 }, { x01, y01 } }).draw(GL_TRIANGLE_STRIP);
+		  { x00, y00 }, { x01, y01 } }).draw(GL_TRIANGLE_STRIP, ggl::white);
 }
 
 void
@@ -519,14 +515,11 @@ game::draw()
 {
 	// relative to grid
 
-	glPushMatrix();
-	glTranslatef(offset.x, offset.y, 0);
-
-	draw_background();
-
 	ggl::render::set_viewport(
 		{ { -offset.x, -offset.y },
 		  { viewport_width - offset.x, viewport_height - offset.y } });
+
+	draw_background();
 
 	ggl::render::begin();
 
@@ -541,8 +534,6 @@ game::draw()
 	}
 
 	ggl::render::end();
-
-	glPopMatrix();
 
 	// relative to screen
 
@@ -724,11 +715,7 @@ game::update_border()
 void
 game::draw_background() const
 {
-	glColor4f(1, 1, 1, 1);
-
 	{
-	ggl::enable_texture _ { GL_TEXTURE0 };
-
 	cur_level->fg_texture->bind();
 	background_filled_va_.draw(GL_TRIANGLES);
 
@@ -736,7 +723,7 @@ game::draw_background() const
 	background_unfilled_va_.draw(GL_TRIANGLES);
 	}
 
-	border_va_.draw(GL_TRIANGLE_STRIP);
+	border_va_.draw(GL_TRIANGLE_STRIP, ggl::white);
 }
 
 void

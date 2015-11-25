@@ -70,29 +70,7 @@ game_app::init_gl_state()
 	// default state
 
 	glDisable(GL_CULL_FACE);
-	glDisable(GL_LIGHTING);
 	glDisable(GL_DEPTH_TEST);
-	glDisable(GL_ALPHA_TEST);
-
-	// texture environment parameters
-
-	glActiveTexture(GL_TEXTURE0);
-	glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
-
-	glActiveTexture(GL_TEXTURE1);
-	glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_COMBINE);
-
-	// add RGB
-	glTexEnvi(GL_TEXTURE_ENV, GL_COMBINE_RGB, GL_ADD);
-	glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE0_RGB, GL_PREVIOUS);
-	glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE1_RGB, GL_TEXTURE);
-	glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND0_RGB, GL_SRC_COLOR);
-	glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND1_RGB, GL_SRC_COLOR);
-
-	// use alpha of first texture
-	glTexEnvi(GL_TEXTURE_ENV, GL_COMBINE_ALPHA, GL_REPLACE);
-	glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE0_ALPHA, GL_PREVIOUS);
-	glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND0_ALPHA, GL_SRC_ALPHA);
 
 	glActiveTexture(GL_TEXTURE0);
 }
@@ -110,13 +88,6 @@ game_app::update_and_render(float dt)
 	glViewport(0, 0, viewport_width_, viewport_height_);
 	glClearColor(0, 0, 0, 0);
 	glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
-
-	glMatrixMode(GL_PROJECTION);
-	glLoadIdentity();
-	glOrtho(0, scene_width_, 0, scene_height_, -1, 1);
-
-	glMatrixMode(GL_MODELVIEW);
-	glLoadIdentity();
 
 	cur_state_->draw();
 }

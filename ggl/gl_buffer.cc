@@ -15,31 +15,31 @@ gl_buffer::~gl_buffer()
 }
 
 void
-gl_buffer::bind()
+gl_buffer::bind() const
 {
 	gl_check(glBindBuffer(target_, id_));
 }
 
 void
-gl_buffer::unbind()
+gl_buffer::unbind() const
 {
 	gl_check(glBindBuffer(target_, 0));
 }
 
 void
-gl_buffer::buffer_data(GLsizei size, const void *data, GLenum usage)
+gl_buffer::buffer_data(GLsizei size, const void *data, GLenum usage) const
 {
 	gl_check(glBufferData(target_, size, data, usage));
 }
 
 void *
-gl_buffer::map(GLenum access)
+gl_buffer::map_range(GLintptr offset, GLsizei length, GLbitfield access) const
 {
-	return gl_check_r(glMapBuffer(target_, access));
+	return gl_check_r(glMapBufferRange(target_, offset, length, access));
 }
 
 void
-gl_buffer::unmap()
+gl_buffer::unmap() const
 {
 	gl_check(glUnmapBuffer(target_));
 }

@@ -11,15 +11,15 @@ public:
 	gl_buffer(GLenum target);
 	~gl_buffer();
 
-	void bind();
-	void unbind();
+	void bind() const;
+	void unbind() const;
 
-	void buffer_data(GLsizei size, const void *data, GLenum usage);
+	void buffer_data(GLsizei size, const void *data, GLenum usage) const;
 
-	void *map(GLenum access);
-	void unmap();
+	void *map_range(GLintptr offset, GLsizei length, GLbitfield access) const;
+	void unmap() const;
 
-private:
+// private:
 	GLenum target_;
 	GLuint id_;
 };

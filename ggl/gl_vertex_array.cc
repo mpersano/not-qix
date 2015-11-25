@@ -14,7 +14,7 @@ gl_vertex_array::~gl_vertex_array()
 }
 
 void
-gl_vertex_array::bind()
+gl_vertex_array::bind() const
 {
 	gl_check(glBindVertexArray(id_));
 }

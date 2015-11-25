@@ -1,6 +1,7 @@
 #pragma once
 
 #include <ggl/vec2.h>
+#include <ggl/vec3.h>
 
 namespace ggl {
 
@@ -69,5 +70,8 @@ draw(const texture *tex0, const texture *tex1, const bbox& tex0_coords, const bb
 
 void
 end();
+
+mat4
+get_proj_modelview();
 
 } }

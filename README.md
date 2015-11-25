@@ -17,7 +17,7 @@ To build the native library:
 
     mkdir build
     cd build
-    ANDROID_NDK=~/opt/android-ndk-r10e ANDROID_NATIVE_API_LEVEL=14 cmake -DCMAKE_TOOLCHAIN_FILE=../cmake/android.toolchain.cmake -DANDROID_ABI=armeabi -DCMAKE_BUILD_TYPE=Debug ..
+    ANDROID_NDK=~/opt/android-ndk-r10e ANDROID_NATIVE_API_LEVEL=19 cmake -DCMAKE_TOOLCHAIN_FILE=../cmake/android.toolchain.cmake -DANDROID_ABI=armeabi -DCMAKE_BUILD_TYPE=Debug ..
     make
 
 `ANDROID_NDK` should point to your local NDK root, of course. The `ANDROID_ABI=armeabi` option will build the library for ARMv5TE with SW floating point (without it, the library will be built for ARMv7 with HW floating point and crash on the emulator).

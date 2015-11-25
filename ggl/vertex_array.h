@@ -1,30 +1,30 @@
 #pragma once
 
+// this is a disgrace.
+
 #include <vector>
 
 #include <ggl/gl.h>
+#include <ggl/gl_program.h>
+#include <ggl/gl_vertex_array.h>
+#include <ggl/programs.h>
+#include <ggl/gl_check.h>
+#include <ggl/rgba.h>
+#include <ggl/render.h>
 
 namespace ggl {
 
 template <typename VertexType, int VertexSize>
 struct vertex_flat
 {
-	VertexType pos[VertexSize];
+	VertexType position[VertexSize];
 };
 
 template <typename VertexType, int VertexSize, typename TexCoordType, int TexCoordSize>
 struct vertex_texcoord
 {
-	VertexType pos[VertexSize];
+	VertexType position[VertexSize];
 	TexCoordType texcoord[TexCoordSize];
-};
-
-template <typename VertexType, int VertexSize, typename TexCoord0Type, int TexCoord0Size, typename TexCoord1Type, int TexCoord1Size>
-struct vertex_multitexcoord
-{
-	VertexType pos[VertexSize];
-	TexCoord0Type texcoord0[TexCoord0Size];
-	TexCoord1Type texcoord1[TexCoord1Size];
 };
 
 namespace detail {
@@ -63,72 +63,61 @@ struct gltype_to_glenum<GLfloat>
 };
 
 template <typename Vertex>
-struct client_state;
+struct vertex_traits;
 
 template <typename VertexType, int VertexSize>
-struct client_state<vertex_flat<VertexType, VertexSize>>
+struct vertex_traits<vertex_flat<VertexType, VertexSize>>
 {
-	client_state(const vertex_flat<VertexType, VertexSize> *verts)
+	static const gl_program *get_program()
 	{
-		glEnableClientState(GL_VERTEX_ARRAY);
-		glVertexPointer(VertexSize, gltype_to_glenum<VertexType>::type, sizeof *verts, verts->pos);
+		return programs::get_program(programs::program_type::FLAT);
 	}
 
-	~client_state()
+	static void enable_vertex_attribs(const vertex_flat<VertexType, VertexSize> *p)
 	{
-		glDisableClientState(GL_VERTEX_ARRAY);
+		gl_check(glVertexAttribPointer(0, VertexSize, gltype_to_glenum<VertexType>::type, GL_FALSE, sizeof(*p), p->position));
+		gl_check(glEnableVertexAttribArray(0));
+	}
+
+	static void disable_vertex_attribs()
+	{
+#if 0
+		gl_check(glDisableVertexAttribArray(0));
+#endif
 	}
 };
 
 template <typename VertexType, int VertexSize, typename TexCoordType, int TexCoordSize>
-struct client_state<vertex_texcoord<VertexType, VertexSize, TexCoordType, TexCoordSize>>
+struct vertex_traits<vertex_texcoord<VertexType, VertexSize, TexCoordType, TexCoordSize>>
 {
-	client_state(const vertex_texcoord<VertexType, VertexSize, TexCoordType, TexCoordSize> *verts)
+	static const gl_program *get_program()
 	{
-		glEnableClientState(GL_VERTEX_ARRAY);
-		glVertexPointer(VertexSize, gltype_to_glenum<VertexType>::type, sizeof *verts, verts->pos);
-
-		glEnableClientState(GL_TEXTURE_COORD_ARRAY);
-		glTexCoordPointer(TexCoordSize, gltype_to_glenum<TexCoordType>::type, sizeof *verts, verts->texcoord);
+		return programs::get_program(programs::program_type::TEXTURE_DECAL);
 	}
 
-	~client_state()
+	static void enable_vertex_attribs(const vertex_texcoord<VertexType, VertexSize, TexCoordType, TexCoordSize> *p)
 	{
-		glDisableClientState(GL_TEXTURE_COORD_ARRAY);
-		glDisableClientState(GL_VERTEX_ARRAY);
-	}
-};
+		gl_check(glVertexAttribPointer(0, VertexSize, gltype_to_glenum<VertexType>::type, GL_FALSE, sizeof(*p), p->position));
+		gl_check(glEnableVertexAttribArray(0));
 
-template <typename VertexType, int VertexSize, typename TexCoord0Type, int TexCoord0Size, typename TexCoord1Type, int TexCoord1Size>
-struct client_state<vertex_multitexcoord<VertexType, VertexSize, TexCoord0Type, TexCoord0Size, TexCoord1Type, TexCoord1Size>>
-{
-	client_state(const vertex_multitexcoord<VertexType, VertexSize, TexCoord0Type, TexCoord0Size, TexCoord1Type, TexCoord1Size> *verts)
-	{
-		glEnableClientState(GL_VERTEX_ARRAY);
-		glVertexPointer(VertexSize, gltype_to_glenum<VertexType>::type, sizeof *verts, verts->pos);
-
-		glClientActiveTexture(GL_TEXTURE0);
-		glEnableClientState(GL_TEXTURE_COORD_ARRAY);
-		glTexCoordPointer(TexCoord0Size, gltype_to_glenum<TexCoord0Type>::type, sizeof *verts, verts->texcoord0);
-
-		glClientActiveTexture(GL_TEXTURE1);
-		glEnableClientState(GL_TEXTURE_COORD_ARRAY);
-		glTexCoordPointer(TexCoord1Size, gltype_to_glenum<TexCoord1Type>::type, sizeof *verts, verts->texcoord1);
+		gl_check(glVertexAttribPointer(1, TexCoordSize, gltype_to_glenum<TexCoordType>::type, GL_FALSE, sizeof(*p), p->texcoord));
+		gl_check(glEnableVertexAttribArray(1));
 	}
 
-	~client_state()
+	static void disable_vertex_attribs()
 	{
-		glClientActiveTexture(GL_TEXTURE1);
-		glDisableClientState(GL_TEXTURE_COORD_ARRAY);
-
-		glClientActiveTexture(GL_TEXTURE0);
-		glDisableClientState(GL_TEXTURE_COORD_ARRAY);
-
-		glDisableClientState(GL_VERTEX_ARRAY);
+#if 0
+		gl_check(glDisableVertexAttribArray(1));
+		gl_check(glDisableVertexAttribArray(0));
+#endif
 	}
 };
 
 } // detail
+
+namespace render {
+class renderer;
+};
 
 template <typename VertexType>
 class vertex_array : public std::vector<VertexType>
@@ -143,8 +132,25 @@ public:
 
 	void draw(GLenum mode) const
 	{
-		detail::client_state<VertexType> state(&this->front());
+		auto prog = detail::vertex_traits<VertexType>::get_program();
+		prog->use();
+		prog->set_uniform_mat4("proj_modelview", render::get_proj_modelview()); // face.insert(palm)
+
+		detail::vertex_traits<VertexType>::enable_vertex_attribs(&this->front());
 		glDrawArrays(mode, 0, this->size());
+		detail::vertex_traits<VertexType>::disable_vertex_attribs();
+	}
+
+	void draw(GLenum mode, const rgba& color) const
+	{
+		auto prog = detail::vertex_traits<VertexType>::get_program();
+		prog->use();
+		prog->set_uniform_mat4("proj_modelview", render::get_proj_modelview());
+		prog->set_uniform_f("color", color.r, color.g, color.b, color.a);
+
+		detail::vertex_traits<VertexType>::enable_vertex_attribs(&this->front());
+		glDrawArrays(mode, 0, this->size());
+		detail::vertex_traits<VertexType>::disable_vertex_attribs();
 	}
 };
 
@@ -153,8 +159,5 @@ using vertex_array_flat = vertex_array<vertex_flat<VertexType, VertexSize>>;
 
 template <typename VertexType, int VertexSize, typename TexCoordType, int TexCoordSize>
 using vertex_array_texcoord = vertex_array<vertex_texcoord<VertexType, VertexSize, TexCoordType, TexCoordSize>>;
-
-template <typename VertexType, int VertexSize, typename TexCoord0Type, int TexCoord0Size, typename TexCoord1Type, int TexCoord1Size>
-using vertex_array_multitexcoord = vertex_array<vertex_multitexcoord<VertexType, VertexSize, TexCoord0Type, TexCoord0Size, TexCoord1Type, TexCoord1Size>>;
 
 } // ggl

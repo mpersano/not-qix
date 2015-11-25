@@ -24,7 +24,7 @@ if (ANDROID)
 
 	find_library(LOG_LIBRARY NAMES log PATHS /usr/lib)
 	find_library(ANDROID_LIBRARY NAMES android PATHS /usr/lib)
-	find_library(GLES_LIBRARY NAMES GLESv1_CM PATHS /usr/lib)
+	find_library(GLES_LIBRARY NAMES GLESv3 PATHS /usr/lib)
 	find_library(EGL_LIBRARY NAMES EGL PATHS /usr/lib)
 
 	list(APPEND GAME_LIBRARIES
@@ -51,7 +51,6 @@ set(GAME_SOURCES
 	main.cc
 	gesture_detector.cc
 	level.cc
-	debug_gfx.cc
 	tween.cc
 	shiny_sprite.cc
 	game.cc

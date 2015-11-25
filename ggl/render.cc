@@ -3,6 +3,7 @@
 #include <stack>
 #include <memory>
 
+#include <ggl/log.h>
 #include <ggl/noncopyable.h>
 #include <ggl/sprite.h>
 #include <ggl/vec3.h>
@@ -15,74 +16,8 @@
 #include <ggl/gl_buffer.h>
 #include <ggl/texture.h>
 #include <ggl/gl_check.h>
+#include <ggl/programs.h>
 #include <ggl/render.h>
-
-namespace {
-
-const char *vert_shader_single =
-	"uniform mat4 proj_modelview;\n"
-	"\n"
-	"attribute vec2 position;\n"
-	"attribute vec2 texcoord;\n"
-	"attribute vec4 color;\n"
-	"\n"
-	"varying vec2 frag_texcoord;\n"
-	"varying vec4 frag_color;\n"
-	"\n"
-	"void main(void)\n"
-	"{\n"
-	"	gl_Position = proj_modelview*vec4(position, 0, 1);\n"
-	"	frag_texcoord = texcoord;\n"
-	"	frag_color = color;\n"
-	"}";
-
-const char *frag_shader_single =
-	"uniform sampler2D texture;\n"
-	"\n"
-	"varying vec2 frag_texcoord;\n"
-	"varying vec4 frag_color;\n"
-	"\n"
-	"void main(void)\n"
-	"{\n"
-	"	gl_FragColor = texture2D(texture, frag_texcoord)*frag_color;\n"
-	"}";
-
-const char *vert_shader_multi =
-	"uniform mat4 proj_modelview;\n"
-	"\n"
-	"attribute vec2 position;\n"
-	"attribute vec2 texcoord0;\n"
-	"attribute vec2 texcoord1;\n"
-	"attribute vec4 color;\n"
-	"\n"
-	"varying vec2 frag_texcoord0;\n"
-	"varying vec2 frag_texcoord1;\n"
-	"varying vec4 frag_color;\n"
-	"\n"
-	"void main(void)\n"
-	"{\n"
-	"	gl_Position = proj_modelview*vec4(position, 0, 1);\n"
-	"	frag_texcoord0 = texcoord0;\n"
-	"	frag_texcoord1 = texcoord1;\n"
-	"	frag_color = color;\n"
-	"}";
-
-const char *frag_shader_multi =
-	"uniform sampler2D texture0;\n"
-	"uniform sampler2D texture1;\n"
-	"\n"
-	"varying vec2 frag_texcoord0;\n"
-	"varying vec2 frag_texcoord1;\n"
-	"varying vec4 frag_color;\n"
-	"\n"
-	"void main(void)\n"
-	"{\n"
-	"	vec4 c0 = texture2D(texture0, frag_texcoord0);\n"
-	"	vec4 c1 = texture2D(texture1, frag_texcoord1);\n"
-	"	gl_FragColor = vec4(c0.rgb + c1.rgb, c0.a)*frag_color;\n"
-	"}";
-
-}
 
 namespace ggl { namespace render {
 
@@ -92,20 +27,20 @@ const size_t INDICES_PER_SPRITE = 6;
 const size_t VERTS_PER_SPRITE = 4;
 const size_t MAX_SPRITES_PER_BATCH = 32;
 
-struct gl_vertex_single
-{
+struct gl_vertex_single {
 	GLfloat position[2];
 	GLfloat texcoord[2];
 	GLfloat color[4];
 };
 
-struct gl_vertex_multi
-{
+struct gl_vertex_multi {
 	GLfloat position[2];
 	GLfloat texcoord0[2];
 	GLfloat texcoord1[2];
 	GLfloat color[4];
 };
+
+} // (anonymous namespace)
 
 class renderer : private noncopyable
 {
@@ -130,10 +65,12 @@ public:
 
 	void end();
 
+	mat4 get_proj_modelview() const
+	{ return proj_modelview_; }
+
 private:
 	void init_buffers();
 	void init_vaos();
-	void init_programs();
 
 	struct sprite_info
 	{
@@ -158,8 +95,8 @@ private:
 	gl_vertex_array vao_single_;
 	gl_vertex_array vao_multi_;
 
-	gl_program program_single_;
-	gl_program program_multi_;
+	const gl_program *program_single_;
+	const gl_program *program_multi_;
 
 	mat4 proj_modelview_;
 } *g_renderer;
@@ -168,9 +105,11 @@ renderer::renderer()
 : vert_buffer_ { GL_ARRAY_BUFFER }
 , index_buffer_ { GL_ELEMENT_ARRAY_BUFFER }
 , proj_modelview_ { mat4::identity() }
+, program_single_ { programs::get_program(programs::program_type::TEXTURE_MODULATE) }
+, program_multi_ { programs::get_program(programs::program_type::MULTITEXTURE_MODULATE) }
 {
+
 	init_buffers();
-	init_programs();
 	init_vaos();
 }
 
@@ -205,10 +144,12 @@ renderer::init_buffers()
 
 	// index buffer
 
-	index_buffer_.bind();
-	index_buffer_.buffer_data(MAX_SPRITES_PER_BATCH*INDICES_PER_SPRITE*sizeof(GLushort), nullptr, GL_STATIC_DRAW);
+	GLsizei size = MAX_SPRITES_PER_BATCH*INDICES_PER_SPRITE*sizeof(GLushort);
 
-	auto index_ptr = reinterpret_cast<GLushort *>(index_buffer_.map(GL_WRITE_ONLY));
+	index_buffer_.bind();
+	index_buffer_.buffer_data(size, nullptr, GL_DYNAMIC_DRAW);
+
+	auto index_ptr = reinterpret_cast<GLushort *>(index_buffer_.map_range(0, size, GL_MAP_WRITE_BIT|GL_MAP_INVALIDATE_BUFFER_BIT));
 
 	for (int i = 0; i < MAX_SPRITES_PER_BATCH; i++) {
 		*index_ptr++ = i*4;
@@ -225,57 +166,32 @@ renderer::init_buffers()
 }
 
 void
-renderer::init_programs()
-{
-	auto init_program = [](gl_program& prog, const char *vert_source, const char *frag_source)
-		{
-			gl_shader vert_single { GL_VERTEX_SHADER };
-			vert_single.set_source(vert_source);
-			vert_single.compile();
-
-			gl_shader frag_single { GL_FRAGMENT_SHADER };
-			frag_single.set_source(frag_source);
-			frag_single.compile();
-
-			prog.attach(vert_single);
-			prog.attach(frag_single);
-			prog.link();
-		};
-
-	init_program(program_single_, vert_shader_single, frag_shader_single);
-	init_program(program_multi_, vert_shader_multi, frag_shader_multi);
-}
-
-void
 renderer::init_vaos()
 {
-#define INIT_ATTRIB_POINTER(prog, st, field, size) \
-	{ \
-		GLint location = prog.get_attribute_location(#field); \
-		gl_check(glVertexAttribPointer(location, size, GL_FLOAT, GL_FALSE, sizeof(st), reinterpret_cast<const GLvoid *>(offsetof(st, field)))); \
-		gl_check(glEnableVertexAttribArray(location)); \
-	}
-
 	// vao for single texture sprites
+
+#define ENABLE_ATTRIB(location, size, type, field) \
+	gl_check(glVertexAttribPointer(location, size, GL_FLOAT, GL_FALSE, sizeof(type), reinterpret_cast<const GLvoid *>(offsetof(type, field)))); \
+	gl_check(glEnableVertexAttribArray(location));
 
 	vao_single_.bind();
 	vert_buffer_.bind();
-	INIT_ATTRIB_POINTER(program_single_, gl_vertex_single, position, 2)
-	INIT_ATTRIB_POINTER(program_single_, gl_vertex_single, texcoord, 2)
-	INIT_ATTRIB_POINTER(program_single_, gl_vertex_single, color, 4)
+	ENABLE_ATTRIB(0, 2, gl_vertex_single, position)
+	ENABLE_ATTRIB(1, 2, gl_vertex_single, texcoord)
+	ENABLE_ATTRIB(2, 4, gl_vertex_single, color)
 
 	// vao for multi texture sprites
 
 	vao_multi_.bind();
 	vert_buffer_.bind(); // XXX need this?
-	INIT_ATTRIB_POINTER(program_multi_, gl_vertex_multi, position, 2)
-	INIT_ATTRIB_POINTER(program_multi_, gl_vertex_multi, texcoord0, 2)
-	INIT_ATTRIB_POINTER(program_multi_, gl_vertex_multi, texcoord1, 2)
-	INIT_ATTRIB_POINTER(program_multi_, gl_vertex_multi, color, 4)
+	ENABLE_ATTRIB(0, 2, gl_vertex_multi, position)
+	ENABLE_ATTRIB(1, 2, gl_vertex_multi, texcoord0)
+	ENABLE_ATTRIB(2, 2, gl_vertex_multi, texcoord1)
+	ENABLE_ATTRIB(3, 4, gl_vertex_multi, color)
+
+#undef ENABLE_ATTRIB
 
 	gl_vertex_array::unbind();
-
-#undef INIT_ATTRIB_POINTER
 }
 
 void
@@ -374,14 +290,14 @@ renderer::end()
 
 	// initialize program uniforms
 
-	program_single_.use();
-	program_single_.set_uniform_i("texture", 0); // texunit 0
-	program_single_.set_uniform_mat4("proj_modelview", proj_modelview_);
+	program_single_->use();
+	program_single_->set_uniform_i("texture", 0); // texunit 0
+	program_single_->set_uniform_mat4("proj_modelview", proj_modelview_);
 
-	program_multi_.use();
-	program_multi_.set_uniform_i("texture0", 0); // texunit 0
-	program_multi_.set_uniform_i("texture1", 1); // texunit 0
-	program_multi_.set_uniform_mat4("proj_modelview", proj_modelview_);
+	program_multi_->use();
+	program_multi_->set_uniform_i("texture0", 0); // texunit 0
+	program_multi_->set_uniform_i("texture1", 1); // texunit 0
+	program_multi_->set_uniform_mat4("proj_modelview", proj_modelview_);
 
 	// do the dance, do the dance
 
@@ -443,9 +359,9 @@ renderer::render(const texture *tex0, const texture *tex1, const sprite_info *co
 	glActiveTexture(GL_TEXTURE1);
 	tex1->bind();
 
-	program_multi_.use();
+	program_multi_->use();
 
-	auto vert_ptr = reinterpret_cast<gl_vertex_multi *>(vert_buffer_.map(GL_WRITE_ONLY));
+	auto vert_ptr = reinterpret_cast<gl_vertex_multi *>(vert_buffer_.map_range(0, num_sprites*VERTS_PER_SPRITE*sizeof(gl_vertex_multi), GL_MAP_WRITE_BIT));
 
 	for (size_t i = 0; i < num_sprites; i++) {
 		auto sp = sprites[i];
@@ -508,9 +424,9 @@ renderer::render(const texture *tex, const sprite_info *const *sprites, size_t n
 	glActiveTexture(GL_TEXTURE0);
 	tex->bind();
 
-	program_single_.use();
+	program_single_->use();
 
-	auto vert_ptr = reinterpret_cast<gl_vertex_single *>(vert_buffer_.map(GL_WRITE_ONLY));
+	auto vert_ptr = reinterpret_cast<gl_vertex_single *>(vert_buffer_.map_range(0, num_sprites*VERTS_PER_SPRITE*sizeof(gl_vertex_single), GL_MAP_WRITE_BIT));
 
 	for (size_t i = 0; i < num_sprites; i++) {
 		auto sp = sprites[i];
@@ -555,8 +471,6 @@ renderer::render(const texture *tex, const sprite_info *const *sprites, size_t n
 	vao_single_.bind();
 	index_buffer_.bind();
 	glDrawElements(GL_TRIANGLES, num_sprites*INDICES_PER_SPRITE, GL_UNSIGNED_SHORT, 0);
-}
-
 }
 
 void
@@ -672,6 +586,12 @@ void
 end()
 {
 	g_renderer->end();
+}
+
+mat4
+get_proj_modelview()
+{
+	return g_renderer->get_proj_modelview();
 }
 
 } }

@@ -104,12 +104,6 @@ texture::set_parameter(GLenum name, GLint value) const
 }
 
 void
-texture::set_env_mode(GLint mode)
-{
-	glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, mode);
-}
-
-void
 texture::load()
 {
 	assert(id_ == 0);
@@ -136,8 +130,6 @@ texture::load()
 
 	set_mag_filter(GL_LINEAR);
 	set_min_filter(GL_LINEAR);
-
-	set_env_mode(GL_MODULATE);
 }
 
 void
