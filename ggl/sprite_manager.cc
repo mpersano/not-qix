@@ -23,10 +23,7 @@ sprite_manager::get(const std::string& name) const
 void
 sprite_manager::load_sprite_sheet(const std::string& path)
 {
-	auto asset = g_core->get_asset(path);
-
-	std::vector<char> xml(asset->size());
-	asset->read(&xml[0], asset->size());
+	auto xml = g_core->get_asset(path)->read_all();
 
 	TiXmlDocument doc;
 	doc.Parse(&xml[0]);

@@ -22,6 +22,7 @@ set(GGL_SOURCES
 	panic.cc
 	event.cc
 	core.cc
+	asset.cc
 	texture.cc
 	font.cc
 	image.cc

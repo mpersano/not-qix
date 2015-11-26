@@ -25,10 +25,7 @@ glyph::glyph(const texture *tex, int u, int v, int width, int height, int left, 
 
 font::font(const std::string& path)
 {
-	auto asset = g_core->get_asset(path);
-
-	std::vector<char> xml(asset->size());
-	asset->read(&xml[0], asset->size());
+	auto xml = g_core->get_asset(path)->read_all();
 
 	TiXmlDocument doc;
 	doc.Parse(&xml[0]);
