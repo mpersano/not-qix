@@ -398,79 +398,70 @@ player::draw_trail(int start_index) const
 {
 	static const int TRAIL_RADIUS = 1;
 
-	if (extend_trail_.size() - start_index > 1) {
-		ggl::vertex_array_flat<GLshort, 2> va;
+	if (extend_trail_.empty() || start_index == extend_trail_.size())
+		return;
 
-		// first
-		{
-			auto& v0 = extend_trail_[start_index];
-			auto& v1 = extend_trail_[start_index + 1];
+	assert(start_index < extend_trail_.size());
 
-			vec2s d = v1 - v0;
-			vec2s n { -d.y, d.x };
+	ggl::vertex_array_flat<GLshort, 2> va;
 
-			vec2s p0 = vec2s(v0)*CELL_SIZE + n*TRAIL_RADIUS;
-			vec2s p1 = vec2s(v0)*CELL_SIZE - n*TRAIL_RADIUS;
+	// first
 
-			va.push_back({ p0.x, p0.y });
-			va.push_back({ p1.x, p1.y });
-		}
+	{
+		auto& v0 = extend_trail_[start_index]*CELL_SIZE;
+		auto& v1 = start_index + 1 < extend_trail_.size() ? extend_trail_[start_index + 1]*CELL_SIZE : get_position();
 
-		// middle
-		for (size_t i = start_index + 1; i < extend_trail_.size() - 1; i++) {
-			auto& v0 = extend_trail_[i - 1];
-			auto& v1 = extend_trail_[i];
-			auto& v2 = extend_trail_[i + 1];
+		vec2s d = normalized(v1 - v0);
+		vec2s n { -d.y, d.x };
 
-			vec2s ds = v1 - v0;
-			vec2s ns { -ds.y, ds.x };
+		vec2s p0 = vec2s(v0) + n*TRAIL_RADIUS;
+		vec2s p1 = vec2s(v0) - n*TRAIL_RADIUS;
 
-			vec2s de = v2 - v1;
-			vec2s ne { -de.y, de.x };
-
-			vec2s nm = ns + ne;
-
-			int d = dot(ns, nm);
-
-			vec2s p0 = vec2s(v1)*CELL_SIZE + nm*TRAIL_RADIUS/d;
-			vec2s p1 = vec2s(v1)*CELL_SIZE - nm*TRAIL_RADIUS/d;
-
-			va.push_back({ p0.x, p0.y });
-			va.push_back({ p1.x, p1.y });
-		}
-
-		// last
-		{
-			auto& v0 = extend_trail_[extend_trail_.size() - 1];
-			auto& v1 = extend_trail_[extend_trail_.size() - 2];
-
-			vec2s d = v0 - v1;
-			vec2s n { -d.y, d.x };
-
-			vec2s p0 = vec2s(v0)*CELL_SIZE + n*TRAIL_RADIUS;
-			vec2s p1 = vec2s(v0)*CELL_SIZE - n*TRAIL_RADIUS;
-
-			va.push_back({ p0.x, p0.y });
-			va.push_back({ p1.x, p1.y });
-		}
-
-		va.draw(GL_TRIANGLE_STRIP, ggl::rgba { 1, 1, 0, 1 });
+		va.push_back({ p0.x, p0.y });
+		va.push_back({ p1.x, p1.y });
 	}
 
-	// last bit
+	// middle
 
-	vec2s v0 = extend_trail_.back()*CELL_SIZE;
-	vec2s v1 = get_position();
+	for (size_t i = start_index + 1; i < extend_trail_.size(); i++) {
+		auto& v0 = extend_trail_[i - 1]*CELL_SIZE;
+		auto& v1 = extend_trail_[i]*CELL_SIZE;
+		auto& v2 = i + 1 < extend_trail_.size() ? extend_trail_[i + 1]*CELL_SIZE : get_position();
 
-	short x0 = std::min(v0.x - TRAIL_RADIUS, v1.x - TRAIL_RADIUS);
-	short x1 = std::max(v0.x + TRAIL_RADIUS, v1.x + TRAIL_RADIUS);
+		vec2s ds = normalized(v1 - v0);
+		vec2s ns { -ds.y, ds.x };
 
-	short y0 = std::min(v0.y - TRAIL_RADIUS, v1.y - TRAIL_RADIUS);
-	short y1 = std::max(v0.y + TRAIL_RADIUS, v1.y + TRAIL_RADIUS);
+		vec2s de = normalized(v2 - v1);
+		vec2s ne { -de.y, de.x };
 
-	(ggl::vertex_array_flat<GLshort, 2>
-		{ { x0, y0 }, { x1, y0 },
-		  { x0, y1 }, { x1, y1 } }).draw(GL_TRIANGLE_STRIP, ggl::rgba { 1, 1, 0, 1 });
+		vec2s nm = ns + ne;
+
+		int d = dot(ns, nm);
+
+		vec2s p0 = vec2s(v1) + nm*TRAIL_RADIUS/d;
+		vec2s p1 = vec2s(v1) - nm*TRAIL_RADIUS/d;
+
+		va.push_back({ p0.x, p0.y });
+		va.push_back({ p1.x, p1.y });
+	}
+
+	// last
+
+	{
+		auto& v0 = get_position();
+		auto& v1 = extend_trail_.back()*CELL_SIZE;
+
+		vec2s d = normalized(v0 - v1);
+		vec2s n { -d.y, d.x };
+
+		vec2s p0 = vec2s(v0) + n*TRAIL_RADIUS;
+		vec2s p1 = vec2s(v0) - n*TRAIL_RADIUS;
+
+		va.push_back({ p0.x, p0.y });
+		va.push_back({ p1.x, p1.y });
+	}
+
+	va.draw(GL_TRIANGLE_STRIP, ggl::rgba { 1, 1, 0, 1 });
 }
 
 void
