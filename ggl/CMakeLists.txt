@@ -37,6 +37,7 @@ set(GGL_SOURCES
 	gl_vertex_array.cc
 	gl_shader.cc
 	gl_program.cc
+	framebuffer.cc
 	vec2_util.cc)
 
 if (ANDROID)

@@ -1,12 +1,13 @@
 #include <ggl/core.h>
 
 #include "level.h"
+#include "game_app.h"
 #include "in_game_state.h"
 
-in_game_state::in_game_state(int width, int height)
-: app_state { width, height }
-, game_ { width, height }
-, dpad_state_ { 0 }
+in_game_state::in_game_state(game_app& app)
+: app_state { app }
+, game_ { static_cast<int>(app_.get_scene_width()), static_cast<int>(app_.get_scene_height()) } // UGH
+, dpad_state_ { 0u }
 {
 	connect_events();
 
@@ -18,7 +19,7 @@ in_game_state::connect_events()
 {
 	using namespace std::placeholders;
 
-	auto *core = ggl::g_core;
+	auto core = ggl::g_core;
 
 	dpad_button_down_conn_ =
 		core->get_dpad_button_down_event().connect(
@@ -46,7 +47,7 @@ in_game_state::connect_events()
 }
 
 void
-in_game_state::draw()
+in_game_state::draw() const
 {
 	game_.draw();
 }

@@ -127,9 +127,15 @@ get_action(const std::string& name)
 }
 
 void
-load_sprite_sheet(const std::string& name)
+load_sprite_sheet(const std::string& path)
 {
-	g_sprite_manager->load_sprite_sheet(name);
+	g_sprite_manager->load_sprite_sheet(path);
+}
+
+void
+load_programs(const std::string& path)
+{
+	g_program_manager->load_programs(path);
 }
 
 void

@@ -47,29 +47,42 @@ next_power_of_2(T n)
 } // namespace
 
 texture::texture(const image& im)
-: orig_width { im.width }, width { next_power_of_2(orig_width) }
-, orig_height { im.height }, height { next_power_of_2(orig_height) }
+: orig_width { im.width }
+, width { next_power_of_2(orig_width) }
+, orig_height { im.height }
+, height { next_power_of_2(orig_height) }
 , type { im.type }
-, data(height*width*pixel_size())
 , id_ { 0 }
+, data_ { new uint8_t[width*height*pixel_size()] }
 {
 	const uint8_t *src = &im.data[(im.height - 1)*im.row_stride()];
-	uint8_t *dest = &data[0];
-
-	const unsigned dest_stride = row_stride();
-	const unsigned src_stride = im.row_stride();
+	uint8_t *dest = data_;
 
 	for (unsigned i = 0; i < im.height; i++) {
-		std::copy(src, src + src_stride, dest);
-		src -= src_stride;
-		dest += dest_stride;
+		std::copy(src, src + im.row_stride(), dest);
+		src -= im.row_stride();
+		dest += row_stride();
 	}
 
 	load();
 }
 
+texture::texture(unsigned width, unsigned height, pixel_type type)
+: orig_width { width }
+, width { width }
+, orig_height { height }
+, height { height }
+, type { type }
+, id_ { 0 }
+, data_ { nullptr }
+{
+	load();
+}
+
 texture::~texture()
 {
+	if (data_)
+		delete[] data_;
 	unload();
 }
 
@@ -77,37 +90,6 @@ void
 texture::bind() const
 {
 	gl_check(glBindTexture(GL_TEXTURE_2D, id_));
-}
-
-void
-texture::set_wrap_s(GLint wrap) const
-{
-	set_parameter(GL_TEXTURE_WRAP_S, wrap);
-}
-
-void
-texture::set_wrap_t(GLint wrap) const
-{
-	set_parameter(GL_TEXTURE_WRAP_T, wrap);
-}
-
-void
-texture::set_mag_filter(GLint filter) const
-{
-	set_parameter(GL_TEXTURE_MAG_FILTER, filter);
-}
-
-void
-texture::set_min_filter(GLint filter) const
-{
-	set_parameter(GL_TEXTURE_MIN_FILTER, filter);
-}
-
-void
-texture::set_parameter(GLenum name, GLint value) const
-{
-	bind();
-	gl_check(glTexParameteri(GL_TEXTURE_2D, name, value));
 }
 
 void
@@ -121,22 +103,12 @@ texture::load()
 	const GLint format = color_type_to_pixel_format(type);
 
 	gl_check(glPixelStorei(GL_UNPACK_ALIGNMENT, 1));
+	gl_check(glTexImage2D(GL_TEXTURE_2D, 0, format, width, height, 0, format, GL_UNSIGNED_BYTE, data_));
 
-	gl_check(glTexImage2D(
-		GL_TEXTURE_2D,
-		0,
-		format,
-		width, height,
-		0,
-		format,
-		GL_UNSIGNED_BYTE,
-		&data[0]));
-
-	set_wrap_s(GL_REPEAT);
-	set_wrap_t(GL_REPEAT);
-
-	set_mag_filter(GL_LINEAR);
-	set_min_filter(GL_LINEAR);
+	gl_check(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT));
+	gl_check(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT));
+	gl_check(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR));
+	gl_check(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR));
 }
 
 void

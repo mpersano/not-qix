@@ -13,9 +13,9 @@
 class in_game_state : public app_state
 {
 public:
-	in_game_state(int width, int height);
+	in_game_state(game_app& app);
 
-	void draw() override;
+	void draw() const override;
 	void update() override;
 
 private:

@@ -32,7 +32,10 @@ std::unique_ptr<action>
 get_action(const std::string& name);
 
 void
-load_sprite_sheet(const std::string& name);
+load_sprite_sheet(const std::string& path);
+
+void
+load_programs(const std::string& path);
 
 void
 unload_gl_resources();

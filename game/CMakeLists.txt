@@ -49,6 +49,7 @@ endif()
 
 set(GAME_SOURCES
 	main.cc
+	game_app.cc
 	gesture_detector.cc
 	level.cc
 	tween.cc
@@ -64,7 +65,10 @@ set(GAME_SOURCES
 	powerup.cc
 	explosion.cc
 	particles.cc
+	app_state.cc
+	level_selection_state.cc
 	in_game_state.cc
+	transition_state.cc
 	widget.cc
 	lives_widget.cc
 	percent_widget.cc)

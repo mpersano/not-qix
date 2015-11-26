@@ -120,13 +120,13 @@ template <typename VertexType>
 class vertex_array : public std::vector<VertexType>
 {
 public:
-	vertex_array()
-	: prog_ { detail::vertex_traits<VertexType>::get_program() }
+	vertex_array(const ggl::gl_program *prog = detail::vertex_traits<VertexType>::get_program())
+	: prog_ { prog }
 	{ }
 
-	vertex_array(std::initializer_list<VertexType> l)
+	vertex_array(std::initializer_list<VertexType> l, const ggl::gl_program *prog = detail::vertex_traits<VertexType>::get_program())
 	: std::vector<VertexType>(l)
-	, prog_ { detail::vertex_traits<VertexType>::get_program() }
+	, prog_ { prog }
 	{ }
 
 	void draw(GLenum mode) const
@@ -134,7 +134,7 @@ public:
 		if (!this->empty()) {
 			prog_->use();
 			prog_->set_uniform_mat4("proj_modelview", render::get_proj_modelview()); // face.insert(palm)
-			prog_->set_uniform_i("tex", 0); // texunit 0
+			// prog_->set_uniform_i("tex", 0); // texunit 0
 
 			detail::vertex_traits<VertexType>::enable_vertex_attribs(&this->front());
 			gl_check(glDrawArrays(mode, 0, this->size()));

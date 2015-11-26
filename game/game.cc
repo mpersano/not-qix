@@ -479,7 +479,7 @@ game::reset(const level *l)
 }
 
 void
-game::draw()
+game::draw() const
 {
 	// relative to grid
 

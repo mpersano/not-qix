@@ -1,0 +1,6 @@
+<shaders>
+	<shader name="transition">
+		<vert source="shaders/transition.vert" />
+		<frag source="shaders/transition.frag" />
+	</shader>
+</shaders>

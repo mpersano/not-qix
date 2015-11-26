@@ -9,6 +9,7 @@ namespace ggl {
 class texture : private noncopyable
 {
 public:
+	texture(unsigned width, unsigned height, pixel_type type);
 	texture(const image& pm);
 	~texture();
 
@@ -26,19 +27,12 @@ public:
 	unsigned orig_width, width;
 	unsigned orig_height, height;
 	pixel_type type;
-	std::vector<uint8_t> data;
 
 private:
-	void set_wrap_s(GLint wrap) const;
-	void set_wrap_t(GLint wrap) const;
-
-	void set_mag_filter(GLint filter) const;
-	void set_min_filter(GLint filter) const;
-
-	void set_parameter(GLenum name, GLint value) const;
-	static void set_env_mode(GLint mode);
-
 	GLuint id_;
+	uint8_t *data_;
+
+	friend class framebuffer;
 };
 
 }

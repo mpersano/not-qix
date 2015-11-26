@@ -40,7 +40,7 @@ public:
 
 	void reset(const level *l);
 	void update(unsigned dpad_state);
-	void draw();
+	void draw() const;
 
 	unsigned get_cover_percent() const;
 
