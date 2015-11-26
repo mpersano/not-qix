@@ -149,7 +149,7 @@ renderer::init_buffers()
 	index_buffer_.bind();
 	index_buffer_.buffer_data(size, nullptr, GL_DYNAMIC_DRAW);
 
-	auto index_ptr = reinterpret_cast<GLushort *>(index_buffer_.map_range(0, size, GL_MAP_WRITE_BIT|GL_MAP_INVALIDATE_BUFFER_BIT));
+	auto index_ptr = reinterpret_cast<GLushort *>(index_buffer_.map_range(0, size, GL_MAP_WRITE_BIT));
 
 	for (int i = 0; i < MAX_SPRITES_PER_BATCH; i++) {
 		*index_ptr++ = i*4;
@@ -291,12 +291,12 @@ renderer::end()
 	// initialize program uniforms
 
 	program_single_->use();
-	program_single_->set_uniform_i("texture", 0); // texunit 0
+	program_single_->set_uniform_i("tex", 0); // texunit 0
 	program_single_->set_uniform_mat4("proj_modelview", proj_modelview_);
 
 	program_multi_->use();
-	program_multi_->set_uniform_i("texture0", 0); // texunit 0
-	program_multi_->set_uniform_i("texture1", 1); // texunit 0
+	program_multi_->set_uniform_i("tex0", 0); // texunit 0
+	program_multi_->set_uniform_i("tex1", 1); // texunit 0
 	program_multi_->set_uniform_mat4("proj_modelview", proj_modelview_);
 
 	// do the dance, do the dance

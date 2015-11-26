@@ -135,6 +135,7 @@ public:
 		auto prog = detail::vertex_traits<VertexType>::get_program();
 		prog->use();
 		prog->set_uniform_mat4("proj_modelview", render::get_proj_modelview()); // face.insert(palm)
+		prog->set_uniform_i("tex", 0); // texunit 0
 
 		detail::vertex_traits<VertexType>::enable_vertex_attribs(&this->front());
 		glDrawArrays(mode, 0, this->size());

@@ -65,7 +65,7 @@ const char *frag_shader_texture_decal =
 #else
 	"#version 430 core\n"
 #endif
-	"uniform sampler2D texture;\n"
+	"uniform sampler2D tex;\n"
 	"\n"
 	"in vec2 frag_texcoord;\n"
 	"\n"
@@ -73,7 +73,7 @@ const char *frag_shader_texture_decal =
 	"\n"
 	"void main(void)\n"
 	"{\n"
-	"	out_color = texture(texture, frag_texcoord);\n"
+	"	out_color = texture(tex, frag_texcoord);\n"
 	"}";
 
 const char *vert_shader_texture_color =
@@ -104,7 +104,7 @@ const char *frag_shader_texture_color =
 #else
 	"#version 430 core\n"
 #endif
-	"uniform sampler2D texture;\n"
+	"uniform sampler2D tex;\n"
 	"\n"
 	"in vec2 frag_texcoord;\n"
 	"in vec4 frag_color;\n"
@@ -113,7 +113,7 @@ const char *frag_shader_texture_color =
 	"\n"
 	"void main(void)\n"
 	"{\n"
-	"	out_color = texture(texture, frag_texcoord)*frag_color;\n"
+	"	out_color = texture(tex, frag_texcoord)*frag_color;\n"
 	"}";
 
 const char *vert_shader_multitexture_color =
@@ -147,8 +147,8 @@ const char *frag_shader_multitexture_color =
 #else
 	"#version 430 core\n"
 #endif
-	"uniform sampler2D texture0;\n"
-	"uniform sampler2D texture1;\n"
+	"uniform sampler2D tex0;\n"
+	"uniform sampler2D tex1;\n"
 	"\n"
 	"in vec2 frag_texcoord0;\n"
 	"in vec2 frag_texcoord1;\n"
@@ -158,8 +158,8 @@ const char *frag_shader_multitexture_color =
 	"\n"
 	"void main(void)\n"
 	"{\n"
-	"	vec4 c0 = texture(texture0, frag_texcoord0);\n"
-	"	vec4 c1 = texture(texture1, frag_texcoord1);\n"
+	"	vec4 c0 = texture(tex0, frag_texcoord0);\n"
+	"	vec4 c1 = texture(tex1, frag_texcoord1);\n"
 	"	out_color = vec4(c0.rgb + c1.rgb, c0.a)*frag_color;\n"
 	"}";
 
