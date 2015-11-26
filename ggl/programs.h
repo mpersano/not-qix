@@ -8,6 +8,7 @@ namespace programs {
 
 enum program_type {
 	FLAT,
+	COLOR,
 	TEXTURE_DECAL,
 	TEXTURE_MODULATE,
 	MULTITEXTURE_MODULATE,

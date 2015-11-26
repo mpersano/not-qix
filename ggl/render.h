@@ -56,11 +56,23 @@ pop_matrix();
 void
 set_color(const rgba& color);
 
+// untextured quads
+
+void
+draw(const bbox& dest_coords, float depth);
+
+void
+draw(const quad& dest_coords, float depth);
+
+// textured quads
+
 void
 draw(const texture *tex, const bbox& tex_coords, const bbox& dest_coords, float depth);
 
 void
 draw(const texture *tex, const bbox& tex_coords, const quad& dest_coords, float depth);
+
+// 2-texture quads
 
 void
 draw(const texture *tex0, const texture *tex1, const bbox& tex0_coords, const bbox& tex1_coords, const bbox& dest_coords, float depth);

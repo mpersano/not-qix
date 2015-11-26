@@ -40,6 +40,40 @@ const char *frag_shader_flat =
 	"	out_color = color;\n"
 	"}";
 
+const char *vert_shader_color =
+#ifdef ANDROID
+	"#version 300 es\n"
+#else
+	"#version 430 core\n"
+#endif
+	"uniform mat4 proj_modelview;\n"
+	"\n"
+	"layout(location=0) in vec2 position;\n"
+	"layout(location=1) in vec4 color;\n"
+	"\n"
+	"out vec4 frag_color;\n"
+	"\n"
+	"void main(void)\n"
+	"{\n"
+	"	gl_Position = proj_modelview*vec4(position, 0, 1);\n"
+	"	frag_color = color;\n"
+	"}";
+
+const char *frag_shader_color =
+#ifdef ANDROID
+	"#version 300 es\n"
+#else
+	"#version 430 core\n"
+#endif
+	"in vec4 frag_color;\n"
+	"\n"
+	"out vec4 out_color;\n"
+	"\n"
+	"void main(void)\n"
+	"{\n"
+	"	out_color = frag_color;\n"
+	"}";
+
 const char *vert_shader_texture_decal =
 #ifdef ANDROID
 	"#version 300 es\n"
@@ -173,14 +207,13 @@ init()
 	struct { const char *vert_source, *frag_source; } programs[program_type::NUM_PROGRAMS]
 	{
 		{ vert_shader_flat, frag_shader_flat },
+		{ vert_shader_color, frag_shader_color },
 		{ vert_shader_texture_decal, frag_shader_texture_decal },
 		{ vert_shader_texture_color, frag_shader_texture_color },
 		{ vert_shader_multitexture_color, frag_shader_multitexture_color },
 	};
 
 	for (auto& p : programs) {
-		log_info("compiling...");
-
 		gl_shader vert_single { GL_VERTEX_SHADER };
 		vert_single.set_source(p.vert_source);
 		vert_single.compile();

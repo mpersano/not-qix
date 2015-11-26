@@ -250,42 +250,8 @@ select_initial_area_state::select_initial_area_state(game& g)
 void
 select_initial_area_state::draw() const
 {
-	short x0 = initial_area_.first.x*CELL_SIZE;
-	short x1 = initial_area_.second.x*CELL_SIZE;
-
-	short y0 = initial_area_.first.y*CELL_SIZE;
-	short y1 = initial_area_.second.y*CELL_SIZE;
-
-	// interior
-
-	{
-	ggl::enable_alpha_blend _;
-
-	(ggl::vertex_array_flat<GLshort, 2>
-		{ { x0, y0 }, { x1, y0 },
-		  { x0, y1 }, { x1, y1 } }).draw(GL_TRIANGLE_STRIP, ggl::rgba { 1, 1, 1, .5 });
-	}
-
-	// border
-
-	short x00 = x0 - BORDER_RADIUS;
-	short x01 = x0 + BORDER_RADIUS;
-
-	short x10 = x1 - BORDER_RADIUS;
-	short x11 = x1 + BORDER_RADIUS;
-
-	short y00 = y0 - BORDER_RADIUS;
-	short y01 = y0 + BORDER_RADIUS;
-
-	short y10 = y1 - BORDER_RADIUS;
-	short y11 = y1 + BORDER_RADIUS;
-
-	(ggl::vertex_array_flat<GLshort, 2>
-		{ { x00, y00 }, { x01, y01 },
-		  { x11, y00 }, { x10, y01 },
-		  { x11, y11 }, { x10, y10 },
-		  { x00, y11 }, { x01, y10 },
-		  { x00, y00 }, { x01, y01 } }).draw(GL_TRIANGLE_STRIP, ggl::white);
+	ggl::render::set_color(ggl::rgba { 1, 1, 1, .5 });
+	ggl::render::draw(ggl::bbox { initial_area_.first*CELL_SIZE, initial_area_.second*CELL_SIZE }, 0);
 }
 
 void
