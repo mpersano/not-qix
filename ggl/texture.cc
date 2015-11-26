@@ -4,6 +4,7 @@
 
 #include <ggl/panic.h>
 #include <ggl/texture.h>
+#include <ggl/gl_check.h>
 
 namespace ggl {
 
@@ -73,6 +74,12 @@ texture::~texture()
 }
 
 void
+texture::bind() const
+{
+	gl_check(glBindTexture(GL_TEXTURE_2D, id_));
+}
+
+void
 texture::set_wrap_s(GLint wrap) const
 {
 	set_parameter(GL_TEXTURE_WRAP_S, wrap);
@@ -100,22 +107,22 @@ void
 texture::set_parameter(GLenum name, GLint value) const
 {
 	bind();
-	glTexParameteri(GL_TEXTURE_2D, name, value);
+	gl_check(glTexParameteri(GL_TEXTURE_2D, name, value));
 }
 
 void
 texture::load()
 {
 	assert(id_ == 0);
-	glGenTextures(1, &id_);
+	gl_check(glGenTextures(1, &id_));
 
 	bind();
 
 	const GLint format = color_type_to_pixel_format(type);
 
-	glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+	gl_check(glPixelStorei(GL_UNPACK_ALIGNMENT, 1));
 
-	glTexImage2D(
+	gl_check(glTexImage2D(
 		GL_TEXTURE_2D,
 		0,
 		format,
@@ -123,7 +130,7 @@ texture::load()
 		0,
 		format,
 		GL_UNSIGNED_BYTE,
-		&data[0]);
+		&data[0]));
 
 	set_wrap_s(GL_REPEAT);
 	set_wrap_t(GL_REPEAT);
@@ -135,7 +142,7 @@ texture::load()
 void
 texture::unload()
 {
-	glDeleteTextures(1, &id_);
+	gl_check(glDeleteTextures(1, &id_));
 	id_ = 0;
 }
 

@@ -2,6 +2,7 @@
 
 // this is a disgrace.
 
+#include <cassert>
 #include <vector>
 
 #include <ggl/gl.h>
@@ -81,9 +82,7 @@ struct vertex_traits<vertex_flat<VertexType, VertexSize>>
 
 	static void disable_vertex_attribs()
 	{
-#if 0
 		gl_check(glDisableVertexAttribArray(0));
-#endif
 	}
 };
 
@@ -106,10 +105,8 @@ struct vertex_traits<vertex_texcoord<VertexType, VertexSize, TexCoordType, TexCo
 
 	static void disable_vertex_attribs()
 	{
-#if 0
 		gl_check(glDisableVertexAttribArray(1));
 		gl_check(glDisableVertexAttribArray(0));
-#endif
 	}
 };
 
@@ -124,35 +121,42 @@ class vertex_array : public std::vector<VertexType>
 {
 public:
 	vertex_array()
+	: prog_ { detail::vertex_traits<VertexType>::get_program() }
 	{ }
 
 	vertex_array(std::initializer_list<VertexType> l)
 	: std::vector<VertexType>(l)
+	, prog_ { detail::vertex_traits<VertexType>::get_program() }
 	{ }
 
 	void draw(GLenum mode) const
 	{
-		auto prog = detail::vertex_traits<VertexType>::get_program();
-		prog->use();
-		prog->set_uniform_mat4("proj_modelview", render::get_proj_modelview()); // face.insert(palm)
-		prog->set_uniform_i("tex", 0); // texunit 0
+		if (!this->empty()) {
+			prog_->use();
+			prog_->set_uniform_mat4("proj_modelview", render::get_proj_modelview()); // face.insert(palm)
+			prog_->set_uniform_i("tex", 0); // texunit 0
 
-		detail::vertex_traits<VertexType>::enable_vertex_attribs(&this->front());
-		glDrawArrays(mode, 0, this->size());
-		detail::vertex_traits<VertexType>::disable_vertex_attribs();
+			detail::vertex_traits<VertexType>::enable_vertex_attribs(&this->front());
+			gl_check(glDrawArrays(mode, 0, this->size()));
+			detail::vertex_traits<VertexType>::disable_vertex_attribs();
+		}
 	}
 
 	void draw(GLenum mode, const rgba& color) const
 	{
-		auto prog = detail::vertex_traits<VertexType>::get_program();
-		prog->use();
-		prog->set_uniform_mat4("proj_modelview", render::get_proj_modelview());
-		prog->set_uniform_f("color", color.r, color.g, color.b, color.a);
+		if (!this->empty()) {
+			prog_->use();
+			prog_->set_uniform_mat4("proj_modelview", render::get_proj_modelview());
+			prog_->set_uniform_f("color", color.r, color.g, color.b, color.a);
 
-		detail::vertex_traits<VertexType>::enable_vertex_attribs(&this->front());
-		glDrawArrays(mode, 0, this->size());
-		detail::vertex_traits<VertexType>::disable_vertex_attribs();
+			detail::vertex_traits<VertexType>::enable_vertex_attribs(&this->front());
+			gl_check(glDrawArrays(mode, 0, this->size()));
+			detail::vertex_traits<VertexType>::disable_vertex_attribs();
+		}
 	}
+
+private:
+	const ggl::gl_program *prog_;
 };
 
 template <typename VertexType, int VertexSize>

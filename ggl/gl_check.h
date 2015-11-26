@@ -2,7 +2,7 @@
 
 #include <ggl/panic.h>
 
-#if 0
+#if 1
 #define gl_check(expr) \
 	[&] { \
 		expr; \

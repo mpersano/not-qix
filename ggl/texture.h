@@ -12,8 +12,7 @@ public:
 	texture(const image& pm);
 	~texture();
 
-	void bind() const
-	{ glBindTexture(GL_TEXTURE_2D, id_); }
+	void bind() const;
 
 	unsigned row_stride() const
 	{ return width*pixel_size(); }

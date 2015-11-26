@@ -25,7 +25,7 @@ gl_shader::set_source(const char *source) const
 void
 gl_shader::compile() const
 {
-	glCompileShader(id_);
+	gl_check(glCompileShader(id_));
 
 	GLint status;
 	gl_check(glGetShaderiv(id_, GL_COMPILE_STATUS, &status));

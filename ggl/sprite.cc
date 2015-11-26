@@ -1,5 +1,4 @@
 #include <ggl/texture.h>
-#include <ggl/vertex_array.h>
 #include <ggl/util.h>
 #include <ggl/sprite.h>
 #include <ggl/render.h>

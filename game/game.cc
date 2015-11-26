@@ -57,7 +57,7 @@ public:
 private:
 	static const int SCROLL_TICS = 30;
 
-	int scroll_tics_;
+	int scroll_tics_, total_tics_;
 	bool scroll_dir_;
 	unsigned prev_dpad_state_;
 };
@@ -192,6 +192,7 @@ level_intro_state::update(unsigned dpad_state)
 select_initial_offset_state::select_initial_offset_state(game& g)
 : game_state { g }
 , scroll_tics_ { SCROLL_TICS }
+, total_tics_ { 0 }
 , scroll_dir_ { true }
 , prev_dpad_state_ { ~0u }
 { }
@@ -207,8 +208,9 @@ select_initial_offset_state::draw_overlay() const
 void
 select_initial_offset_state::update(unsigned dpad_state)
 {
-	if (prev_dpad_state_ != ~0u &&
-	  button_pressed(dpad_state, ggl::BUTTON1) && !button_pressed(prev_dpad_state_, ggl::BUTTON1)) {
+	if (++total_tics_ == 3*60 ||
+	  (prev_dpad_state_ != ~0u &&
+	   button_pressed(dpad_state, ggl::BUTTON1) && !button_pressed(prev_dpad_state_, ggl::BUTTON1))) {
 		game_.enter_select_initial_area_state();
 		return;
 	}

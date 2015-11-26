@@ -179,6 +179,7 @@ renderer::init_vaos()
 	ENABLE_ATTRIB(0, 2, gl_vertex_single, position)
 	ENABLE_ATTRIB(1, 2, gl_vertex_single, texcoord)
 	ENABLE_ATTRIB(2, 4, gl_vertex_single, color)
+	vert_buffer_.unbind();
 
 	// vao for multi texture sprites
 
@@ -188,6 +189,7 @@ renderer::init_vaos()
 	ENABLE_ATTRIB(1, 2, gl_vertex_multi, texcoord0)
 	ENABLE_ATTRIB(2, 2, gl_vertex_multi, texcoord1)
 	ENABLE_ATTRIB(3, 4, gl_vertex_multi, color)
+	vert_buffer_.unbind();
 
 #undef ENABLE_ATTRIB
 
@@ -345,18 +347,16 @@ renderer::end()
 
 	gl_vertex_array::unbind();
 
-	glUseProgram(0);
-
-	glActiveTexture(GL_TEXTURE0);
+	gl_check(glActiveTexture(GL_TEXTURE0));
 }
 
 void
 renderer::render(const texture *tex0, const texture *tex1, const sprite_info *const *sprites, size_t num_sprites)
 {
-	glActiveTexture(GL_TEXTURE0);
+	gl_check(glActiveTexture(GL_TEXTURE0));
 	tex0->bind();
 
-	glActiveTexture(GL_TEXTURE1);
+	gl_check(glActiveTexture(GL_TEXTURE1));
 	tex1->bind();
 
 	program_multi_->use();
@@ -415,13 +415,13 @@ renderer::render(const texture *tex0, const texture *tex1, const sprite_info *co
 
 	vao_multi_.bind();
 	index_buffer_.bind();
-	glDrawElements(GL_TRIANGLES, num_sprites*INDICES_PER_SPRITE, GL_UNSIGNED_SHORT, 0);
+	gl_check(glDrawElements(GL_TRIANGLES, num_sprites*INDICES_PER_SPRITE, GL_UNSIGNED_SHORT, 0));
 }
 
 void
 renderer::render(const texture *tex, const sprite_info *const *sprites, size_t num_sprites)
 {
-	glActiveTexture(GL_TEXTURE0);
+	gl_check(glActiveTexture(GL_TEXTURE0));
 	tex->bind();
 
 	program_single_->use();
@@ -470,7 +470,7 @@ renderer::render(const texture *tex, const sprite_info *const *sprites, size_t n
 
 	vao_single_.bind();
 	index_buffer_.bind();
-	glDrawElements(GL_TRIANGLES, num_sprites*INDICES_PER_SPRITE, GL_UNSIGNED_SHORT, 0);
+	gl_check(glDrawElements(GL_TRIANGLES, num_sprites*INDICES_PER_SPRITE, GL_UNSIGNED_SHORT, 0));
 }
 
 void

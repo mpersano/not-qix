@@ -67,11 +67,8 @@ game_app::init(int viewport_width, int viewport_height)
 void
 game_app::init_gl_state()
 {
-	// default state
-
 	glDisable(GL_CULL_FACE);
 	glDisable(GL_DEPTH_TEST);
-
 	glActiveTexture(GL_TEXTURE0);
 }
 
