@@ -403,7 +403,7 @@ player::draw_trail(int start_index) const
 
 	assert(start_index < extend_trail_.size());
 
-	ggl::vertex_array_flat<GLshort, 2> va;
+	trail_va_.clear();
 
 	// first
 
@@ -417,8 +417,8 @@ player::draw_trail(int start_index) const
 		vec2s p0 = vec2s(v0) + n*TRAIL_RADIUS;
 		vec2s p1 = vec2s(v0) - n*TRAIL_RADIUS;
 
-		va.push_back({ p0.x, p0.y });
-		va.push_back({ p1.x, p1.y });
+		trail_va_.push_back({ p0.x, p0.y });
+		trail_va_.push_back({ p1.x, p1.y });
 	}
 
 	// middle
@@ -441,8 +441,8 @@ player::draw_trail(int start_index) const
 		vec2s p0 = vec2s(v1) + nm*TRAIL_RADIUS/d;
 		vec2s p1 = vec2s(v1) - nm*TRAIL_RADIUS/d;
 
-		va.push_back({ p0.x, p0.y });
-		va.push_back({ p1.x, p1.y });
+		trail_va_.push_back({ p0.x, p0.y });
+		trail_va_.push_back({ p1.x, p1.y });
 	}
 
 	// last
@@ -457,11 +457,11 @@ player::draw_trail(int start_index) const
 		vec2s p0 = vec2s(v0) + n*TRAIL_RADIUS;
 		vec2s p1 = vec2s(v0) - n*TRAIL_RADIUS;
 
-		va.push_back({ p0.x, p0.y });
-		va.push_back({ p1.x, p1.y });
+		trail_va_.push_back({ p0.x, p0.y });
+		trail_va_.push_back({ p1.x, p1.y });
 	}
 
-	va.draw(GL_TRIANGLE_STRIP, ggl::rgba { 1, 1, 0, 1 });
+	trail_va_.draw(GL_TRIANGLE_STRIP, ggl::rgba { 1, 1, 0, 1 });
 }
 
 void

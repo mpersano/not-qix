@@ -66,6 +66,8 @@ private:
 	const ggl::sprite *sprites_core_[NUM_FRAMES];
 	const ggl::sprite *sprites_shield_[NUM_FRAMES];
 
+	mutable ggl::vertex_array_flat<GLshort, 2> trail_va_;
+
 	ggl::event<respawn_event_handler> respawn_event_;
 	ggl::event<death_event_handler> death_event_;
 };

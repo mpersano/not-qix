@@ -19,7 +19,7 @@ public:
 	void *map_range(GLintptr offset, GLsizei length, GLbitfield access) const;
 	void unmap() const;
 
-// private:
+private:
 	GLenum target_;
 	GLuint id_;
 };
