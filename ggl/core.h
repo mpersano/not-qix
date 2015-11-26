@@ -37,6 +37,8 @@ public:
 	connectable_event<pointer_event_handler>& get_pointer_motion_event();
 
 protected:
+	void init_resources() const;
+
 	app& app_;
 
 	event<dpad_button_event_handler> dpad_button_down_event_;

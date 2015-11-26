@@ -36,7 +36,7 @@ font::font(const std::string& path)
 
 	std::vector<const texture *> textures;
 
-	if (auto textures_el  = root_el->FirstChildElement("textures")) {
+	if (auto textures_el = root_el->FirstChildElement("textures")) {
 		for (auto node = textures_el->FirstChild(); node; node = node->NextSibling()) {
 			if (auto el = node->ToElement())
 				textures.push_back(res::get_texture(el->Attribute("path")));

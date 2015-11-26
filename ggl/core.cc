@@ -1,3 +1,5 @@
+#include <ggl/resources.h>
+#include <ggl/render.h>
 #include <ggl/core.h>
 
 namespace ggl {
@@ -38,6 +40,13 @@ connectable_event<core::pointer_event_handler>&
 core::get_pointer_motion_event()
 {
 	return pointer_motion_event_;
+}
+
+void
+core::init_resources() const
+{
+	res::init();
+	render::init();
 }
 
 }

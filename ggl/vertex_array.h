@@ -8,7 +8,7 @@
 #include <ggl/gl.h>
 #include <ggl/gl_program.h>
 #include <ggl/gl_vertex_array.h>
-#include <ggl/programs.h>
+#include <ggl/resources.h>
 #include <ggl/gl_check.h>
 #include <ggl/rgba.h>
 #include <ggl/render.h>
@@ -71,7 +71,7 @@ struct vertex_traits<vertex_flat<VertexType, VertexSize>>
 {
 	static const gl_program *get_program()
 	{
-		return programs::get_program(programs::program_type::FLAT);
+		return res::get_program("flat");
 	}
 
 	static void enable_vertex_attribs(const vertex_flat<VertexType, VertexSize> *p)
@@ -91,7 +91,7 @@ struct vertex_traits<vertex_texcoord<VertexType, VertexSize, TexCoordType, TexCo
 {
 	static const gl_program *get_program()
 	{
-		return programs::get_program(programs::program_type::TEXTURE_DECAL);
+		return res::get_program("texture");
 	}
 
 	static void enable_vertex_attribs(const vertex_texcoord<VertexType, VertexSize, TexCoordType, TexCoordSize> *p)

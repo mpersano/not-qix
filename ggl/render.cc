@@ -6,6 +6,7 @@
 
 #include <ggl/log.h>
 #include <ggl/noncopyable.h>
+#include <ggl/resources.h>
 #include <ggl/sprite.h>
 #include <ggl/vec3.h>
 #include <ggl/mat3.h>
@@ -17,7 +18,6 @@
 #include <ggl/gl_buffer.h>
 #include <ggl/texture.h>
 #include <ggl/gl_check.h>
-#include <ggl/programs.h>
 #include <ggl/render.h>
 
 namespace ggl { namespace render {
@@ -124,9 +124,9 @@ renderer::renderer()
 : vert_buffer_ { GL_ARRAY_BUFFER }
 , index_buffer_ { GL_ELEMENT_ARRAY_BUFFER }
 , proj_modelview_ { mat4::identity() }
-, program_color_ { programs::get_program(programs::program_type::COLOR) }
-, program_single_ { programs::get_program(programs::program_type::TEXTURE_MODULATE) }
-, program_multi_ { programs::get_program(programs::program_type::MULTITEXTURE_MODULATE) }
+, program_color_ { res::get_program("color") }
+, program_single_ { res::get_program("texture-color") }
+, program_multi_ { res::get_program("bitexture-color") }
 {
 
 	init_buffers();

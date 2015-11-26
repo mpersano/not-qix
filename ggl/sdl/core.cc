@@ -1,10 +1,6 @@
 #include <ggl/asset.h>
 #include <ggl/panic.h>
 
-#include <ggl/resources.h>
-#include <ggl/render.h>
-#include <ggl/programs.h>
-
 #include <ggl/sdl/asset.h>
 #include <ggl/sdl/core.h>
 
@@ -48,9 +44,7 @@ core::~core()
 void
 core::run()
 {
-	res::init();
-	programs::init();
-	render::init();
+	init_resources();
 
 	app_.init(width_, height_);
 

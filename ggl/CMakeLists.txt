@@ -31,8 +31,8 @@ set(GGL_SOURCES
 	tween.cc
 	resources.cc
 	render.cc
-	programs.cc
 	sprite_manager.cc
+	program_manager.cc
 	gl_buffer.cc
 	gl_vertex_array.cc
 	gl_shader.cc

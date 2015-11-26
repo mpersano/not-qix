@@ -1,0 +1,22 @@
+<shaders>
+	<shader name="flat">
+		<vert source="shaders/flat.vert" />
+		<frag source="shaders/flat.frag" />
+	</shader>
+	<shader name="color">
+		<vert source="shaders/color.vert" />
+		<frag source="shaders/color.frag" />
+	</shader>
+	<shader name="texture">
+		<vert source="shaders/decal.vert" />
+		<frag source="shaders/decal.frag" />
+	</shader>
+	<shader name="texture-color">
+		<vert source="shaders/texture-color.vert" />
+		<frag source="shaders/texture-color.frag" />
+	</shader>
+	<shader name="bitexture-color">
+		<vert source="shaders/bitexture-color.vert" />
+		<frag source="shaders/bitexture-color.frag" />
+	</shader>
+</shaders>

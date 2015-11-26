@@ -19,7 +19,15 @@ gl_shader::~gl_shader()
 void
 gl_shader::set_source(const char *source) const
 {
-	gl_check(glShaderSource(id_, 1, &source, 0));
+	const char *sources[] = {
+#ifdef ANDROID
+		"#version 300 es\n"
+#else
+		"#version 430 core\n",
+#endif
+		source };
+
+	gl_check(glShaderSource(id_, 2, sources, 0));
 }
 
 void

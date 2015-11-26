@@ -7,6 +7,7 @@
 #include <ggl/texture.h>
 #include <ggl/font.h>
 #include <ggl/sprite_manager.h>
+#include <ggl/program_manager.h>
 #include <ggl/action.h>
 #include <ggl/resources.h>
 
@@ -56,8 +57,6 @@ public:
 	}
 } *g_font_manager;
 
-sprite_manager *g_sprite_manager;
-
 class action_manager : public resource_manager<action, action_manager>
 {
 public:
@@ -66,6 +65,9 @@ public:
 		return load_action(name);
 	}
 } *g_action_manager;
+
+sprite_manager *g_sprite_manager;
+program_manager *g_program_manager;
 
 void
 texture_manager::load_all()
@@ -88,7 +90,10 @@ void init()
 	g_texture_manager = new texture_manager;
 	g_font_manager = new font_manager;
 	g_sprite_manager = new sprite_manager;
+	g_program_manager = new program_manager;
 	g_action_manager = new action_manager;
+
+	g_program_manager->load_programs("shaders/default.xml");
 }
 
 const texture *
@@ -107,6 +112,12 @@ const sprite *
 get_sprite(const std::string& name)
 {
 	return g_sprite_manager->get(name);
+}
+
+const gl_program *
+get_program(const std::string& name)
+{
+	return g_program_manager->get(name);
 }
 
 action_ptr
