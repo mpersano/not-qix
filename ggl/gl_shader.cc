@@ -21,7 +21,7 @@ gl_shader::set_source(const char *source) const
 {
 	const char *sources[] = {
 #ifdef ANDROID
-		"#version 300 es\n"
+		"#version 300 es\n",
 #else
 		"#version 430 core\n",
 #endif

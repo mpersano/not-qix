@@ -4,7 +4,6 @@
 #include <ggl/gl.h>
 #include <ggl/resources.h>
 #include <ggl/render.h>
-#include <ggl/programs.h>
 #include <ggl/android/asset.h>
 #include <ggl/android/core.h>
 
@@ -18,9 +17,9 @@ core::core(app& a, android_app *state)
 , surface_ { EGL_NO_SURFACE }
 , context_ { EGL_NO_CONTEXT }
 {
-	state->userData = this;
-	state->onAppCmd = handle_cmd;
-	state->onInputEvent = handle_input;
+	state_->userData = this;
+	state_->onAppCmd = handle_cmd;
+	state_->onInputEvent = handle_input;
 }
 
 core::~core()
@@ -176,12 +175,9 @@ core::handle_cmd(int32_t cmd)
 			log_info("APP_CMD_INIT_WINDOW");
 			if (state_->window != NULL) {
 				init_display();
-				res::load_gl_resources();
 
 				if (!app_initialized_) {
-					res::init();
-					programs::init();
-					render::init();
+					init_resources();
 
 					app_.init(width_, height_);
 					app_initialized_ = true;
