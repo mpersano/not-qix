@@ -1,5 +1,4 @@
 uniform vec2 resolution;
-uniform vec2 uv;
 uniform float level;
 
 uniform sampler2D from;
@@ -23,7 +22,7 @@ void main(void)
 	vec4 c0 = texture(from, frag_texcoord);
 	vec4 c1 = texture(to, frag_texcoord);
 
-	vec2 p = (frag_texcoord/uv)*resolution;
+	vec2 p = frag_texcoord*resolution;
 
 	vec2 ps = mod(p, cell_size);
 

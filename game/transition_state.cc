@@ -61,7 +61,6 @@ transition_state::draw() const
 
 	program_->set_uniform_f("level", static_cast<float>(tics_)/TRANSITION_TICS);
 	program_->set_uniform_f("resolution", scene_width, scene_height);
-	program_->set_uniform_f("uv", 1, 1);
 
 	glDisable(GL_BLEND);
 
