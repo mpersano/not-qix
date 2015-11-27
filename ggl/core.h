@@ -39,6 +39,9 @@ public:
 protected:
 	void init_resources() const;
 
+	void on_pause() const;
+	void on_resume() const;
+
 	app& app_;
 
 	event<dpad_button_event_handler> dpad_button_down_event_;

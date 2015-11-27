@@ -2,6 +2,7 @@
 
 #include <ggl/core.h>
 #include <ggl/asset.h>
+#include <ggl/log.h>
 #include <ggl/panic.h>
 #include <ggl/gl_check.h>
 #include <ggl/gl_program.h>
@@ -102,6 +103,8 @@ gl_program::load()
 
 	auto attach_shader = [this](GLenum type, const std::string& path)
 		{
+			log_info("loading %s", path.c_str());
+
 			shader s { type };
 
 			auto data = g_core->get_asset(path)->read_all();

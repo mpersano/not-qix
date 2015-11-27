@@ -142,12 +142,14 @@ void
 unload_gl_resources()
 {
 	g_texture_manager->unload_all();
+	g_program_manager->unload_all();
 }
 
 void
 load_gl_resources()
 {
 	g_texture_manager->load_all();
+	g_program_manager->load_all();
 }
 
 } }

@@ -24,6 +24,9 @@ void
 init();
 
 void
+shutdown();
+
+void
 set_viewport(const bbox& viewport);
 
 void

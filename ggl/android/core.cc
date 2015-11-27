@@ -3,7 +3,6 @@
 #include <ggl/log.h>
 #include <ggl/gl.h>
 #include <ggl/resources.h>
-#include <ggl/render.h>
 #include <ggl/android/asset.h>
 #include <ggl/android/core.h>
 
@@ -173,6 +172,7 @@ core::handle_cmd(int32_t cmd)
 		case APP_CMD_INIT_WINDOW:
 			// The window is being shown, get it ready.
 			log_info("APP_CMD_INIT_WINDOW");
+
 			if (state_->window != NULL) {
 				init_display();
 
@@ -181,6 +181,8 @@ core::handle_cmd(int32_t cmd)
 
 					app_.init(width_, height_);
 					app_initialized_ = true;
+				} else {
+					on_resume();
 				}
 			}
 			break;
@@ -189,7 +191,7 @@ core::handle_cmd(int32_t cmd)
 			// The window is being hidden or closed, clean it up.
 			log_info("APP_CMD_TERM_WINDOW");
 
-			res::unload_gl_resources();
+			on_pause();
 			term_display();
 			break;
 

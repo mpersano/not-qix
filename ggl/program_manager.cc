@@ -83,4 +83,18 @@ program_manager::load_programs(const std::string& path)
 		program_map_.insert(parse_program(node));
 }
 
+void
+program_manager::unload_all()
+{
+	for (auto& kv : program_map_)
+		kv.second->unload();
+}
+
+void
+program_manager::load_all()
+{
+	for (auto& kv : program_map_)
+		kv.second->load();
+}
+
 } }

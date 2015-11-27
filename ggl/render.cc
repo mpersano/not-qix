@@ -576,9 +576,15 @@ renderer::render(const sprite_info *const *sprites, size_t num_sprites)
 }
 
 void
-init(void)
+init()
 {
 	g_renderer = new renderer;
+}
+
+void
+shutdown()
+{
+	delete g_renderer;
 }
 
 void

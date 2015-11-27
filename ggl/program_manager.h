@@ -19,6 +19,9 @@ public:
 
 	void load_programs(const std::string& path);
 
+	void unload_all();
+	void load_all();
+
 private:
 	std::unordered_map<std::string, std::shared_ptr<gl_program>> program_map_;
 };

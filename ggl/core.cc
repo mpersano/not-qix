@@ -49,4 +49,18 @@ core::init_resources() const
 	render::init();
 }
 
+void
+core::on_pause() const
+{
+	res::unload_gl_resources();
+	render::shutdown();
+}
+
+void
+core::on_resume() const
+{
+	res::load_gl_resources();
+	render::init();
+}
+
 }
