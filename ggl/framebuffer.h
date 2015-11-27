@@ -16,13 +16,19 @@ public:
 	void bind() const;
 	static void unbind();
 
-	const texture *get_texture() const
-	{ return &texture_; }
+	void bind_texture() const;
+
+	unsigned get_width() const
+	{ return width_; }
+
+	unsigned get_height() const
+	{ return height_; }
 
 private:
 	void init_texture();
 
-	texture texture_;
+	unsigned width_, height_;
+	GLuint texture_id_;
 	GLuint fbo_id_;
 };
 

@@ -16,8 +16,7 @@ transition_state::transition_state(game_app& app)
 , prev_state_ { nullptr }
 , next_state_ { nullptr }
 , tics_ { 0 }
-{
-}
+{ }
 
 void
 transition_state::reset(const app_state *prev_state, const app_state *next_state)
@@ -29,8 +28,13 @@ transition_state::reset(const app_state *prev_state, const app_state *next_state
 void
 transition_state::draw() const
 {
-	auto width = app_.get_scene_width();
-	auto height = app_.get_scene_height();
+	auto viewport_width = app_.get_viewport_width();
+	auto viewport_height = app_.get_viewport_height();
+
+	auto scene_width = app_.get_scene_width();
+	auto scene_height = app_.get_scene_height();
+
+	glViewport(0, 0, scene_width, scene_height);
 
 	fb_from_.bind();
 	prev_state_->draw();
@@ -40,11 +44,13 @@ transition_state::draw() const
 
 	ggl::framebuffer::unbind();
 
+	glViewport(0, 0, viewport_width, viewport_height);
+
 	gl_check(glActiveTexture(GL_TEXTURE0));
-	fb_from_.get_texture()->bind();
+	fb_from_.bind_texture();
 
 	gl_check(glActiveTexture(GL_TEXTURE1));
-	fb_to_.get_texture()->bind();
+	fb_to_.bind_texture();
 
 	gl_check(glActiveTexture(GL_TEXTURE0));
 
@@ -54,15 +60,16 @@ transition_state::draw() const
 	program_->set_uniform_i("to", 1);
 
 	program_->set_uniform_f("level", static_cast<float>(tics_)/TRANSITION_TICS);
-	program_->set_uniform_f("resolution", width, height);
+	program_->set_uniform_f("resolution", scene_width, scene_height);
+	program_->set_uniform_f("uv", 1, 1);
 
 	glDisable(GL_BLEND);
 
 	(ggl::vertex_array_texcoord<GLshort, 2, GLfloat, 2>
 	  { { { 0, 0, 0, 0 },
-	      { 0, static_cast<GLshort>(height), 0, 1 },
-	      { static_cast<GLshort>(width), 0, 1, 0 },
-	      { static_cast<GLshort>(width), static_cast<GLshort>(height), 1, 1 } },
+	      { 0, static_cast<GLshort>(scene_height), 0, 1 },
+	      { static_cast<GLshort>(scene_width), 0, 1, 0 },
+	      { static_cast<GLshort>(scene_width), static_cast<GLshort>(scene_height), 1, 1 } },
 	    program_ }).draw(GL_TRIANGLE_STRIP);
 }
 

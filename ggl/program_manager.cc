@@ -33,37 +33,35 @@ parse_program(TiXmlNode *node)
 
 		name = program_el->Attribute("name");
 
-		prog.reset(new gl_program);
-
 		// TODO error checking
 
-		auto attach_shader = [&](GLenum type, const std::string& path)
+#if 0
+		auto read_shader = [&](const std::string& path)
 			{
 				auto data = g_core->get_asset(path)->read_all();
 
 				std::string source;
 				source.assign(std::begin(data), std::end(data));
 
-				gl_shader s { type };
-				s.set_source(source.c_str());
-				s.compile();
-
-				prog->attach(s);
+				return source;
 			};
+#endif
+
+		std::string vp_path, fp_path;
 
 		for (auto node = program_el->FirstChild(); node; node = node->NextSibling()) {
 			if (auto el = node->ToElement()) {
 				auto value = el->Value();
 
 				if (!strcmp(value, "vert")) {
-					attach_shader(GL_VERTEX_SHADER, el->Attribute("source"));
+					vp_path = el->Attribute("source");
 				} else if (!strcmp(value, "frag")) {
-					attach_shader(GL_FRAGMENT_SHADER, el->Attribute("source"));
+					fp_path = el->Attribute("source");
 				}
 			}
 		}
 
-		prog->link();
+		prog.reset(new gl_program { vp_path, fp_path });
 	}
 
 	return std::make_pair(name, std::move(prog));

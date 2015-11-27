@@ -9,7 +9,6 @@ namespace ggl {
 class texture : private noncopyable
 {
 public:
-	texture(unsigned width, unsigned height, pixel_type type);
 	texture(const image& pm);
 	~texture();
 
@@ -30,7 +29,7 @@ public:
 
 private:
 	GLuint id_;
-	uint8_t *data_;
+	std::vector<uint8_t> data_;
 
 	friend class framebuffer;
 };

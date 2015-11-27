@@ -53,10 +53,10 @@ texture::texture(const image& im)
 , height { next_power_of_2(orig_height) }
 , type { im.type }
 , id_ { 0 }
-, data_ { new uint8_t[width*height*pixel_size()] }
+, data_(width*height*pixel_size())
 {
 	const uint8_t *src = &im.data[(im.height - 1)*im.row_stride()];
-	uint8_t *dest = data_;
+	uint8_t *dest = &data_[0];
 
 	for (unsigned i = 0; i < im.height; i++) {
 		std::copy(src, src + im.row_stride(), dest);
@@ -67,22 +67,8 @@ texture::texture(const image& im)
 	load();
 }
 
-texture::texture(unsigned width, unsigned height, pixel_type type)
-: orig_width { width }
-, width { width }
-, orig_height { height }
-, height { height }
-, type { type }
-, id_ { 0 }
-, data_ { nullptr }
-{
-	load();
-}
-
 texture::~texture()
 {
-	if (data_)
-		delete[] data_;
 	unload();
 }
 
@@ -103,7 +89,7 @@ texture::load()
 	const GLint format = color_type_to_pixel_format(type);
 
 	gl_check(glPixelStorei(GL_UNPACK_ALIGNMENT, 1));
-	gl_check(glTexImage2D(GL_TEXTURE_2D, 0, format, width, height, 0, format, GL_UNSIGNED_BYTE, data_));
+	gl_check(glTexImage2D(GL_TEXTURE_2D, 0, format, width, height, 0, format, GL_UNSIGNED_BYTE, &data_[0]));
 
 	gl_check(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT));
 	gl_check(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT));

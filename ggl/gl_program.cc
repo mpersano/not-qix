@@ -1,31 +1,135 @@
 #include <vector>
 
+#include <ggl/core.h>
+#include <ggl/asset.h>
 #include <ggl/panic.h>
 #include <ggl/gl_check.h>
 #include <ggl/gl_program.h>
 
 namespace ggl {
 
-gl_program::gl_program()
-: id_(gl_check_r(glCreateProgram()))
+namespace {
+
+struct shader : private noncopyable
 {
+public:
+	// type: GL_FRAGMENT_SHADER or GL_VERTEX_SHADER
+	shader(GLenum type);
+	~shader();
+
+	void set_source(const char *source) const;
+
+	void compile() const;
+
+	std::string get_info_log() const;
+
+	GLuint id;
+};
+
+shader::shader(GLenum type)
+: id { gl_check_r(glCreateShader(type)) }
+{ }
+
+shader::~shader()
+{
+	gl_check(glDeleteShader(id));
+}
+
+void
+shader::set_source(const char *source) const
+{
+	const char *sources[] = {
+#ifdef ANDROID
+		"#version 300 es\n",
+#else
+		"#version 430 core\n",
+#endif
+		source };
+
+	gl_check(glShaderSource(id, 2, sources, 0));
+}
+
+void
+shader::compile() const
+{
+	gl_check(glCompileShader(id));
+
+	GLint status;
+	gl_check(glGetShaderiv(id, GL_COMPILE_STATUS, &status));
+
+	if (!status)
+		panic("failed to compile shader\n%s", get_info_log().c_str());
+}
+
+std::string
+shader::get_info_log() const
+{
+	std::string log_string;
+
+	GLint length;
+	gl_check(glGetShaderiv(id, GL_INFO_LOG_LENGTH, &length));
+
+	if (length > 0) {
+		GLint written;
+
+		std::vector<GLchar> data(length + 1);
+		glGetShaderInfoLog(id, length, &written, &data[0]);
+
+		log_string.assign(data.begin(), data.begin() + written);
+	}
+
+	return log_string;
+}
+
+} // (anonymous namespace)
+
+gl_program::gl_program(const std::string& vp_path, const std::string& fp_path)
+: vp_path_ { vp_path }
+, fp_path_ { fp_path }
+{
+	load();
 }
 
 gl_program::~gl_program()
 {
-	gl_check(glDeleteProgram(id_));
+	unload();
 }
 
 void
-gl_program::attach(const gl_shader& shader) const
+gl_program::load()
 {
-	gl_check(glAttachShader(id_, shader.get_id()));
-}
+	id_ = gl_check_r(glCreateProgram());
 
-void
-gl_program::link() const
-{
+	auto attach_shader = [this](GLenum type, const std::string& path)
+		{
+			shader s { type };
+
+			auto data = g_core->get_asset(path)->read_all();
+			data.push_back('\0');
+
+			s.set_source(&data[0]);
+			s.compile();
+
+			gl_check(glAttachShader(id_, s.id));
+		};
+
+	attach_shader(GL_VERTEX_SHADER, vp_path_);
+	attach_shader(GL_FRAGMENT_SHADER, fp_path_);
+
 	gl_check(glLinkProgram(id_));
+
+	GLint status;
+	gl_check(glGetProgramiv(id_, GL_LINK_STATUS, &status));
+
+	if (!status)
+		panic("failed to link shader\n%s", get_info_log().c_str());
+}
+
+void
+gl_program::unload()
+{
+	gl_check(glDeleteProgram(id_));
+	id_ = 0;
 }
 
 GLint

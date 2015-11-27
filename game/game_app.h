@@ -21,6 +21,12 @@ public:
 	unsigned get_scene_height() const
 	{ return scene_height_; }
 
+	unsigned get_viewport_width() const
+	{ return viewport_width_; }
+
+	unsigned get_viewport_height() const
+	{ return viewport_height_; }
+
 	void start_in_game();
 
 private:

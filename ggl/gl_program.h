@@ -4,7 +4,6 @@
 
 #include <ggl/noncopyable.h>
 #include <ggl/gl.h>
-#include <ggl/gl_shader.h>
 
 #include <ggl/vec3.h>
 
@@ -13,11 +12,8 @@ namespace ggl {
 class gl_program : private noncopyable
 {
 public:
-	gl_program();
+	gl_program(const std::string& vp_path, const std::string& fp_path);
 	~gl_program();
-
-	void attach(const gl_shader& shader) const;
-	void link() const;
 
 	GLint get_uniform_location(const GLchar *name) const;
 	GLint get_attribute_location(const GLchar *name) const;
@@ -38,10 +34,15 @@ public:
 
 	void use() const;
 
-	std::string get_info_log() const;
+	void load();
+	void unload();
 
 private:
+	std::string get_info_log() const;
+
 	GLuint id_;
+	std::string vp_path_;
+	std::string fp_path_;
 };
 
 }
