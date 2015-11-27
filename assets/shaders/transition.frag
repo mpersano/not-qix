@@ -9,8 +9,8 @@ in vec2 frag_texcoord;
 out vec4 out_color;
 
 const vec2 origin = vec2(-500, -100);
-const float feather = 400;
-const float cell_size = 40;
+const float feather = 400.;
+const float cell_size = 40.;
 
 void main(void)
 {
@@ -29,7 +29,7 @@ void main(void)
 	float r = cell_size*smoothstep(lm, lm + feather, distance(p - ps, origin));
 
 	float d = distance(ps, .5*vec2(cell_size, cell_size));
-	float t = smoothstep(r - 1, r, d);
+	float t = smoothstep(r - 1., r, d);
 
 	out_color = mix(c0, c1, t);
 }
