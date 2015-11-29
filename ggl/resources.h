@@ -8,7 +8,7 @@ class texture;
 class font;
 class sprite;
 class action;
-class gl_program;
+class program;
 }
 
 namespace ggl { namespace res {
@@ -25,7 +25,7 @@ get_font(const std::string& name);
 const sprite *
 get_sprite(const std::string& name);
 
-const gl_program *
+const program *
 get_program(const std::string& name);
 
 std::unique_ptr<action>

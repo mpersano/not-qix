@@ -6,7 +6,7 @@
 #include <vector>
 
 #include <ggl/gl.h>
-#include <ggl/gl_program.h>
+#include <ggl/program.h>
 #include <ggl/gl_vertex_array.h>
 #include <ggl/resources.h>
 #include <ggl/gl_check.h>
@@ -69,7 +69,7 @@ struct vertex_traits;
 template <typename VertexType, int VertexSize>
 struct vertex_traits<vertex_flat<VertexType, VertexSize>>
 {
-	static const gl_program *get_program()
+	static const program *get_program()
 	{
 		return res::get_program("flat");
 	}
@@ -89,7 +89,7 @@ struct vertex_traits<vertex_flat<VertexType, VertexSize>>
 template <typename VertexType, int VertexSize, typename TexCoordType, int TexCoordSize>
 struct vertex_traits<vertex_texcoord<VertexType, VertexSize, TexCoordType, TexCoordSize>>
 {
-	static const gl_program *get_program()
+	static const program *get_program()
 	{
 		return res::get_program("texture");
 	}
@@ -120,11 +120,11 @@ template <typename VertexType>
 class vertex_array : public std::vector<VertexType>
 {
 public:
-	vertex_array(const ggl::gl_program *prog = detail::vertex_traits<VertexType>::get_program())
+	vertex_array(const ggl::program *prog = detail::vertex_traits<VertexType>::get_program())
 	: prog_ { prog }
 	{ }
 
-	vertex_array(std::initializer_list<VertexType> l, const ggl::gl_program *prog = detail::vertex_traits<VertexType>::get_program())
+	vertex_array(std::initializer_list<VertexType> l, const ggl::program *prog = detail::vertex_traits<VertexType>::get_program())
 	: std::vector<VertexType>(l)
 	, prog_ { prog }
 	{ }
@@ -134,7 +134,6 @@ public:
 		if (!this->empty()) {
 			prog_->use();
 			prog_->set_uniform_mat4("proj_modelview", render::get_proj_modelview()); // face.insert(palm)
-			// prog_->set_uniform_i("tex", 0); // texunit 0
 
 			detail::vertex_traits<VertexType>::enable_vertex_attribs(&this->front());
 			gl_check(glDrawArrays(mode, 0, this->size()));
@@ -156,7 +155,7 @@ public:
 	}
 
 private:
-	const ggl::gl_program *prog_;
+	const ggl::program *prog_;
 };
 
 template <typename VertexType, int VertexSize>

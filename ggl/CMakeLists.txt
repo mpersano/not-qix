@@ -35,7 +35,7 @@ set(GGL_SOURCES
 	program_manager.cc
 	gl_buffer.cc
 	gl_vertex_array.cc
-	gl_program.cc
+	program.cc
 	framebuffer.cc
 	vec2_util.cc)
 

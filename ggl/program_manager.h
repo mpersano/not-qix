@@ -7,7 +7,7 @@
 #include <ggl/noncopyable.h>
 
 namespace ggl {
-class gl_program;
+class program;
 };
 
 namespace ggl { namespace res {
@@ -15,7 +15,7 @@ namespace ggl { namespace res {
 class program_manager : private noncopyable
 {
 public:
-	const gl_program *get(const std::string& name) const;
+	const program *get(const std::string& name) const;
 
 	void load_programs(const std::string& path);
 
@@ -23,7 +23,7 @@ public:
 	void load_all();
 
 private:
-	std::unordered_map<std::string, std::shared_ptr<gl_program>> program_map_;
+	std::unordered_map<std::string, std::shared_ptr<program>> program_map_;
 };
 
 } }

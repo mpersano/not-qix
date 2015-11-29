@@ -114,7 +114,7 @@ get_sprite(const std::string& name)
 	return g_sprite_manager->get(name);
 }
 
-const gl_program *
+const program *
 get_program(const std::string& name)
 {
 	return g_program_manager->get(name);

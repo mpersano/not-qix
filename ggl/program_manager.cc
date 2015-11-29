@@ -3,12 +3,12 @@
 #include <ggl/panic.h>
 #include <ggl/core.h>
 #include <ggl/asset.h>
-#include <ggl/gl_program.h>
+#include <ggl/program.h>
 #include <ggl/program_manager.h>
 
 namespace ggl { namespace res {
 
-const gl_program *
+const program *
 program_manager::get(const std::string& name) const
 {
 	auto it = program_map_.find(name);
@@ -21,31 +21,17 @@ program_manager::get(const std::string& name) const
 
 namespace {
 
-std::pair<std::string, std::unique_ptr<gl_program>>
+std::pair<std::string, std::unique_ptr<program>>
 parse_program(TiXmlNode *node)
 {
 	std::string name;
-	std::unique_ptr<gl_program> prog;
+	std::unique_ptr<program> prog;
 
 	if (TiXmlElement *program_el = node->ToElement()) {
 		std::string vertex_shader_path;
 		std::string frag_shader_path;
 
 		name = program_el->Attribute("name");
-
-		// TODO error checking
-
-#if 0
-		auto read_shader = [&](const std::string& path)
-			{
-				auto data = g_core->get_asset(path)->read_all();
-
-				std::string source;
-				source.assign(std::begin(data), std::end(data));
-
-				return source;
-			};
-#endif
 
 		std::string vp_path, fp_path;
 
@@ -61,7 +47,7 @@ parse_program(TiXmlNode *node)
 			}
 		}
 
-		prog.reset(new gl_program { vp_path, fp_path });
+		prog.reset(new program { vp_path, fp_path });
 	}
 
 	return std::make_pair(name, std::move(prog));

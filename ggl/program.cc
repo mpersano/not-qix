@@ -5,7 +5,7 @@
 #include <ggl/log.h>
 #include <ggl/panic.h>
 #include <ggl/gl_check.h>
-#include <ggl/gl_program.h>
+#include <ggl/program.h>
 
 namespace ggl {
 
@@ -84,20 +84,20 @@ shader::get_info_log() const
 
 } // (anonymous namespace)
 
-gl_program::gl_program(const std::string& vp_path, const std::string& fp_path)
+program::program(const std::string& vp_path, const std::string& fp_path)
 : vp_path_ { vp_path }
 , fp_path_ { fp_path }
 {
 	load();
 }
 
-gl_program::~gl_program()
+program::~program()
 {
 	unload();
 }
 
 void
-gl_program::load()
+program::load()
 {
 	id_ = gl_check_r(glCreateProgram());
 
@@ -129,14 +129,14 @@ gl_program::load()
 }
 
 void
-gl_program::unload()
+program::unload()
 {
 	gl_check(glDeleteProgram(id_));
 	id_ = 0;
 }
 
 GLint
-gl_program::get_uniform_location(const GLchar *name) const
+program::get_uniform_location(const GLchar *name) const
 {
 	GLint rv = gl_check_r(glGetUniformLocation(id_, name));
 	if (rv == -1)
@@ -145,7 +145,7 @@ gl_program::get_uniform_location(const GLchar *name) const
 }
 
 GLint
-gl_program::get_attribute_location(const GLchar *name) const
+program::get_attribute_location(const GLchar *name) const
 {
 	GLint rv = gl_check_r(glGetAttribLocation(id_, name));
 	if (rv == -1)
@@ -154,55 +154,55 @@ gl_program::get_attribute_location(const GLchar *name) const
 }
 
 void
-gl_program::set_uniform_f(const GLchar *name, GLfloat v0) const
+program::set_uniform_f(const GLchar *name, GLfloat v0) const
 {
 	gl_check(glUniform1f(get_uniform_location(name), v0));
 }
 
 void
-gl_program::set_uniform_f(const GLchar *name, GLfloat v0, GLfloat v1) const
+program::set_uniform_f(const GLchar *name, GLfloat v0, GLfloat v1) const
 {
 	gl_check(glUniform2f(get_uniform_location(name), v0, v1));
 }
 
 void
-gl_program::set_uniform_f(const GLchar *name, GLfloat v0, GLfloat v1, GLfloat v2) const
+program::set_uniform_f(const GLchar *name, GLfloat v0, GLfloat v1, GLfloat v2) const
 {
 	gl_check(glUniform3f(get_uniform_location(name), v0, v1, v2));
 }
 
 void
-gl_program::set_uniform_f(const GLchar *name, GLfloat v0, GLfloat v1, GLfloat v2, GLfloat v3) const
+program::set_uniform_f(const GLchar *name, GLfloat v0, GLfloat v1, GLfloat v2, GLfloat v3) const
 {
 	gl_check(glUniform4f(get_uniform_location(name), v0, v1, v2, v3));
 }
 
 void
-gl_program::set_uniform_i(const GLchar *name, GLint v0) const
+program::set_uniform_i(const GLchar *name, GLint v0) const
 {
 	gl_check(glUniform1i(get_uniform_location(name), v0));
 }
 
 void
-gl_program::set_uniform_i(const GLchar *name, GLint v0, GLint v1) const
+program::set_uniform_i(const GLchar *name, GLint v0, GLint v1) const
 {
 	gl_check(glUniform2i(get_uniform_location(name), v0, v1));
 }
 
 void
-gl_program::set_uniform_i(const GLchar *name, GLint v0, GLint v1, GLint v2) const
+program::set_uniform_i(const GLchar *name, GLint v0, GLint v1, GLint v2) const
 {
 	gl_check(glUniform3i(get_uniform_location(name), v0, v1, v2));
 }
 
 void
-gl_program::set_uniform_i(const GLchar *name, GLint v0, GLint v1, GLint v2, GLint v3) const
+program::set_uniform_i(const GLchar *name, GLint v0, GLint v1, GLint v2, GLint v3) const
 {
 	gl_check(glUniform4i(get_uniform_location(name), v0, v1, v2, v3));
 }
 
 void
-gl_program::set_uniform_mat4(const GLchar *name, const mat4& mat) const
+program::set_uniform_mat4(const GLchar *name, const mat4& mat) const
 {
 	GLfloat gl_matrix[16] = {
 		mat.m11, mat.m12, mat.m13, mat.m14,
@@ -214,19 +214,19 @@ gl_program::set_uniform_mat4(const GLchar *name, const mat4& mat) const
 }
 
 void
-gl_program::parameter_i(GLenum name, GLint value)
+program::parameter_i(GLenum name, GLint value)
 {
 	gl_check(glProgramParameteri(id_, name, value));
 }
 
 void
-gl_program::use() const
+program::use() const
 {
 	gl_check(glUseProgram(id_));
 }
 
 std::string
-gl_program::get_info_log() const
+program::get_info_log() const
 {
 	std::string log_string;
 

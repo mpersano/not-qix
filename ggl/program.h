@@ -9,11 +9,11 @@
 
 namespace ggl {
 
-class gl_program : private noncopyable
+class program : private noncopyable
 {
 public:
-	gl_program(const std::string& vp_path, const std::string& fp_path);
-	~gl_program();
+	program(const std::string& vp_path, const std::string& fp_path);
+	~program();
 
 	GLint get_uniform_location(const GLchar *name) const;
 	GLint get_attribute_location(const GLchar *name) const;

@@ -13,7 +13,7 @@
 #include <ggl/rgba.h>
 #include <ggl/gl_vertex_array.h>
 #include <ggl/gl_buffer.h>
-#include <ggl/gl_program.h>
+#include <ggl/program.h>
 #include <ggl/util.h>
 #include <ggl/gl_buffer.h>
 #include <ggl/texture.h>
@@ -113,9 +113,9 @@ private:
 	gl_vertex_array vao_single_;
 	gl_vertex_array vao_multi_;
 
-	const gl_program *program_color_;
-	const gl_program *program_single_;
-	const gl_program *program_multi_;
+	const program *program_color_;
+	const program *program_single_;
+	const program *program_multi_;
 
 	mat4 proj_modelview_;
 } *g_renderer;

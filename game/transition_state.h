@@ -5,7 +5,7 @@
 #include "app_state.h"
 
 namespace ggl {
-class gl_program;
+class program;
 }
 
 class transition_state : public app_state
@@ -22,7 +22,7 @@ private:
 	ggl::framebuffer fb_from_;
 	ggl::framebuffer fb_to_;
 
-	const ggl::gl_program *program_;
+	const ggl::program *program_;
 
 	const app_state *prev_state_;
 	const app_state *next_state_;
