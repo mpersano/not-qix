@@ -89,6 +89,12 @@ foe::rotate_to_player()
 }
 
 void
+foe::rotate(float a)
+{
+	dir_ = dir_.rotate(a);
+}
+
+void
 foe::set_direction(const vec2f& dir)
 {
 	dir_ = normalized(dir);

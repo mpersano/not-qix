@@ -16,6 +16,7 @@
 #include "tween.h"
 #include "level.h"
 #include "boss.h"
+#include "miniboss.h"
 #include "percent_widget.h"
 #include "lives_widget.h"
 #include "game.h"
@@ -842,22 +843,20 @@ game::add_effect(std::unique_ptr<effect> e)
 	effects_.push_back(std::move(e));
 }
 
-void
-game::add_boss()
+vec2f
+game::find_foe_pos(int radius) const
 {
-	// find initial boss position
-
 	const int screen_cols = viewport_width/CELL_SIZE;
 	const int screen_rows = viewport_height/CELL_SIZE;
 
-	const int boss_cells = 2*boss::RADIUS/CELL_SIZE;
+	const int boss_cells = 2*radius/CELL_SIZE;
 
 	const vec2i v0 = -offset/CELL_SIZE;
 	const vec2i v1 {
 		std::min(grid_cols, v0.x + screen_cols),
 		std::min(grid_rows, v0.y + screen_rows) };
 
-	vec2f boss_pos;
+	vec2f pos;
 
 	int index = 1;
 
@@ -877,16 +876,26 @@ game::add_boss()
 
 			if (!filled) {
 				if (rand(0, index) == 0)
-					boss_pos = vec2f { c, r }*CELL_SIZE + vec2f { boss::RADIUS, boss::RADIUS };
+					pos = vec2f { c, r }*CELL_SIZE + vec2f { boss::RADIUS, boss::RADIUS };
 
 				++index;
 			}
 		}
 	}
 
-	std::unique_ptr<entity> e { new boss { *this, boss_pos } };
+	return pos;
+}
+
+void
+game::add_foes()
+{
+	std::unique_ptr<entity> e { new boss { *this, find_foe_pos(boss::RADIUS) } };
 	cur_boss_ = static_cast<foe *>(e.get());
 	add_entity(std::move(e));
+
+	for (int i = 0; i < 5; i++)
+		add_entity(std::unique_ptr<entity> { new miniboss { *this, find_foe_pos(miniboss::RADIUS), const_cast<boss *>(static_cast<const boss *>(cur_boss_)) } });
+
 }
 
 void
@@ -913,7 +922,7 @@ game::enter_playing_state(const vec2i& bottom_left, const vec2i& top_right)
 	reset_player(bottom_left);
 	fill_grid(bottom_left, top_right);
 
-	add_boss();
+	add_foes();
 
 	state_ = std::unique_ptr<game_state>(new playing_state { *this });
 

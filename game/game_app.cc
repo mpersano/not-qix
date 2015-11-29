@@ -65,7 +65,7 @@ game_app::init_states()
 	in_game_state_.reset(new in_game_state { *this });
 	transition_state_.reset(new transition_state { *this });
 
-#if 0
+#if 1
 	cur_state_ = in_game_state_.get();
 #else
 	cur_state_ = transition_state_.get();

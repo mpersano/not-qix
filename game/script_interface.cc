@@ -102,6 +102,13 @@ foe_rotate_to_player(lua_State *state)
 	return 0;
 }
 
+int
+foe_rotate(lua_State *state)
+{
+	reinterpret_cast<foe *>(lua_touserdata(state, -2))->rotate(lua_tonumber(state, -1));
+	return 0;
+}
+
 // boss
 
 int
@@ -155,6 +162,7 @@ const std::pair<const char *, lua_CFunction> exported_functions[] {
 	EXPORT_FUNCTION(foe_set_speed)
 	EXPORT_FUNCTION(foe_update_position)
 	EXPORT_FUNCTION(foe_rotate_to_player)
+	EXPORT_FUNCTION(foe_rotate)
 
 	// boss
 	EXPORT_FUNCTION(boss_set_pod_angle)

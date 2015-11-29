@@ -108,7 +108,8 @@ private:
 	void update_background();
 	void update_cover_percent();
 
-	void add_boss();
+	vec2f find_foe_pos(int radius) const;
+	void add_foes();
 
 	const foe *cur_boss_;
 

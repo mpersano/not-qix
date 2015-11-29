@@ -5,34 +5,25 @@
 #include "boss.h"
 #include "miniboss.h"
 
-namespace {
-
-const float SPEED = 1;
-const float RADIUS = 16;
-
-} // (anonymous namespace)
-
 miniboss::miniboss(game& g, const vec2f& pos, boss *parent)
 : foe { g, pos, RADIUS }
 , parent_ { parent }
 , sprite_ { ggl::res::get_sprite("miniboss.png") }
+, script_thread_ { create_script_thread("scripts/miniboss.lua") }
 {
-	set_direction(vec2f { 1, 0 });
-	set_speed(SPEED);
+	script_thread_->call("init", this);
 }
 
 void
 miniboss::draw() const
 {
-#if 0
-	sprite_->draw(pos_.x, pos_.y, ggl::horiz_align::CENTER, ggl::vert_align::CENTER);
-#endif
+	sprite_->draw(0, pos_);
 }
 
 bool
 miniboss::update()
 {
-	// killed?
+	// check if killed
 
 	auto p0 = vec2i((pos_ - vec2f { .5f, .5f }*radius_)/CELL_SIZE);
 	auto p1 = vec2i((pos_ + vec2f { .5f, .5f }*radius_)/CELL_SIZE);
@@ -47,7 +38,7 @@ miniboss::update()
 		}
 	}
 
-	update_position();
+	script_thread_->call("update", this);
 
 	return true;
 }

@@ -15,6 +15,7 @@ public:
 
 	void update_position();
 	void rotate_to_player();
+	void rotate(float a);
 
 	vec2f get_position() const;
 
