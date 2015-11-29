@@ -4,6 +4,7 @@
 #include <ggl/asset.h>
 #include <ggl/core.h>
 
+#include "util.h"
 #include "foe.h"
 #include "boss.h"
 #include "script_interface.h"
@@ -73,6 +74,17 @@ dup_table(lua_State *l)
 // exported functions
 //
 
+// misc
+
+int
+rand(lua_State *state)
+{
+	auto from = lua_tonumber(state, -2);
+	auto to = lua_tonumber(state, -1);
+	lua_pushnumber(state, ::rand(from, to));
+	return 1;
+}
+
 // foe
 
 int
@@ -82,10 +94,27 @@ foe_set_direction(lua_State *state)
 }
 
 int
+foe_get_direction(lua_State *state)
+{
+	vec2f dir = reinterpret_cast<foe *>(lua_touserdata(state, -1))->get_direction();
+	lua_pushnumber(state, dir.x);
+	lua_pushnumber(state, dir.y);
+	return 2;
+}
+
+int
 foe_set_speed(lua_State *state)
 {
 	reinterpret_cast<foe *>(lua_touserdata(state, -2))->set_speed(lua_tonumber(state, -1));
 	return 0;
+}
+
+int
+foe_get_speed(lua_State *state)
+{
+	float speed = reinterpret_cast<foe *>(lua_touserdata(state, -1))->get_speed();
+	lua_pushnumber(state, speed);
+	return 1;
 }
 
 int
@@ -157,9 +186,14 @@ boss_fire_laser(lua_State *state)
 const std::pair<const char *, lua_CFunction> exported_functions[] {
 #define EXPORT_FUNCTION(name) { #name, name },
 
+	// misc
+	EXPORT_FUNCTION(rand)
+
 	// foe
 	EXPORT_FUNCTION(foe_set_direction)
+	EXPORT_FUNCTION(foe_get_direction)
 	EXPORT_FUNCTION(foe_set_speed)
+	EXPORT_FUNCTION(foe_get_speed)
 	EXPORT_FUNCTION(foe_update_position)
 	EXPORT_FUNCTION(foe_rotate_to_player)
 	EXPORT_FUNCTION(foe_rotate)

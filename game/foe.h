@@ -11,7 +11,10 @@ public:
 	bool intersects(const vec2i& center, float radius) const override;
 
 	void set_direction(const vec2f& dir);
+	vec2f get_direction() const;
+
 	void set_speed(float speed);
+	float get_speed() const;
 
 	void update_position();
 	void rotate_to_player();

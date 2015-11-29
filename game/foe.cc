@@ -100,10 +100,22 @@ foe::set_direction(const vec2f& dir)
 	dir_ = normalized(dir);
 }
 
+vec2f
+foe::get_direction() const
+{
+	return dir_;
+}
+
 void
 foe::set_speed(float speed)
 {
 	speed_ = speed;
+}
+
+float
+foe::get_speed() const
+{
+	return speed_;
 }
 
 bool
