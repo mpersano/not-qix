@@ -4,7 +4,7 @@
 #include "foe.h"
 
 namespace ggl {
-class sprite;
+class mesh;
 }
 
 class boss;
@@ -12,7 +12,7 @@ class boss;
 class miniboss : public foe
 {
 public:
-	miniboss(game& g, const vec2f& pos, boss *parent);
+	miniboss(game& g, const vec2f& pos);
 
 	void draw() const override;
 	bool update() override;
@@ -24,7 +24,8 @@ private:
 	bool intersects_children(const vec2i& center, float radius) const override;
 
 	boss *parent_;
-	const ggl::sprite *sprite_;
+	const ggl::mesh *mesh_;
+	float ax_, ay_;
 
 	std::unique_ptr<script_thread> script_thread_;
 };

@@ -29,6 +29,7 @@ public:
 	void set_uniform_i(const GLchar *name, GLint v0, GLint v1, GLint v2, GLint v3) const;
 
 	void set_uniform_mat4(const GLchar *name, const mat4& mat) const;
+	void set_uniform_mat4(const GLchar *name, const GLfloat *mat) const;
 
 	void parameter_i(GLenum name, GLint value);
 

@@ -26,6 +26,7 @@ set(GGL_SOURCES
 	texture.cc
 	font.cc
 	image.cc
+	mesh.cc
 	sprite.cc
 	action.cc
 	tween.cc

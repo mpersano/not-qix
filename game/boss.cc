@@ -13,7 +13,6 @@
 
 #include "tween.h"
 #include "game.h"
-#include "miniboss.h"
 #include "boss.h"
 
 namespace {
@@ -130,7 +129,6 @@ const float LASER_DISTANCE = 20;
 boss::boss(game& g, const vec2f& pos)
 : foe { g, pos, RADIUS }
 , pod_angle_ { 0 }
-, miniboss_spawned_ { 0 }
 , core_sprite_ { ggl::res::get_sprite("boss-core.png") }
 , danger_up_sprite_ { ggl::res::get_sprite("danger-up.png") }
 , danger_down_sprite_ { ggl::res::get_sprite("danger-down.png") }
@@ -244,12 +242,6 @@ boss::draw_pods() const
 		p->draw();
 
 	ggl::render::pop_matrix();
-}
-
-void
-boss::on_miniboss_killed()
-{
-	--miniboss_spawned_;
 }
 
 namespace {

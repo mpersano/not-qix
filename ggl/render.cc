@@ -53,6 +53,7 @@ public:
 	renderer();
 
 	void set_viewport(const bbox& viewport);
+	bbox get_viewport() const;
 
 	void begin();
 
@@ -117,6 +118,7 @@ private:
 	const program *program_single_;
 	const program *program_multi_;
 
+	bbox viewport_;
 	mat4 proj_modelview_;
 } *g_renderer;
 
@@ -136,6 +138,8 @@ renderer::renderer()
 void
 renderer::set_viewport(const bbox& viewport)
 {
+	viewport_ = viewport;
+
 	const float NEAR = -1.f;
 	const float FAR = 1.f;
 
@@ -151,6 +155,12 @@ renderer::set_viewport(const bbox& viewport)
 				a, 0, 0, tx,
 				0, b, 0, ty,
 				0, 0, c, tz);
+}
+
+bbox
+renderer::get_viewport() const
+{
+	return viewport_;
 }
 
 void
@@ -591,6 +601,12 @@ void
 set_viewport(const bbox& viewport)
 {
 	g_renderer->set_viewport(viewport);
+}
+
+bbox
+get_viewport()
+{
+	return g_renderer->get_viewport();
 }
 
 void

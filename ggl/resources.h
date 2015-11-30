@@ -9,6 +9,7 @@ class font;
 class sprite;
 class action;
 class program;
+class mesh;
 }
 
 namespace ggl { namespace res {
@@ -27,6 +28,9 @@ get_sprite(const std::string& name);
 
 const program *
 get_program(const std::string& name);
+
+const mesh *
+get_mesh(const std::string& name);
 
 std::unique_ptr<action>
 get_action(const std::string& name);

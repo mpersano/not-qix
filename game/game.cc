@@ -894,7 +894,7 @@ game::add_foes()
 	add_entity(std::move(e));
 
 	for (int i = 0; i < 5; i++)
-		add_entity(std::unique_ptr<entity> { new miniboss { *this, find_foe_pos(miniboss::RADIUS), const_cast<boss *>(static_cast<const boss *>(cur_boss_)) } });
+		add_entity(std::unique_ptr<entity> { new miniboss { *this, find_foe_pos(miniboss::RADIUS) } });
 
 }
 

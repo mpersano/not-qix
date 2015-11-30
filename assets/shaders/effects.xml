@@ -3,4 +3,8 @@
 		<vert source="shaders/transition.vert" />
 		<frag source="shaders/transition.frag" />
 	</shader>
+	<shader name="plasticmesh">
+		<vert source="shaders/plasticmesh.vert" />
+		<frag source="shaders/plasticmesh.frag" />
+	</shader>
 </shaders>

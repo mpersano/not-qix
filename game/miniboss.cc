@@ -1,23 +1,30 @@
-#include <ggl/sprite.h>
+#include <ggl/gl_check.h>
+#include <ggl/mesh.h>
 #include <ggl/resources.h>
 
 #include "game.h"
 #include "boss.h"
+#include "fake3d.h"
 #include "miniboss.h"
 
-miniboss::miniboss(game& g, const vec2f& pos, boss *parent)
+miniboss::miniboss(game& g, const vec2f& pos)
 : foe { g, pos, RADIUS }
-, parent_ { parent }
-, sprite_ { ggl::res::get_sprite("miniboss.png") }
 , script_thread_ { create_script_thread("scripts/miniboss.lua") }
+, mesh_ { ggl::res::get_mesh("meshes/miniboss.msh") }
+, ax_ { 0 }
+, ay_ { 0 }
 {
 	script_thread_->call("init", this);
 }
-
 void
 miniboss::draw() const
 {
-	sprite_->draw(0, pos_);
+	mat4 m = 
+		mat4::rotation_around_x(ax_)*
+		mat4::rotation_around_y(ay_)*
+		mat4::scale(2.5, 2.5, 2.5);
+
+	draw_mesh(mesh_, pos_, m);
 }
 
 bool
@@ -32,11 +39,13 @@ miniboss::update()
 		for (int c = p0.x; c <= p1.x; c++) {
 			if (game_.grid[r*game_.grid_cols + c]) {
 				printf("killed!\n");
-				parent_->on_miniboss_killed();
 				return false;
 			}
 		}
 	}
+
+	ax_ += .01;
+	ay_ += .02;
 
 	script_thread_->call("update", this);
 

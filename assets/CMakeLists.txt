@@ -25,6 +25,26 @@ add_custom_command(
 
 list(APPEND DEST_FILES ${FONTS})
 
+# meshes
+
+set(MESH_DIR "${ASSET_DIR}/meshes")
+
+set(OBJS
+	${CMAKE_CURRENT_SOURCE_DIR}/meshes/miniboss.obj)
+
+foreach(OBJ ${OBJS})
+	get_filename_component(BASENAME ${OBJ} NAME_WE)
+	set(MESH ${MESH_DIR}/${BASENAME}.msh)
+
+	add_custom_command(
+		OUTPUT ${MESH}
+		COMMAND mkdir -p ${MESH_DIR}
+		COMMAND cd ${MESH_DIR} && ${CMAKE_CURRENT_SOURCE_DIR}/packmesh.pl < ${OBJ} > ${MESH}
+		DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/packmesh.pl ${OBJ})
+
+	list(APPEND DEST_FILES ${MESH})
+endforeach()
+
 # sprites
 
 set(GENSPRITE_DIR "${CMAKE_CURRENT_BINARY_DIR}/gensprites")

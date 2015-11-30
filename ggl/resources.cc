@@ -9,6 +9,7 @@
 #include <ggl/sprite_manager.h>
 #include <ggl/program_manager.h>
 #include <ggl/action.h>
+#include <ggl/mesh.h>
 #include <ggl/resources.h>
 
 namespace ggl { namespace res {
@@ -66,6 +67,18 @@ public:
 	}
 } *g_action_manager;
 
+class mesh_manager : public resource_manager<mesh, mesh_manager>
+{
+public:
+	std::unique_ptr<mesh> load(const std::string& name)
+	{
+		return std::unique_ptr<mesh>(new mesh { name });
+	}
+
+	void load_all();
+	void unload_all();
+} *g_mesh_manager;
+
 sprite_manager *g_sprite_manager;
 program_manager *g_program_manager;
 
@@ -83,6 +96,20 @@ texture_manager::unload_all()
 		kv.second->unload();
 }
 
+void
+mesh_manager::load_all()
+{
+	for (auto& kv : resource_map_)
+		kv.second->load();
+}
+
+void
+mesh_manager::unload_all()
+{
+	for (auto& kv : resource_map_)
+		kv.second->unload();
+}
+
 } // (anonymous namespace)
 
 void init()
@@ -92,6 +119,7 @@ void init()
 	g_sprite_manager = new sprite_manager;
 	g_program_manager = new program_manager;
 	g_action_manager = new action_manager;
+	g_mesh_manager = new mesh_manager;
 
 	g_program_manager->load_programs("shaders/default.xml");
 }
@@ -126,6 +154,12 @@ get_action(const std::string& name)
 	return g_action_manager->get(name)->clone();
 }
 
+const mesh *
+get_mesh(const std::string& name)
+{
+	return g_mesh_manager->get(name);
+}
+
 void
 load_sprite_sheet(const std::string& path)
 {
@@ -143,11 +177,13 @@ unload_gl_resources()
 {
 	g_texture_manager->unload_all();
 	g_program_manager->unload_all();
+	g_mesh_manager->unload_all();
 }
 
 void
 load_gl_resources()
 {
+	g_mesh_manager->load_all();
 	g_texture_manager->load_all();
 	g_program_manager->load_all();
 }

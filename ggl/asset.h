@@ -19,6 +19,11 @@ public:
 	virtual size_t read(void *buf, size_t size) = 0;
 
 	std::vector<char> read_all();
+
+	uint8_t read_uint8();
+	uint16_t read_uint16();
+	uint32_t read_uint32();
+	float read_float();
 };
 
 }

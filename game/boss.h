@@ -16,8 +16,6 @@ public:
 	void draw() const override;
 	bool update() override;
 
-	void on_miniboss_killed();
-
 	void set_pod_angle(float a);
 	void set_pod_position(int pod, float da, float r);
 
@@ -69,8 +67,6 @@ private:
 	};
 
 	std::vector<std::unique_ptr<pod>> pods_;
-
-	int miniboss_spawned_;
 
 	const ggl::sprite *core_sprite_;
 	const ggl::sprite *danger_up_sprite_, *danger_down_sprite_;

@@ -214,6 +214,12 @@ program::set_uniform_mat4(const GLchar *name, const mat4& mat) const
 }
 
 void
+program::set_uniform_mat4(const GLchar *name, const GLfloat *mat) const
+{
+	gl_check(glUniformMatrix4fv(get_uniform_location(name), 1, 1, mat));
+}
+
+void
 program::parameter_i(GLenum name, GLint value)
 {
 	gl_check(glProgramParameteri(id_, name, value));
