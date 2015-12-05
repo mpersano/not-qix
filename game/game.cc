@@ -15,6 +15,7 @@
 #include "util.h"
 #include "tween.h"
 #include "level.h"
+#include "fake3d.h"
 #include "boss.h"
 #include "miniboss.h"
 #include "percent_widget.h"
@@ -487,6 +488,8 @@ game::draw() const
 	ggl::render::set_viewport(
 		{ { -offset.x, -offset.y },
 		  { viewport_width - offset.x, viewport_height - offset.y } });
+
+	draw_mesh_prepare(); // XXX will be removed when we somehow integrate mesh rendering with sprite rendering
 
 	draw_background();
 

@@ -5,6 +5,7 @@
 
 namespace ggl {
 class sprite;
+class mesh;
 class texture;
 }
 
@@ -69,6 +70,7 @@ private:
 	std::vector<std::unique_ptr<pod>> pods_;
 
 	const ggl::sprite *core_sprite_;
+	const ggl::mesh *core_mesh_, *core_outline_mesh_;
 	const ggl::sprite *danger_up_sprite_, *danger_down_sprite_;
 
 	std::unique_ptr<script_thread> script_thread_;

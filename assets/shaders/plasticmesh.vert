@@ -1,10 +1,9 @@
 uniform mat4 proj_matrix;
 uniform mat4 modelview_matrix;
 
-uniform vec3 color;
-
 layout(location=0) in vec3 position;
 layout(location=1) in vec3 normal;
+layout(location=2) in vec3 color;
 
 out vec4 frag_color;
 

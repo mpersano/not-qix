@@ -27,21 +27,26 @@ mesh::load(const std::string& path)
 	if (sig != ('M' | ('E' << 8) | ('S' << 16) | ('H' << 24)))
 		panic("%s: not a mesh", path.c_str());
 
+	with_color_ = a->read_uint8();
+
 	uint16_t num_verts = a->read_uint16();
 	verts_.reserve(num_verts);
 
 	for (unsigned i = 0; i < num_verts; i++) {
-		vec3 pos;
-		pos.x = a->read_float();
-		pos.y = a->read_float();
-		pos.z = a->read_float();
+		auto read_vec3 = [&]() -> vec3
+		{
+			float x = a->read_float();
+			float y = a->read_float();
+			float z = a->read_float();
 
-		vec3 normal;
-		normal.x = a->read_float();
-		normal.y = a->read_float();
-		normal.z = a->read_float();
+			return { x, y, z };
+		};
 
-		verts_.push_back({ pos, normal });
+		vec3 pos = read_vec3();
+		vec3 normal = read_vec3();
+		vec3 color = with_color_ ? read_vec3() : vec3 { 0, 0, 0 };
+
+		verts_.push_back({ pos, normal, color });
 	}
 
 	uint16_t num_tris = a->read_uint16();
@@ -58,19 +63,24 @@ mesh::load(const std::string& path)
 void
 mesh::load()
 {
+	// TODO don't buffer color if with_color_ == false
+
 	struct gl_vertex {
+		gl_vertex()
+		{ }
+
+		gl_vertex(const vertex& v)
+		: position { v.pos.x, v.pos.y, v.pos.z }
+		, normal { v.normal.x, v.normal.y, v.normal.z }
+		, color { v.color.x, v.color.y, v.color.z }
+		{ }
+
 		GLfloat position[3];
 		GLfloat normal[3];
+		GLfloat color[3];
 	};
 
-	std::vector<gl_vertex> gl_verts(verts_.size());
-
-	std::transform(
-		std::begin(verts_),
-		std::end(verts_),
-		std::begin(gl_verts),
-		[](const vertex& v) -> gl_vertex
-		{ return { { v.pos.x, v.pos.y, v.pos.z }, { v.normal.x, v.normal.y, v.normal.z } }; });
+	std::vector<gl_vertex> gl_verts(std::begin(verts_), std::end(verts_));
 
 	gl_check(glGenBuffers(1, &vertex_buffer_));
 
@@ -98,11 +108,15 @@ mesh::load()
 
 	gl_check(glBindBuffer(GL_ARRAY_BUFFER, vertex_buffer_));
 
-	gl_check(glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(gl_vertex), reinterpret_cast<const GLvoid *>(offsetof(gl_vertex, position))));
-	gl_check(glEnableVertexAttribArray(0));
+#define ENABLE_ATTRIB(location, size, field) \
+	gl_check(glVertexAttribPointer(location, size, GL_FLOAT, GL_FALSE, sizeof(gl_vertex), reinterpret_cast<const GLvoid *>(offsetof(gl_vertex, field)))); \
+	gl_check(glEnableVertexAttribArray(location));
 
-	gl_check(glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(gl_vertex), reinterpret_cast<const GLvoid *>(offsetof(gl_vertex, normal))));
-	gl_check(glEnableVertexAttribArray(1));
+	ENABLE_ATTRIB(0, 3, position)
+	ENABLE_ATTRIB(1, 3, normal)
+	ENABLE_ATTRIB(2, 3, color)
+
+#undef ENABLE_ATTRIB
 
 	gl_check(glBindBuffer(GL_ARRAY_BUFFER, 0));
 	gl_check(glBindVertexArray(0));

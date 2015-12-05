@@ -30,19 +30,30 @@ list(APPEND DEST_FILES ${FONTS})
 set(MESH_DIR "${ASSET_DIR}/meshes")
 
 set(OBJS
-	${CMAKE_CURRENT_SOURCE_DIR}/meshes/miniboss.obj)
+	${CMAKE_CURRENT_SOURCE_DIR}/meshes/miniboss
+	${CMAKE_CURRENT_SOURCE_DIR}/meshes/boss)
 
 foreach(OBJ ${OBJS})
 	get_filename_component(BASENAME ${OBJ} NAME_WE)
+
+	set(PACKMESH ${CMAKE_CURRENT_SOURCE_DIR}/packmesh.pl)
+
 	set(MESH ${MESH_DIR}/${BASENAME}.msh)
+	set(OUTLINE_MESH ${MESH_DIR}/${BASENAME}-outline.msh)
 
 	add_custom_command(
 		OUTPUT ${MESH}
 		COMMAND mkdir -p ${MESH_DIR}
-		COMMAND cd ${MESH_DIR} && ${CMAKE_CURRENT_SOURCE_DIR}/packmesh.pl < ${OBJ} > ${MESH}
-		DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/packmesh.pl ${OBJ})
+		COMMAND cd ${MESH_DIR} && ${PACKMESH} ${OBJ} > ${MESH}
+		DEPENDS ${PACKMESH} ${OBJ}.obj ${OBJ}.mtl)
 
-	list(APPEND DEST_FILES ${MESH})
+	add_custom_command(
+		OUTPUT ${OUTLINE_MESH}
+		COMMAND mkdir -p ${MESH_DIR}
+		COMMAND cd ${MESH_DIR} && ${PACKMESH} --compute-normals --no-material ${OBJ} > ${OUTLINE_MESH}
+		DEPENDS ${PACKMESH} ${OBJ}.obj ${OBJ}.mtl)
+
+	list(APPEND DEST_FILES ${MESH} ${OUTLINE_MESH})
 endforeach()
 
 # sprites

@@ -7,12 +7,14 @@
 #include <ggl/vec2_util.h>
 #include <ggl/texture.h>
 #include <ggl/sprite.h>
+#include <ggl/mesh.h>
 #include <ggl/resources.h>
 #include <ggl/render.h>
 #include <ggl/util.h>
 
 #include "tween.h"
 #include "game.h"
+#include "fake3d.h"
 #include "boss.h"
 
 namespace {
@@ -130,6 +132,8 @@ boss::boss(game& g, const vec2f& pos)
 : foe { g, pos, RADIUS }
 , pod_angle_ { 0 }
 , core_sprite_ { ggl::res::get_sprite("boss-core.png") }
+, core_mesh_ { ggl::res::get_mesh("meshes/boss.msh") }
+, core_outline_mesh_ { ggl::res::get_mesh("meshes/boss-outline.msh") }
 , danger_up_sprite_ { ggl::res::get_sprite("danger-up.png") }
 , danger_down_sprite_ { ggl::res::get_sprite("danger-down.png") }
 , script_thread_ { create_script_thread("scripts/boss.lua") }
@@ -227,7 +231,16 @@ boss::draw_core() const
 		auto p = vec2f { screen_pos.x, game_.viewport_height } - game_.offset;
 		danger_up_sprite_->draw(0, p, ggl::vert_align::TOP, ggl::horiz_align::CENTER);
 	} else {
-		core_sprite_->draw(0, pos_);
+		mat4 m =
+			mat4::rotation_around_x(.5*M_PI)*
+			mat4::rotation_around_y(pod_angle_)*
+			mat4::rotation_around_z(.3*pod_angle_)*
+			mat4::scale(2.5, 2.5, 2.5);
+
+		draw_mesh_outline(core_outline_mesh_, pos_, m, .5);
+		draw_mesh(core_mesh_, pos_, m);
+
+		// core_sprite_->draw(0, pos_);
 	}
 }
 
