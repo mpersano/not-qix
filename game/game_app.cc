@@ -42,7 +42,7 @@ game_app::init(unsigned viewport_width, unsigned viewport_height)
 	viewport_width_ = viewport_width;
 	viewport_height_ = viewport_height;
 
-	scene_width_ = 480;
+	scene_width_ = 800;
 	scene_height_ = scene_width_*viewport_height_/viewport_width_;
 
 	init_states();

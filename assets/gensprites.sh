@@ -55,7 +55,7 @@ for frame in $( seq 0 $(($num_frames - 1)) ); do
   		    \( +clone -fill white -draw 'color 0,0 reset' \) \
   		    -compose ATop -composite \) \
 		  -compose ATop -composite \) \
-		-compose Blend -define compose:args=100,100 -composite -resize 40 png32:player-core-$( printf "%02d" $frame ).png
+		-compose Blend -define compose:args=100,100 -composite -resize 64 png32:player-core-$( printf "%02d" $frame ).png
 done
 
 for frame in $( seq 0 $(($num_frames - 1)) ); do
@@ -69,6 +69,6 @@ for frame in $( seq 0 $(($num_frames - 1)) ); do
 		\( -background matte mvg:<(shield $frame) \
 		   \( xc:none -draw 'translate 80,80 circle 0,0 40,0' -channel Alpha -blur 0x12 \
 	   	      \( +clone -fill white -draw 'color 0,0 reset' \) -compose ATop -composite \) \
-		   -compose ATop -composite -resize 40 \) \
+		   -compose ATop -composite -resize 64 \) \
 		-compose Blend -define compose:args=70,100 -composite png32:player-shield-$( printf "%02d" $frame ).png
 done

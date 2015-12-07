@@ -121,7 +121,8 @@ private:
 
 	ggl::vertex_array_texcoord<GLshort, 2, GLfloat, 2> background_filled_va_;
 	ggl::vertex_array_texcoord<GLshort, 2, GLfloat, 2> background_unfilled_va_;
-	ggl::vertex_array_flat<GLshort, 2> border_va_;
+	ggl::vertex_array_texcoord<GLshort, 2, GLshort, 2> border_va_;
+	const ggl::texture *border_texture_;
 
 	std::unique_ptr<game_state> state_;
 

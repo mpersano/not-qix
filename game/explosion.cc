@@ -24,15 +24,15 @@ explosion::explosion(const vec2f& pos, float bang)
 	const int num_fireballs = bang*rand<int>(1, 3);
 	for (size_t i = 0; i < num_fireballs; i++) {
 		float a = rand<float>(0, 2.f*M_PI);
-		float d = rand<float>(5.f, 40.f);
+		float d = rand<float>(8.f, 64.f);
 		vec2f p = pos + vec2f { sinf(a), cosf(a) }*d;
 
 		const int frames = NUM_FLARE_FRAMES;
-		flares_.emplace_back(flare_sprites_, frames, p, 40, 1.015f, 32, 2);
+		flares_.emplace_back(flare_sprites_, frames, p, 64, 1.015f, 32, 2);
 	}
 
 	const int frames = NUM_RING_FRAMES;
-	flares_.emplace_back(ring_sprites_, frames, pos, 30, 1.05f, 40, 1);
+	flares_.emplace_back(ring_sprites_, frames, pos, 48, 1.05f, 40, 1);
 }
 
 void

@@ -62,6 +62,7 @@ set(GAME_SOURCES
 	entity.cc
 	foe.cc
 	boss.cc
+	debuggfx.cc
 	miniboss.cc
 	powerup.cc
 	explosion.cc

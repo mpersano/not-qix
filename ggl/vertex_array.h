@@ -6,7 +6,6 @@
 #include <vector>
 
 #include <ggl/gl.h>
-#include <ggl/program.h>
 #include <ggl/gl_vertex_array.h>
 #include <ggl/resources.h>
 #include <ggl/gl_check.h>
@@ -69,11 +68,6 @@ struct vertex_traits;
 template <typename VertexType, int VertexSize>
 struct vertex_traits<vertex_flat<VertexType, VertexSize>>
 {
-	static const program *get_program()
-	{
-		return res::get_program("flat");
-	}
-
 	static void enable_vertex_attribs(const vertex_flat<VertexType, VertexSize> *p)
 	{
 		gl_check(glVertexAttribPointer(0, VertexSize, gltype_to_glenum<VertexType>::type, GL_FALSE, sizeof(*p), p->position));
@@ -89,11 +83,6 @@ struct vertex_traits<vertex_flat<VertexType, VertexSize>>
 template <typename VertexType, int VertexSize, typename TexCoordType, int TexCoordSize>
 struct vertex_traits<vertex_texcoord<VertexType, VertexSize, TexCoordType, TexCoordSize>>
 {
-	static const program *get_program()
-	{
-		return res::get_program("texture");
-	}
-
 	static void enable_vertex_attribs(const vertex_texcoord<VertexType, VertexSize, TexCoordType, TexCoordSize> *p)
 	{
 		gl_check(glVertexAttribPointer(0, VertexSize, gltype_to_glenum<VertexType>::type, GL_FALSE, sizeof(*p), p->position));
@@ -120,42 +109,21 @@ template <typename VertexType>
 class vertex_array : public std::vector<VertexType>
 {
 public:
-	vertex_array(const ggl::program *prog = detail::vertex_traits<VertexType>::get_program())
-	: prog_ { prog }
+	vertex_array()
 	{ }
 
-	vertex_array(std::initializer_list<VertexType> l, const ggl::program *prog = detail::vertex_traits<VertexType>::get_program())
+	vertex_array(std::initializer_list<VertexType> l)
 	: std::vector<VertexType>(l)
-	, prog_ { prog }
 	{ }
 
 	void draw(GLenum mode) const
 	{
 		if (!this->empty()) {
-			prog_->use();
-			prog_->set_uniform_mat4("proj_modelview", render::get_proj_modelview()); // face.insert(palm)
-
 			detail::vertex_traits<VertexType>::enable_vertex_attribs(&this->front());
 			gl_check(glDrawArrays(mode, 0, this->size()));
 			detail::vertex_traits<VertexType>::disable_vertex_attribs();
 		}
 	}
-
-	void draw(GLenum mode, const rgba& color) const
-	{
-		if (!this->empty()) {
-			prog_->use();
-			prog_->set_uniform_mat4("proj_modelview", render::get_proj_modelview());
-			prog_->set_uniform_f("color", color.r, color.g, color.b, color.a);
-
-			detail::vertex_traits<VertexType>::enable_vertex_attribs(&this->front());
-			gl_check(glDrawArrays(mode, 0, this->size()));
-			detail::vertex_traits<VertexType>::disable_vertex_attribs();
-		}
-	}
-
-private:
-	const ggl::program *prog_;
 };
 
 template <typename VertexType, int VertexSize>

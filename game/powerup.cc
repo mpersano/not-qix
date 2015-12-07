@@ -81,6 +81,8 @@ powerup::powerup(game& g, const vec2f& pos, const vec2f& dir)
 void
 powerup::draw() const
 {
+	ggl::render::set_color(ggl::white);
+
 	ggl::render::push_matrix();
 	ggl::render::translate(pos_.x, pos_.y);
 

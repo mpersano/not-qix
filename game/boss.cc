@@ -9,12 +9,14 @@
 #include <ggl/sprite.h>
 #include <ggl/mesh.h>
 #include <ggl/resources.h>
+#include <ggl/rgba.h>
 #include <ggl/render.h>
 #include <ggl/util.h>
 
 #include "tween.h"
 #include "game.h"
 #include "fake3d.h"
+#include "debuggfx.h"
 #include "boss.h"
 
 namespace {
@@ -31,7 +33,7 @@ public:
 	bool intersects(const vec2i& center, float radius) const override;
 
 private:
-	static const int LENGTH = 20;
+	static const int LENGTH = 32;
 
 	vec2f pos_;
 	vec2f dir_;
@@ -65,13 +67,14 @@ bullet::draw() const
 	const float v0 = sprite_->v0;
 	const float v1 = sprite_->v1;
 
+	ggl::render::set_color(ggl::white);
 	ggl::render::draw(sprite_->tex, { { u0, v1 }, { u1, v0 } }, ggl::quad { p0, p1, p2, p3 }, 0);
 }
 
 bool
 bullet::update()
 {
-	static const float SPEED = 4;
+	static const float SPEED = 6;
 
 	pos_ += SPEED*dir_;
 
@@ -119,8 +122,8 @@ bullet::intersects(const vec2i& center, float radius) const
 
 // pod formations
 
-const float POD_DISTANCE = 36;
-const float LASER_DISTANCE = 20;
+const float POD_DISTANCE = 58;
+const float LASER_DISTANCE = 32;
 
 } // (anonymous namespace)
 
@@ -131,7 +134,6 @@ const float LASER_DISTANCE = 20;
 boss::boss(game& g, const vec2f& pos)
 : foe { g, pos, RADIUS }
 , pod_angle_ { 0 }
-, core_sprite_ { ggl::res::get_sprite("boss-core.png") }
 , core_mesh_ { ggl::res::get_mesh("meshes/boss.msh") }
 , core_outline_mesh_ { ggl::res::get_mesh("meshes/boss-outline.msh") }
 , danger_up_sprite_ { ggl::res::get_sprite("danger-up.png") }
@@ -226,9 +228,11 @@ boss::draw_core() const
 
 	if (screen_pos.y + radius_ < 0) {
 		auto p = vec2f { screen_pos.x, 0 } - game_.offset;
+		ggl::render::set_color(ggl::white);
 		danger_down_sprite_->draw(0, p, ggl::vert_align::BOTTOM, ggl::horiz_align::CENTER);
 	} else if (screen_pos.y - radius_ > game_.viewport_height) {
 		auto p = vec2f { screen_pos.x, game_.viewport_height } - game_.offset;
+		ggl::render::set_color(ggl::white);
 		danger_up_sprite_->draw(0, p, ggl::vert_align::TOP, ggl::horiz_align::CENTER);
 	} else {
 		mat4 m =
@@ -240,7 +244,7 @@ boss::draw_core() const
 		draw_mesh_outline(core_outline_mesh_, pos_, m, .5);
 		draw_mesh(core_mesh_, pos_, m);
 
-		// core_sprite_->draw(0, pos_);
+		draw_circle(pos_, RADIUS, 4.f);
 	}
 }
 
@@ -283,6 +287,8 @@ vec2f touch_pos;
 void
 boss::pod::draw() const
 {
+	ggl::render::set_color(ggl::white);
+
 	ggl::render::push_matrix();
 
 	ggl::render::rotate(ang_offset);
@@ -305,7 +311,7 @@ boss::pod::draw() const
 		float radius = get_laser_radius();
 		ggl::render::draw(laser_segment_texture_, { { 0, 0 }, { 1, 1 } }, ggl::bbox { { -radius, LASER_DISTANCE }, { radius, 1000 } }, 0);
 
-		float r = laser_power_*1.1f*(1.f + .15f*sinf(.1f*game_.tics));
+		float r = laser_power_*1.2f*(1.f + .15f*sinf(.1f*game_.tics));
 
 		ggl::render::push_matrix();
 		ggl::render::translate(0, LASER_DISTANCE);
@@ -374,5 +380,5 @@ boss::pod::intersects(const vec2f& center, float angle, const vec2i& from, const
 float
 boss::pod::get_laser_radius() const
 {
-	return 20.f*laser_power_;
+	return 32.f*laser_power_;
 }

@@ -290,8 +290,8 @@ percent_widget::draw_frame() const
 void
 percent_widget::draw_digits() const
 {
-	const int BIG_DIGIT_WIDTH = 20;
-	const int SMALL_DIGIT_WIDTH = 16;
+	const int BIG_DIGIT_WIDTH = 32;
+	const int SMALL_DIGIT_WIDTH = 28;
 
 	const unsigned value = get_value();
 
@@ -301,7 +301,7 @@ percent_widget::draw_digits() const
 	const int base_y = get_base_y();
 	const int base_x = get_base_x();
 
-	int x = get_base_x() + 8 + BIG_DIGIT_WIDTH/2;
+	int x = get_base_x() + 12 + BIG_DIGIT_WIDTH/2;
 	draw_char(large_font_, L'0' + int_part%10, x + 2*BIG_DIGIT_WIDTH, base_y);
 	if (int_part >= 10) {
 		draw_char(large_font_, L'0' + (int_part/10)%10, x + BIG_DIGIT_WIDTH, base_y);
@@ -310,17 +310,19 @@ percent_widget::draw_digits() const
 		}
 	}
 
-	x += 2*BIG_DIGIT_WIDTH + BIG_DIGIT_WIDTH/2 + SMALL_DIGIT_WIDTH/2;
+	x += 90;
 	draw_char(small_font_, L'.', x, base_y);
-	draw_char(small_font_, L'0' + (fract_part/10)%10, x + SMALL_DIGIT_WIDTH, base_y);
-	draw_char(small_font_, L'0' + (fract_part)%10, x + 2*SMALL_DIGIT_WIDTH, base_y);
-	draw_char(small_font_, L'%', x + 3*SMALL_DIGIT_WIDTH + 12, base_y);
+
+	x += 23;
+	draw_char(small_font_, L'0' + (fract_part/10)%10, x, base_y);
+	draw_char(small_font_, L'0' + (fract_part)%10, x + SMALL_DIGIT_WIDTH, base_y);
+	draw_char(small_font_, L'%', x + 2*SMALL_DIGIT_WIDTH + 16, base_y);
 }
 
 void
 percent_widget::draw_char(const ggl::font *f, wchar_t ch, int base_x, int base_y) const
 {
 	auto *g = f->get_glyph(ch);
-	vec2f pos = vec2f { base_x, base_y + 20 + g->top - g->spr.height };
+	vec2f pos = vec2f { base_x, base_y + 32 + g->top - g->spr.height };
 	g->spr.draw(1, pos, ggl::vert_align::BOTTOM, ggl::horiz_align::CENTER);
 }

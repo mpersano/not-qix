@@ -5,6 +5,7 @@
 #include "game.h"
 #include "boss.h"
 #include "fake3d.h"
+#include "debuggfx.h"
 #include "explosion.h"
 #include "miniboss.h"
 
@@ -28,6 +29,8 @@ miniboss::draw() const
 
 	draw_mesh_outline(outline_mesh_, pos_, m, .25);
 	draw_mesh(mesh_, pos_, m);
+
+	draw_circle(pos_, RADIUS, 4.f);
 }
 
 bool

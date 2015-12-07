@@ -17,7 +17,7 @@ public:
 	void draw() const override;
 	bool update() override;
 
-	static const int RADIUS = 16;
+	static const int RADIUS = 26;
 
 private:
 	bool intersects_children(const vec2i& from, const vec2i& to) const override;

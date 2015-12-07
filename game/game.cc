@@ -8,6 +8,7 @@
 #include <ggl/font.h>
 #include <ggl/vertex_array.h>
 #include <ggl/resources.h>
+#include <ggl/program.h>
 #include <ggl/action.h>
 #include <ggl/render.h>
 #include <ggl/util.h>
@@ -24,7 +25,7 @@
 
 namespace {
 
-const int BORDER_RADIUS = 1;
+const int BORDER_RADIUS = 8;
 
 class level_intro_state : public game_state
 {
@@ -158,8 +159,8 @@ level_intro_state::draw_overlay() const
 	auto w = game_.viewport_width;
 	auto h = game_.viewport_height;
 
-	const float y0 = .5f*h + 30;
-	const float y1 = .5f*h - 30;
+	const float y0 = .5f*h + 48;
+	const float y1 = .5f*h - 48;
 
 	// border
 
@@ -454,6 +455,7 @@ game::game(int width, int height)
 : viewport_width { width }
 , viewport_height { height }
 , player_ { *this }
+, border_texture_ { ggl::res::get_texture("images/border.png") }
 {
 	widgets_.emplace_back(new percent_widget(*this));
 	widgets_.emplace_back(new lives_widget(*this));
@@ -475,7 +477,8 @@ game::reset(const level *l)
 
 	update_background();
 
-	enter_level_intro_state();
+	// enter_level_intro_state();
+	enter_select_initial_area_state();
 
 	tics = 0;
 }
@@ -679,23 +682,28 @@ game::update_border()
 		vec2s p0 = vec2s(v1)*CELL_SIZE + nm*d;
 		vec2s p1 = vec2s(v1)*CELL_SIZE - nm*d;
 
-		border_va_.push_back({ p0.x, p0.y });
-		border_va_.push_back({ p1.x, p1.y });
+		border_va_.push_back({ p0.x, p0.y, 0, static_cast<short>(i) });
+		border_va_.push_back({ p1.x, p1.y, 1, static_cast<short>(i) });
 	}
 }
 
 void
 game::draw_background() const
 {
-	{
+	auto prog = ggl::res::get_program("texture");
+	prog->use();
+	prog->set_uniform_mat4("proj_modelview", ggl::render::get_proj_modelview());
+
 	cur_level->fg_texture->bind();
 	background_filled_va_.draw(GL_TRIANGLES);
 
 	cur_level->bg_texture->bind();
 	background_unfilled_va_.draw(GL_TRIANGLES);
-	}
 
-	border_va_.draw(GL_TRIANGLE_STRIP, ggl::white);
+	border_texture_->bind();
+
+	ggl::enable_alpha_blend _;
+	border_va_.draw(GL_TRIANGLE_STRIP);
 }
 
 void

@@ -5,32 +5,32 @@ FONT=/usr/share/fonts/truetype/Coda-Heavy.ttf
 
 ${PACKFONT} \
 	-w 512 -h 256 \
-	-s 20 \
-	-g 2 \
+	-s 32 \
+	-g 3 \
 	-t fonts \
 	-i ffffffff \
-	-o ff404040 \
+	-o ff000000 \
 	${FONT} \
 	hud-big \
 	x20-x7e
 
 ${PACKFONT} \
 	-w 512 -h 256 \
-	-s 16 \
-	-g 2 \
+	-s 26 \
+	-g 3 \
 	-t fonts \
 	-i ffffffff \
-	-o ff404040 \
+	-o ff000000 \
 	${FONT} \
 	hud-small \
 	x20-x7e
 
 ${PACKFONT} \
 	-w 512 -h 256 \
-	-s 20 \
+	-s 32 \
 	-g 2 \
 	-t fonts \
-	-d 2 -e 2 -S .6 -B 4 \
+	-d 3 -e 3 -S .6 -B 6 \
 	-i ffff0000-ffffff00-ffffffff \
 	-o ff800000-ff808000-ff808080 \
 	${FONT} \
@@ -39,10 +39,10 @@ ${PACKFONT} \
 
 ${PACKFONT} \
 	-w 512 -h 256 \
-	-s 42 \
-	-g 2 \
+	-s 68 \
+	-g 3 \
 	-t fonts \
-	-d 2 -e 2 -S .6 -B 2 \
+	-d 3 -e 3 -S .6 -B 3 \
 	-i ffffff00 \
 	-o ffff0000 \
 	${FONT} \
@@ -51,10 +51,10 @@ ${PACKFONT} \
 
 ${PACKFONT} \
 	-w 512 -h 256 \
-	-s 42 \
-	-g 2 \
+	-s 68 \
+	-g 3 \
 	-t fonts \
-	-d 2 -e 2 -S .6 -B 2 \
+	-d 3 -e 3 -S .6 -B 3 \
 	-i ffff0000 \
 	-o ffffffff \
 	${FONT} \
@@ -63,10 +63,10 @@ ${PACKFONT} \
 
 ${PACKFONT} \
 	-w 512 -h 256 \
-	-s 42 \
-	-g 2 \
+	-s 68 \
+	-g 3 \
 	-t fonts \
-	-d 2 -e 2 -S .6 -B 2 \
+	-d 3 -e 3 -S .6 -B 3 \
 	-i 00ffffff \
 	-o ffffffff \
 	${FONT} \

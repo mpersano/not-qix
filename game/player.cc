@@ -3,7 +3,10 @@
 
 #include <ggl/sprite.h>
 #include <ggl/resources.h>
+#include <ggl/program.h>
 #include <ggl/dpad_button.h>
+#include <ggl/util.h>
+#include <ggl/texture.h>
 #include <ggl/render.h>
 
 #include "game.h"
@@ -44,6 +47,7 @@ const int EXPLODE_SEGMENT_TICS = 2;
 
 player::player(game& g)
 : game_ { g }
+, trail_texture_ { ggl::res::get_texture("images/trail.png") }
 {
 	for (int i = 0; i < NUM_FRAMES; i++) {
 		char name[80];
@@ -396,12 +400,14 @@ player::draw() const
 void
 player::draw_trail(int start_index) const
 {
-	static const int TRAIL_RADIUS = 1;
+	static const int TRAIL_RADIUS = 8;
 
 	if (extend_trail_.empty() || start_index == extend_trail_.size())
 		return;
 
 	assert(start_index < extend_trail_.size());
+
+	GLshort u = 0;
 
 	trail_va_.clear();
 
@@ -417,8 +423,9 @@ player::draw_trail(int start_index) const
 		vec2s p0 = vec2s(v0) + n*TRAIL_RADIUS;
 		vec2s p1 = vec2s(v0) - n*TRAIL_RADIUS;
 
-		trail_va_.push_back({ p0.x, p0.y });
-		trail_va_.push_back({ p1.x, p1.y });
+		trail_va_.push_back({ p0.x, p0.y, 0, u });
+		trail_va_.push_back({ p1.x, p1.y, 1, u });
+		++u;
 	}
 
 	// middle
@@ -441,8 +448,9 @@ player::draw_trail(int start_index) const
 		vec2s p0 = vec2s(v1) + nm*TRAIL_RADIUS/d;
 		vec2s p1 = vec2s(v1) - nm*TRAIL_RADIUS/d;
 
-		trail_va_.push_back({ p0.x, p0.y });
-		trail_va_.push_back({ p1.x, p1.y });
+		trail_va_.push_back({ p0.x, p0.y, 0, u });
+		trail_va_.push_back({ p1.x, p1.y, 1, u });
+		++u;
 	}
 
 	// last
@@ -457,11 +465,19 @@ player::draw_trail(int start_index) const
 		vec2s p0 = vec2s(v0) + n*TRAIL_RADIUS;
 		vec2s p1 = vec2s(v0) - n*TRAIL_RADIUS;
 
-		trail_va_.push_back({ p0.x, p0.y });
-		trail_va_.push_back({ p1.x, p1.y });
+		trail_va_.push_back({ p0.x, p0.y, 0, u });
+		trail_va_.push_back({ p1.x, p1.y, 1, u });
+		++u;
 	}
 
-	trail_va_.draw(GL_TRIANGLE_STRIP, ggl::rgba { 1, 1, 0, 1 });
+	auto prog = ggl::res::get_program("texture");
+	prog->use();
+	prog->set_uniform_mat4("proj_modelview", ggl::render::get_proj_modelview());
+
+	trail_texture_->bind();
+
+	ggl::enable_alpha_blend _;
+	trail_va_.draw(GL_TRIANGLE_STRIP);
 }
 
 void

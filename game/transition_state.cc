@@ -1,4 +1,5 @@
 #include <ggl/resources.h>
+#include <ggl/program.h>
 #include <ggl/vertex_array.h>
 
 #include "game_app.h"
@@ -68,8 +69,7 @@ transition_state::draw() const
 	  { { { 0, 0, 0, 0 },
 	      { 0, static_cast<GLshort>(scene_height), 0, 1 },
 	      { static_cast<GLshort>(scene_width), 0, 1, 0 },
-	      { static_cast<GLshort>(scene_width), static_cast<GLshort>(scene_height), 1, 1 } },
-	    program_ }).draw(GL_TRIANGLE_STRIP);
+	      { static_cast<GLshort>(scene_width), static_cast<GLshort>(scene_height), 1, 1 } } }).draw(GL_TRIANGLE_STRIP);
 }
 
 void
