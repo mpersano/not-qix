@@ -13,11 +13,10 @@
 
 std::vector<std::unique_ptr<level>> g_levels;
 
-level::level(const std::string& fg_path, const std::string& bg_path, const std::string& mask_path, const std::string& portrait_path)
+level::level(const std::string& fg_path, const std::string& bg_path, const std::string& mask_path)
 : name { L"test" }
 , fg_texture { ggl::res::get_texture(fg_path) }
 , bg_texture { ggl::res::get_texture(bg_path) }
-, portrait_texture { ggl::res::get_texture(portrait_path) }
 {
 	ggl::image mask { mask_path };
 
@@ -68,7 +67,7 @@ level_from_xml_node(TiXmlNode *level_node)
 	std::unique_ptr<level> rv;
 
 	if (TiXmlElement *element = level_node->ToElement()) {
-		std::string fg_path, bg_path, mask_path, portrait_path;
+		std::string fg_path, bg_path, mask_path;
 
 		for (TiXmlNode *node = element->FirstChild(); node; node = node->NextSibling()) {
 			TiXmlElement *e = node->ToElement();
@@ -83,12 +82,10 @@ level_from_xml_node(TiXmlNode *level_node)
 				bg_path = e->Attribute("path");
 			} else if (strcmp(value, "mask") == 0) {
 				mask_path = e->Attribute("path");
-			} else if (strcmp(value, "portrait") == 0) {
-				portrait_path = e->Attribute("path");
 			}
 		}
 
-		rv.reset(new level { fg_path, bg_path, mask_path, portrait_path });
+		rv.reset(new level { fg_path, bg_path, mask_path });
 	}
 
 	return rv;

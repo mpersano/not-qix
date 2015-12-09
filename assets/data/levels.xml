@@ -4,7 +4,6 @@
 			<foreground path="images/kurisu-foreground.png" />
 			<background path="images/kurisu-background.png" />
 			<mask path="images/kurisu-mask.png" />
-			<portrait path="images/girl-portrait.png" />
 		</level>
 	</levels>
 </game>
