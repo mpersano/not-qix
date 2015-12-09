@@ -28,30 +28,31 @@ list(APPEND DEST_FILES ${FONTS})
 # meshes
 
 set(MESH_DIR "${ASSET_DIR}/meshes")
+set(MESHES boss miniboss pod)
 
-set(OBJS
-	${CMAKE_CURRENT_SOURCE_DIR}/meshes/miniboss
-	${CMAKE_CURRENT_SOURCE_DIR}/meshes/boss)
+set(PACKMESH ${CMAKE_CURRENT_SOURCE_DIR}/packmesh.pl)
 
-foreach(OBJ ${OBJS})
-	get_filename_component(BASENAME ${OBJ} NAME_WE)
+foreach(MESH_NAME ${MESHES})
+	set(SRC ${CMAKE_CURRENT_SOURCE_DIR}/meshes/${MESH_NAME})
 
-	set(PACKMESH ${CMAKE_CURRENT_SOURCE_DIR}/packmesh.pl)
+	set(OBJ ${SRC}.obj)
+	set(MTL ${SRC}.mtl)
 
-	set(MESH ${MESH_DIR}/${BASENAME}.msh)
-	set(OUTLINE_MESH ${MESH_DIR}/${BASENAME}-outline.msh)
+	set(MESH ${MESH_DIR}/${MESH_NAME}.msh)
 
 	add_custom_command(
 		OUTPUT ${MESH}
 		COMMAND mkdir -p ${MESH_DIR}
-		COMMAND cd ${MESH_DIR} && ${PACKMESH} ${OBJ} > ${MESH}
-		DEPENDS ${PACKMESH} ${OBJ}.obj ${OBJ}.mtl)
+		COMMAND cd ${MESH_DIR} && ${PACKMESH} ${SRC} > ${MESH}
+		DEPENDS ${PACKMESH} ${OBJ} ${MTL})
+
+	set(OUTLINE_MESH ${MESH_DIR}/${MESH_NAME}-outline.msh)
 
 	add_custom_command(
 		OUTPUT ${OUTLINE_MESH}
 		COMMAND mkdir -p ${MESH_DIR}
-		COMMAND cd ${MESH_DIR} && ${PACKMESH} --compute-normals --no-material ${OBJ} > ${OUTLINE_MESH}
-		DEPENDS ${PACKMESH} ${OBJ}.obj ${OBJ}.mtl)
+		COMMAND cd ${MESH_DIR} && ${PACKMESH} --compute-normals --no-material ${SRC} > ${OUTLINE_MESH}
+		DEPENDS ${PACKMESH} ${OBJ} ${MTL})
 
 	list(APPEND DEST_FILES ${MESH} ${OUTLINE_MESH})
 endforeach()
