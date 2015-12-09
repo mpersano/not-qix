@@ -16,7 +16,7 @@ public:
 	using finished_event_handler = std::function<void(void)>;
 	ggl::connectable_event<finished_event_handler>& get_finished_event();
 
-protected:
+private:
 	virtual bool do_update() = 0;
 
 	ggl::event<finished_event_handler> finished_event_;
