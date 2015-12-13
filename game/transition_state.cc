@@ -65,11 +65,11 @@ transition_state::draw() const
 
 	glDisable(GL_BLEND);
 
-	(ggl::vertex_array_texcoord<GLshort, 2, GLfloat, 2>
-	  { { { 0, 0, 0, 0 },
-	      { 0, static_cast<GLshort>(scene_height), 0, 1 },
-	      { static_cast<GLshort>(scene_width), 0, 1, 0 },
-	      { static_cast<GLshort>(scene_width), static_cast<GLshort>(scene_height), 1, 1 } } }).draw(GL_TRIANGLE_STRIP);
+	(ggl::vertex_array_texcoord<GLshort, 2, GLshort, 2>
+	  { { { -1, -1, 0, 0 },
+	      { -1,  1, 0, 1 },
+	      {  1, -1, 1, 0 },
+	      {  1,  1, 1, 1 } } }).draw(GL_TRIANGLE_STRIP);
 }
 
 void

@@ -8,9 +8,9 @@ in vec2 frag_texcoord;
 
 out vec4 out_color;
 
-const vec2 origin = vec2(-200, -100);
+const vec2 origin = vec2(-20, -10);
 const float feather = 400.;
-const float cell_size = 40.;
+const float cell_size = 30.;
 
 void main(void)
 {
