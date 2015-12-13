@@ -3,12 +3,4 @@
 		<vert source="shaders/transition.vert" />
 		<frag source="shaders/transition.frag" />
 	</shader>
-	<shader name="plasticmesh">
-		<vert source="shaders/plasticmesh.vert" />
-		<frag source="shaders/plasticmesh.frag" />
-	</shader>
-	<shader name="outline">
-		<vert source="shaders/outline.vert" />
-		<frag source="shaders/outline.frag" />
-	</shader>
 </shaders>

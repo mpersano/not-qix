@@ -1,12 +1,15 @@
 #pragma once
 
+#include <ggl/gl.h>
 #include <ggl/vec2.h>
 #include <ggl/vec3.h>
+#include <ggl/mat3.h>
 
 namespace ggl {
 
 class texture;
 class rgba;
+class mesh;
 
 struct bbox
 {
@@ -31,6 +34,9 @@ set_viewport(const bbox& viewport);
 
 bbox
 get_viewport();
+
+mat3
+get_matrix();
 
 void
 begin();
@@ -86,10 +92,15 @@ draw(const texture *tex0, const texture *tex1, const bbox& tex0_coords, const bb
 void
 draw(const texture *tex0, const texture *tex1, const bbox& tex0_coords, const bbox& tex1_coords, const quad& dest_coords, float depth);
 
+// mesh
+
+void
+draw(const mesh *m, const mat4& mat, float depth);
+
 void
 end();
 
-mat4
+const GLfloat *
 get_proj_modelview();
 
 } }

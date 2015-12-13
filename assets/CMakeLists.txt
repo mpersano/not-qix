@@ -46,15 +46,7 @@ foreach(MESH_NAME ${MESHES})
 		COMMAND cd ${MESH_DIR} && ${PACKMESH} ${SRC} > ${MESH}
 		DEPENDS ${PACKMESH} ${OBJ} ${MTL})
 
-	set(OUTLINE_MESH ${MESH_DIR}/${MESH_NAME}-outline.msh)
-
-	add_custom_command(
-		OUTPUT ${OUTLINE_MESH}
-		COMMAND mkdir -p ${MESH_DIR}
-		COMMAND cd ${MESH_DIR} && ${PACKMESH} --compute-normals --no-material ${SRC} > ${OUTLINE_MESH}
-		DEPENDS ${PACKMESH} ${OBJ} ${MTL})
-
-	list(APPEND DEST_FILES ${MESH} ${OUTLINE_MESH})
+	list(APPEND DEST_FILES ${MESH})
 endforeach()
 
 # sprites

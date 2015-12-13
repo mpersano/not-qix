@@ -27,6 +27,7 @@ private:
 	struct vertex {
 		vec3 pos;
 		vec3 normal;
+		vec3 vnormal;
 		vec3 color;
 	};
 	std::vector<vertex> verts_;
@@ -36,7 +37,6 @@ private:
 	};
 	std::vector<triangle> tris_;
 
-	bool with_color_;
 	GLuint vertex_buffer_, index_buffer_;
 	GLuint vao_id_;
 };

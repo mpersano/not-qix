@@ -11,6 +11,7 @@
 #include <ggl/vec3.h>
 #include <ggl/mat3.h>
 #include <ggl/rgba.h>
+#include <ggl/mesh.h>
 #include <ggl/gl_vertex_array.h>
 #include <ggl/gl_buffer.h>
 #include <ggl/program.h>
@@ -65,38 +66,57 @@ public:
 	void push_matrix();
 	void pop_matrix();
 
+	mat3 get_matrix() const;
+
 	void set_color(const rgba& color);
 
 	void enqueue(const quad& dest_coords, float depth);
 	void enqueue(const texture *tex0, const bbox& tex0_coords, const quad& dest_coords, float depth);
 	void enqueue(const texture *tex0, const texture *tex1, const bbox& tex0_coords, const bbox& tex1_coords, const quad& dest_coords, float depth);
+	void enqueue(const mesh *m, const mat4& mat, float depth);
 
 	void end();
 
-	mat4 get_proj_modelview() const
-	{ return proj_modelview_; }
+	const GLfloat *get_proj_modelview() const
+	{ return &ortho_proj_[0]; }
 
 private:
 	void init_buffers();
 	void init_vaos();
 
-	struct sprite_info
+	void init_perspective_proj();
+	void init_ortho_proj();
+
+	struct primitive_info
 	{
-		const texture *tex0, *tex1;
-		bbox tex0_coords, tex1_coords;
-		quad dest_coords;
-		rgba color;
+		primitive_info() { } // har har
+		enum { QUAD, MESH } type;
 		float depth;
+		union {
+			struct {
+				const texture *tex0, *tex1;
+				bbox tex0_coords, tex1_coords;
+				quad dest_coords;
+				rgba color;
+			} quad_info;
+			struct {
+				const mesh *m;
+				mat4 mat;
+			} mesh_info;
+		};
 	};
 
 	// untextured quads
-	void render(const sprite_info *const *sprites, size_t num_sprites);
+	void render_quads(const primitive_info *const *sprites, size_t num_sprites);
 
 	// textured quads
-	void render(const texture *tex, const sprite_info *const *sprites, size_t num_sprites);
+	void render_quads(const texture *tex, const primitive_info *const *sprites, size_t num_sprites);
 
 	// 2-textured quads
-	void render(const texture *tex0, const texture *tex1, const sprite_info *const *sprites, size_t num_sprites);
+	void render_quads(const texture *tex0, const texture *tex1, const primitive_info *const *sprites, size_t num_sprites);
+
+	// meshes
+	void render_meshes(const primitive_info *const *meshes, size_t num_meshes);
 
 	rgba color_;
 	mat3 matrix_;
@@ -105,7 +125,7 @@ private:
 	static const int SPRITE_QUEUE_CAPACITY = 1024;
 
 	int sprite_queue_size_;
-	sprite_info sprite_queue_[SPRITE_QUEUE_CAPACITY];
+	primitive_info sprite_queue_[SPRITE_QUEUE_CAPACITY];
 
 	gl_buffer vert_buffer_;
 	gl_buffer index_buffer_;
@@ -114,25 +134,35 @@ private:
 	gl_vertex_array vao_single_;
 	gl_vertex_array vao_multi_;
 
-	const program *program_color_;
-	const program *program_single_;
-	const program *program_multi_;
+	const program *prog_color_;
+	const program *prog_single_;
+	const program *prog_multi_;
+	const program *prog_mesh_;
+	const program *prog_mesh_outline_;
 
 	bbox viewport_;
-	mat4 proj_modelview_;
+	std::array<GLfloat, 16> ortho_proj_;
+	std::array<GLfloat, 16> perspective_proj_;
 } *g_renderer;
 
 renderer::renderer()
 : vert_buffer_ { GL_ARRAY_BUFFER }
 , index_buffer_ { GL_ELEMENT_ARRAY_BUFFER }
-, proj_modelview_ { mat4::identity() }
-, program_color_ { res::get_program("color") }
-, program_single_ { res::get_program("texture-color") }
-, program_multi_ { res::get_program("bitexture-color") }
+, prog_color_ { res::get_program("color") }
+, prog_single_ { res::get_program("texture-color") }
+, prog_multi_ { res::get_program("bitexture-color") }
+, prog_mesh_ { res::get_program("mesh") }
+, prog_mesh_outline_ { res::get_program("mesh-outline") }
 {
-
 	init_buffers();
 	init_vaos();
+
+	prog_single_->use();
+	prog_single_->set_uniform_i("tex", 0); // texunit 0
+
+	prog_multi_->use();
+	prog_multi_->set_uniform_i("tex0", 0); // texunit 0
+	prog_multi_->set_uniform_i("tex1", 1); // texunit 0
 }
 
 void
@@ -140,21 +170,65 @@ renderer::set_viewport(const bbox& viewport)
 {
 	viewport_ = viewport;
 
-	const float NEAR = -1.f;
-	const float FAR = 1.f;
+	init_ortho_proj();
+	init_perspective_proj();
+}
 
-	const float a = 2.f/(viewport.max.x - viewport.min.x);
-	const float b = 2.f/(viewport.max.y - viewport.min.y);
-	const float c = -2.f/(FAR - NEAR);
+void
+renderer::init_ortho_proj()
+{
+	const float Z_NEAR = -1.f;
+	const float Z_FAR = 1.f;
 
-	const float tx = -(viewport.max.x + viewport.min.x)/(viewport.max.x - viewport.min.x);
-	const float ty = -(viewport.max.y + viewport.min.y)/(viewport.max.y - viewport.min.y);
-	const float tz = -(FAR + NEAR)/(FAR - NEAR);
+	const float a = 2.f/(viewport_.max.x - viewport_.min.x);
+	const float b = 2.f/(viewport_.max.y - viewport_.min.y);
+	const float c = -2.f/(Z_FAR - Z_NEAR);
 
-	proj_modelview_ = mat4(
-				a, 0, 0, tx,
-				0, b, 0, ty,
-				0, 0, c, tz);
+	const float tx = -(viewport_.max.x + viewport_.min.x)/(viewport_.max.x - viewport_.min.x);
+	const float ty = -(viewport_.max.y + viewport_.min.y)/(viewport_.max.y - viewport_.min.y);
+	const float tz = -(Z_FAR + Z_NEAR)/(Z_FAR - Z_NEAR);
+
+	ortho_proj_ = { a, 0, 0, tx,
+			0, b, 0, ty,
+			0, 0, c, tz,
+			0, 0, 0, 1 };
+
+	prog_color_->use();
+	prog_color_->set_uniform_mat4("proj_modelview", &ortho_proj_[0]);
+
+	prog_single_->use();
+	prog_single_->set_uniform_mat4("proj_modelview", &ortho_proj_[0]);
+
+	prog_multi_->use();
+	prog_multi_->set_uniform_mat4("proj_modelview", &ortho_proj_[0]);
+}
+
+void
+renderer::init_perspective_proj()
+{
+	const auto viewport_width = viewport_.max.x - viewport_.min.x;
+	const auto viewport_height = viewport_.max.y - viewport_.min.y;
+
+	const float FOV = 30.f;
+	const float Z_NEAR = 1.f;
+	const float Z_FAR = 1000.f;
+
+	const float aspect = static_cast<float>(viewport_width)/viewport_height;
+
+	const float fovy_rad = FOV*M_PI/180.;
+
+	const float f = 1.f/tanf(.5f*fovy_rad);
+
+	perspective_proj_ = { f/aspect, 0, 0, 0,
+			      0, f, 0, 0,
+			      0, 1, (Z_FAR + Z_NEAR)/(Z_NEAR - Z_FAR), -1,
+			      0, 0, (2.*Z_FAR*Z_NEAR)/(Z_NEAR - Z_FAR), 0 };
+
+	prog_mesh_->use();
+	prog_mesh_->set_uniform_mat4("proj_matrix", &perspective_proj_[0]);
+
+	prog_mesh_outline_->use();
+	prog_mesh_outline_->set_uniform_mat4("proj_matrix", &perspective_proj_[0]);
 }
 
 bbox
@@ -236,6 +310,8 @@ renderer::begin()
 	matrix_ = mat3::identity();
 	color_ = white;
 	matrix_stack_ = std::stack<mat3>();
+
+printf("---\n");
 }
 
 void
@@ -276,6 +352,11 @@ renderer::pop_matrix()
 	matrix_stack_.pop();
 }
 
+mat3
+renderer::get_matrix() const
+{
+	return matrix_;
+}
 
 void
 renderer::enqueue(const quad& dest_coords, float depth)
@@ -284,11 +365,14 @@ renderer::enqueue(const quad& dest_coords, float depth)
 
 	auto p = &sprite_queue_[sprite_queue_size_++];
 
-	p->tex0 = nullptr;
-	p->tex1 = nullptr;
-	p->dest_coords = { matrix_*dest_coords.p0, matrix_*dest_coords.p1, matrix_*dest_coords.p2, matrix_*dest_coords.p3 };
-	p->color = color_;
+	p->type = primitive_info::QUAD;
 	p->depth = depth;
+
+	auto& q = p->quad_info;
+	q.tex0 = nullptr;
+	q.tex1 = nullptr;
+	q.dest_coords = { matrix_*dest_coords.p0, matrix_*dest_coords.p1, matrix_*dest_coords.p2, matrix_*dest_coords.p3 };
+	q.color = color_;
 }
 
 void
@@ -298,12 +382,15 @@ renderer::enqueue(const texture *tex0, const bbox& tex0_coords, const quad& dest
 
 	auto p = &sprite_queue_[sprite_queue_size_++];
 
-	p->tex0 = tex0;
-	p->tex1 = nullptr;
-	p->tex0_coords = tex0_coords;
-	p->dest_coords = { matrix_*dest_coords.p0, matrix_*dest_coords.p1, matrix_*dest_coords.p2, matrix_*dest_coords.p3 };
-	p->color = color_;
+	p->type = primitive_info::QUAD;
 	p->depth = depth;
+
+	auto& q = p->quad_info;
+	q.tex0 = tex0;
+	q.tex1 = nullptr;
+	q.tex0_coords = tex0_coords;
+	q.dest_coords = { matrix_*dest_coords.p0, matrix_*dest_coords.p1, matrix_*dest_coords.p2, matrix_*dest_coords.p3 };
+	q.color = color_;
 }
 
 void
@@ -313,13 +400,49 @@ renderer::enqueue(const texture *tex0, const texture *tex1, const bbox& tex0_coo
 
 	auto p = &sprite_queue_[sprite_queue_size_++];
 
-	p->tex0 = tex0;
-	p->tex1 = tex1;
-	p->tex0_coords = tex0_coords;
-	p->tex1_coords = tex1_coords;
-	p->dest_coords = { matrix_*dest_coords.p0, matrix_*dest_coords.p1, matrix_*dest_coords.p2, matrix_*dest_coords.p3 };
-	p->color = color_;
+	p->type = primitive_info::QUAD;
 	p->depth = depth;
+
+	auto& q = p->quad_info;
+	q.tex0 = tex0;
+	q.tex1 = tex1;
+	q.tex0_coords = tex0_coords;
+	q.tex1_coords = tex1_coords;
+	q.dest_coords = { matrix_*dest_coords.p0, matrix_*dest_coords.p1, matrix_*dest_coords.p2, matrix_*dest_coords.p3 };
+	q.color = color_;
+}
+
+void
+renderer::enqueue(const mesh *m, const mat4& mat, float depth)
+{
+	assert(sprite_queue_size_ < SPRITE_QUEUE_CAPACITY);
+
+	auto p = &sprite_queue_[sprite_queue_size_++];
+
+	p->type = primitive_info::MESH;
+	p->depth = depth;
+
+	auto& mi = p->mesh_info;
+
+	mi.m = m;
+
+	const float PLANE_Z = -50.f;
+
+	const vec2f po = vec2f { matrix_.m02, matrix_.m12 } - viewport_.min;
+
+	const auto viewport_width = viewport_.max.x - viewport_.min.x;
+	const auto viewport_height = viewport_.max.y - viewport_.min.y;
+
+	const float xl = 2.f*(po.x/viewport_width - .5f);
+	const float yl = 2.f*(po.y/viewport_height - .5f);
+
+	// XXX why do we need to double here?!!!
+	const float x = 2.f*xl*PLANE_Z/-perspective_proj_[0];
+	const float y = 2.f*yl*PLANE_Z/-perspective_proj_[5];
+
+	mi.mat = mat4 { matrix_.m00, matrix_.m01, 0, x,
+		        matrix_.m10, matrix_.m11, 0, y,
+		                  0,           0, 1, PLANE_Z }*mat;
 }
 
 void
@@ -330,7 +453,7 @@ renderer::end()
 
 	// sort sprites
 
-	static const sprite_info *sorted_sprites[SPRITE_QUEUE_CAPACITY];
+	static const primitive_info *sorted_sprites[SPRITE_QUEUE_CAPACITY];
 
 	for (size_t i = 0; i < sprite_queue_size_; i++)
 		sorted_sprites[i] = &sprite_queue_[i];
@@ -338,52 +461,57 @@ renderer::end()
 	std::stable_sort(
 		&sorted_sprites[0],
 		&sorted_sprites[sprite_queue_size_],
-		[](const sprite_info *a, const sprite_info *b)
+		[](const primitive_info *a, const primitive_info *b)
 		{
-			if (a->depth < b->depth)
+			if (a->depth < b->depth) {
 				return true;
-			else if (a->depth > b->depth)
+			} else if (a->depth > b->depth) {
 				return false;
-			else if (a->tex0 < b->tex0)
+			} else if (a->type < b->type) {
 				return true;
-			else if (a->tex0 > b->tex0)
+			} else if (a->type > b->type) {
 				return false;
-			else
-				return a->tex1 < b->tex1;
+			} else {
+				if (a->type == primitive_info::QUAD) {
+					if (a->quad_info.tex0 < b->quad_info.tex0)
+						return true;
+					else if (a->quad_info.tex0 > b->quad_info.tex0)
+						return false;
+					else
+						return a->quad_info.tex1 < b->quad_info.tex1;
+				} else {
+					return a->mesh_info.m < b->mesh_info.m;
+				}
+			}
 		});
-
-	// initialize program uniforms
-
-	program_color_->use();
-	program_color_->set_uniform_mat4("proj_modelview", proj_modelview_);
-
-	program_single_->use();
-	program_single_->set_uniform_i("tex", 0); // texunit 0
-	program_single_->set_uniform_mat4("proj_modelview", proj_modelview_);
-
-	program_multi_->use();
-	program_multi_->set_uniform_i("tex0", 0); // texunit 0
-	program_multi_->set_uniform_i("tex1", 1); // texunit 0
-	program_multi_->set_uniform_mat4("proj_modelview", proj_modelview_);
 
 	// do the dance, do the dance
 
 	size_t batch_start = 0;
-	const texture *batch_tex0 = sorted_sprites[0]->tex0;
-	const texture *batch_tex1 = sorted_sprites[0]->tex1;
+
+	int batch_primitive_type = -1;
+	const texture *batch_tex0 = nullptr;
+	const texture *batch_tex1 = nullptr;
 
 	auto do_render = [&](size_t end)
 		{
 			const auto start = &sorted_sprites[batch_start];
 			const auto num_sprites = end - batch_start;
 
-			if (batch_tex0 == nullptr) {
-				assert(batch_tex1 == nullptr);
-				render(start, num_sprites);
-			} else if (batch_tex1 == nullptr) {
-				render(batch_tex0, start, num_sprites);
+			if (!num_sprites)
+				return;
+
+			if (batch_primitive_type == primitive_info::MESH) {
+				render_meshes(start, num_sprites);
 			} else {
-				render(batch_tex0, batch_tex1, start, num_sprites);
+				if (batch_tex0 == nullptr) {
+					assert(batch_tex1 == nullptr);
+					render_quads(start, num_sprites);
+				} else if (batch_tex1 == nullptr) {
+					render_quads(batch_tex0, start, num_sprites);
+				} else {
+					render_quads(batch_tex0, batch_tex1, start, num_sprites);
+				}
 			}
 		};
 
@@ -395,12 +523,17 @@ renderer::end()
 	for (size_t i = 0; i < sprite_queue_size_; i++) {
 		auto sp = sorted_sprites[i];
 
-		if (sp->tex0 != batch_tex0 || sp->tex1 != batch_tex1) {
-			assert(i > 0);
+		if (sp->type != batch_primitive_type ||
+		    (sp->type == primitive_info::QUAD && (sp->quad_info.tex0 != batch_tex0 || sp->quad_info.tex1 != batch_tex1))) {
 			do_render(i);
 
-			batch_tex0 = sp->tex0;
-			batch_tex1 = sp->tex1;
+			batch_primitive_type = sp->type;
+
+			if (sp->type == primitive_info::QUAD) {
+				batch_tex0 = sp->quad_info.tex0;
+				batch_tex1 = sp->quad_info.tex1;
+			}
+
 			batch_start = i;
 		}
 	}
@@ -419,24 +552,27 @@ renderer::end()
 }
 
 void
-renderer::render(const texture *tex0, const texture *tex1, const sprite_info *const *sprites, size_t num_sprites)
+renderer::render_quads(const texture *tex0, const texture *tex1, const primitive_info *const *sprites, size_t num_sprites)
 {
+printf("* %d quads (2 textures)\n", num_sprites);
 	gl_check(glActiveTexture(GL_TEXTURE0));
 	tex0->bind();
 
 	gl_check(glActiveTexture(GL_TEXTURE1));
 	tex1->bind();
 
-	program_multi_->use();
+	prog_multi_->use();
 
 	auto vert_ptr = reinterpret_cast<gl_vertex_multi *>(vert_buffer_.map_range(0, num_sprites*VERTS_PER_SPRITE*sizeof(gl_vertex_multi), GL_MAP_WRITE_BIT));
 
 	for (size_t i = 0; i < num_sprites; i++) {
 		auto sp = sprites[i];
 
+		assert(sp->type == primitive_info::QUAD);
+
 		// XXX could move this shit to constructor and use placement new
 
-		const auto& dest_coords = sp->dest_coords;
+		const auto& dest_coords = sp->quad_info.dest_coords;
 
 		const GLfloat x0 = dest_coords.p0.x;
 		const GLfloat y0 = dest_coords.p0.y;
@@ -450,7 +586,7 @@ renderer::render(const texture *tex0, const texture *tex1, const sprite_info *co
 		const GLfloat x3 = dest_coords.p3.x;
 		const GLfloat y3 = dest_coords.p3.y;
 
-		const auto& tex0_coords = sp->tex0_coords;
+		const auto& tex0_coords = sp->quad_info.tex0_coords;
 
 		const GLfloat u00 = tex0_coords.min.x;
 		const GLfloat u10 = tex0_coords.max.x;
@@ -458,7 +594,7 @@ renderer::render(const texture *tex0, const texture *tex1, const sprite_info *co
 		const GLfloat v00 = tex0_coords.min.y;
 		const GLfloat v10 = tex0_coords.max.y;
 
-		const auto& tex1_coords = sp->tex1_coords;
+		const auto& tex1_coords = sp->quad_info.tex1_coords;
 
 		const GLfloat u01 = tex1_coords.min.x;
 		const GLfloat u11 = tex1_coords.max.x;
@@ -466,7 +602,7 @@ renderer::render(const texture *tex0, const texture *tex1, const sprite_info *co
 		const GLfloat v01 = tex1_coords.min.y;
 		const GLfloat v11 = tex1_coords.max.y;
 
-		const auto& color = sp->color;
+		const auto& color = sp->quad_info.color;
 
 		const GLfloat r = color.r;
 		const GLfloat g = color.g;
@@ -487,19 +623,22 @@ renderer::render(const texture *tex0, const texture *tex1, const sprite_info *co
 }
 
 void
-renderer::render(const texture *tex, const sprite_info *const *sprites, size_t num_sprites)
+renderer::render_quads(const texture *tex, const primitive_info *const *sprites, size_t num_sprites)
 {
+printf("* %d quads (1 texture)\n", num_sprites);
 	gl_check(glActiveTexture(GL_TEXTURE0));
 	tex->bind();
 
-	program_single_->use();
+	prog_single_->use();
 
 	auto vert_ptr = reinterpret_cast<gl_vertex_single *>(vert_buffer_.map_range(0, num_sprites*VERTS_PER_SPRITE*sizeof(gl_vertex_single), GL_MAP_WRITE_BIT));
 
 	for (size_t i = 0; i < num_sprites; i++) {
 		auto sp = sprites[i];
 
-		const auto& dest_coords = sp->dest_coords;
+		assert(sp->type == primitive_info::QUAD);
+
+		const auto& dest_coords = sp->quad_info.dest_coords;
 
 		const GLfloat x0 = dest_coords.p0.x;
 		const GLfloat y0 = dest_coords.p0.y;
@@ -513,7 +652,7 @@ renderer::render(const texture *tex, const sprite_info *const *sprites, size_t n
 		const GLfloat x3 = dest_coords.p3.x;
 		const GLfloat y3 = dest_coords.p3.y;
 
-		const auto& tex_coords = sp->tex0_coords;
+		const auto& tex_coords = sp->quad_info.tex0_coords;
 
 		const GLfloat u0 = tex_coords.min.x;
 		const GLfloat u1 = tex_coords.max.x;
@@ -521,7 +660,7 @@ renderer::render(const texture *tex, const sprite_info *const *sprites, size_t n
 		const GLfloat v0 = tex_coords.min.y;
 		const GLfloat v1 = tex_coords.max.y;
 
-		const auto& color = sp->color;
+		const auto& color = sp->quad_info.color;
 
 		const GLfloat r = color.r;
 		const GLfloat g = color.g;
@@ -542,16 +681,19 @@ renderer::render(const texture *tex, const sprite_info *const *sprites, size_t n
 }
 
 void
-renderer::render(const sprite_info *const *sprites, size_t num_sprites)
+renderer::render_quads(const primitive_info *const *sprites, size_t num_sprites)
 {
-	program_color_->use();
+printf("* %d quads (untextured)\n", num_sprites);
+	prog_color_->use();
 
 	auto vert_ptr = reinterpret_cast<gl_vertex_color *>(vert_buffer_.map_range(0, num_sprites*VERTS_PER_SPRITE*sizeof(gl_vertex_color), GL_MAP_WRITE_BIT));
 
 	for (size_t i = 0; i < num_sprites; i++) {
 		auto sp = sprites[i];
 
-		const auto& dest_coords = sp->dest_coords;
+		assert(sp->type == primitive_info::QUAD);
+
+		const auto& dest_coords = sp->quad_info.dest_coords;
 
 		const GLfloat x0 = dest_coords.p0.x;
 		const GLfloat y0 = dest_coords.p0.y;
@@ -565,7 +707,7 @@ renderer::render(const sprite_info *const *sprites, size_t num_sprites)
 		const GLfloat x3 = dest_coords.p3.x;
 		const GLfloat y3 = dest_coords.p3.y;
 
-		const auto& color = sp->color;
+		const auto& color = sp->quad_info.color;
 
 		const GLfloat r = color.r;
 		const GLfloat g = color.g;
@@ -583,6 +725,49 @@ renderer::render(const sprite_info *const *sprites, size_t num_sprites)
 	vao_color_.bind();
 	index_buffer_.bind();
 	gl_check(glDrawElements(GL_TRIANGLES, num_sprites*INDICES_PER_SPRITE, GL_UNSIGNED_SHORT, 0));
+}
+
+void
+renderer::render_meshes(const primitive_info *const *meshes, size_t num_meshes)
+{
+printf("* %d meshes\n", num_meshes);
+	gl_check(glEnable(GL_CULL_FACE));
+
+	// draw outlines
+
+	prog_mesh_outline_->use();
+	prog_mesh_outline_->set_uniform_f("offs", .25);
+	prog_mesh_outline_->set_uniform_f("color", 0, 0, 0, 1);
+
+	gl_check(glFrontFace(GL_CW));
+
+	for (size_t i = 0; i < num_meshes; i++) {
+		auto sp = meshes[i];
+		assert(sp->type == primitive_info::MESH);
+
+		auto& m = sp->mesh_info;
+		prog_mesh_outline_->set_uniform_mat4("modelview_matrix", m.mat);
+
+		m.m->draw();
+	}
+
+	// draw meshes
+
+	prog_mesh_->use();
+
+	gl_check(glFrontFace(GL_CCW));
+
+	for (size_t i = 0; i < num_meshes; i++) {
+		auto sp = meshes[i];
+		assert(sp->type == primitive_info::MESH);
+
+		auto& m = sp->mesh_info;
+		prog_mesh_->set_uniform_mat4("modelview_matrix", m.mat);
+
+		m.m->draw();
+	}
+
+	gl_check(glDisable(GL_CULL_FACE));
 }
 
 void
@@ -607,6 +792,12 @@ bbox
 get_viewport()
 {
 	return g_renderer->get_viewport();
+}
+
+mat3
+get_matrix()
+{
+	return g_renderer->get_matrix();
 }
 
 void
@@ -724,12 +915,18 @@ draw(const texture *tex0, const texture *tex1, const bbox& tex_coords0, const bb
 }
 
 void
+draw(const mesh *m, const mat4& mat, float depth)
+{
+	g_renderer->enqueue(m, mat, depth);
+}
+
+void
 end()
 {
 	g_renderer->end();
 }
 
-mat4
+const GLfloat *
 get_proj_modelview()
 {
 	return g_renderer->get_proj_modelview();

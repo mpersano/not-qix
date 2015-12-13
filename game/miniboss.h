@@ -24,7 +24,7 @@ private:
 	bool intersects_children(const vec2i& center, float radius) const override;
 
 	boss *parent_;
-	const ggl::mesh *mesh_, *outline_mesh_;
+	const ggl::mesh *mesh_;
 	float ax_, ay_;
 
 	std::unique_ptr<script_thread> script_thread_;

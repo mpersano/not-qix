@@ -54,7 +54,6 @@ set(GAME_SOURCES
 	level.cc
 	tween.cc
 	shiny_sprite.cc
-	fake3d.cc
 	game.cc
 	player.cc
 	script_interface.cc

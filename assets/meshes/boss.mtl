@@ -1,6 +1,6 @@
 # Exported from Wings 3D 1.5.3
 newmtl boss
-Ns 0.0
+Ns 100.0
 d 1.0
 illum 2
 Kd 0.0 1.0 1.0

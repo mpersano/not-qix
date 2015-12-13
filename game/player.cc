@@ -400,7 +400,7 @@ player::draw() const
 void
 player::draw_trail(int start_index) const
 {
-	static const int TRAIL_RADIUS = 8;
+	static const int TRAIL_RADIUS = 6;
 
 	if (extend_trail_.empty() || start_index == extend_trail_.size())
 		return;

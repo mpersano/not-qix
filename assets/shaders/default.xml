@@ -19,4 +19,12 @@
 		<vert source="shaders/bitexture-color.vert" />
 		<frag source="shaders/bitexture-color.frag" />
 	</shader>
+	<shader name="mesh">
+		<vert source="shaders/mesh.vert" />
+		<frag source="shaders/mesh.frag" />
+	</shader>
+	<shader name="mesh-outline">
+		<vert source="shaders/mesh-outline.vert" />
+		<frag source="shaders/mesh-outline.frag" />
+	</shader>
 </shaders>

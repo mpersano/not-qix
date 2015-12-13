@@ -15,7 +15,6 @@
 
 #include "tween.h"
 #include "game.h"
-#include "fake3d.h"
 #include "debuggfx.h"
 #include "boss.h"
 
@@ -122,7 +121,7 @@ bullet::intersects(const vec2i& center, float radius) const
 
 // pod formations
 
-const float POD_DISTANCE = 58;
+const float POD_DISTANCE = 64;
 const float LASER_DISTANCE = 32;
 
 } // (anonymous namespace)
@@ -134,8 +133,7 @@ const float LASER_DISTANCE = 32;
 boss::boss(game& g, const vec2f& pos)
 : foe { g, pos, RADIUS }
 , pod_angle_ { 0 }
-, core_mesh_ { ggl::res::get_mesh("meshes/boss.msh") }
-, core_outline_mesh_ { ggl::res::get_mesh("meshes/boss-outline.msh") }
+, mesh_ { ggl::res::get_mesh("meshes/boss.msh") }
 , danger_up_sprite_ { ggl::res::get_sprite("danger-up.png") }
 , danger_down_sprite_ { ggl::res::get_sprite("danger-down.png") }
 , script_thread_ { create_script_thread("scripts/boss.lua") }
@@ -241,10 +239,12 @@ boss::draw_core() const
 			mat4::rotation_around_z(.3*pod_angle_)*
 			mat4::scale(2.5, 2.5, 2.5);
 
-		draw_mesh_outline(core_outline_mesh_, pos_, m, .5);
-		draw_mesh(core_mesh_, pos_, m);
+		ggl::render::push_matrix();
+		ggl::render::translate(pos_);
+		ggl::render::draw(mesh_, m, 0.f);
+		ggl::render::pop_matrix();
 
-		draw_circle(pos_, RADIUS, 4.f);
+		// draw_circle(pos_, RADIUS, 4.f);
 	}
 }
 
@@ -271,7 +271,7 @@ boss::pod::pod(game& g)
 : ang_offset { 0 }
 , rotation { 0 }
 , game_ { g }
-, sprite_ { ggl::res::get_sprite("boss-spike.png") }
+, mesh_ { ggl::res::get_mesh("meshes/pod.msh") }
 , muzzle_flash_sprite_ { ggl::res::get_sprite("muzzle-flash.png") }
 , laser_flash_sprite_ { ggl::res::get_sprite("laser-flash.png") }
 , laser_segment_texture_ { ggl::res::get_texture("images/laser-segment.png") }
@@ -293,9 +293,10 @@ boss::pod::draw() const
 
 	ggl::render::rotate(ang_offset);
 	ggl::render::translate(0, POD_DISTANCE);
-	ggl::render::rotate(rotation);
+	// ggl::render::rotate(rotation);
 
-	sprite_->draw(0, { 0, 0 }, ggl::vert_align::BOTTOM, ggl::horiz_align::CENTER);
+	auto m = mat4::rotation_around_y(rotation)*mat4::scale(2.5, 2.5, 2.5);
+	ggl::render::draw(mesh_, m, 0.f);
 
 	if (fire_tics_) {
 		const float t = static_cast<float>(fire_tics_)/MUZZLE_FLASH_TICS;

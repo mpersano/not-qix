@@ -26,7 +26,7 @@ public:
 	void fire_bullet(int pod);
 	void fire_laser(int pod, float power);
 
-	static const int RADIUS = 48;
+	static const int RADIUS = 56;
 
 private:
 	bool intersects_children(const vec2i& from, const vec2i& to) const override;
@@ -59,7 +59,7 @@ private:
 		float get_laser_radius() const;
 
 		game& game_;
-		const ggl::sprite *sprite_;
+		const ggl::mesh *mesh_;
 		const ggl::sprite *muzzle_flash_sprite_;
 		const ggl::sprite *laser_flash_sprite_;
 		const ggl::texture *laser_segment_texture_;
@@ -69,7 +69,7 @@ private:
 
 	std::vector<std::unique_ptr<pod>> pods_;
 
-	const ggl::mesh *core_mesh_, *core_outline_mesh_;
+	const ggl::mesh *mesh_;
 	const ggl::sprite *danger_up_sprite_, *danger_down_sprite_;
 
 	std::unique_ptr<script_thread> script_thread_;

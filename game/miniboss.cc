@@ -3,8 +3,6 @@
 #include <ggl/resources.h>
 
 #include "game.h"
-#include "boss.h"
-#include "fake3d.h"
 #include "debuggfx.h"
 #include "explosion.h"
 #include "miniboss.h"
@@ -13,7 +11,6 @@ miniboss::miniboss(game& g, const vec2f& pos)
 : foe { g, pos, RADIUS }
 , script_thread_ { create_script_thread("scripts/miniboss.lua") }
 , mesh_ { ggl::res::get_mesh("meshes/miniboss.msh") }
-, outline_mesh_ { ggl::res::get_mesh("meshes/miniboss-outline.msh") }
 , ax_ { 0 }
 , ay_ { 0 }
 {
@@ -27,10 +24,12 @@ miniboss::draw() const
 		mat4::rotation_around_y(ay_)*
 		mat4::scale(2.5, 2.5, 2.5);
 
-	draw_mesh_outline(outline_mesh_, pos_, m, .25);
-	draw_mesh(mesh_, pos_, m);
+	ggl::render::push_matrix();
+	ggl::render::translate(pos_);
+	ggl::render::draw(mesh_, m, 0.f);
+	ggl::render::pop_matrix();
 
-	draw_circle(pos_, RADIUS, 4.f);
+	// draw_circle(pos_, RADIUS, 4.f);
 }
 
 bool

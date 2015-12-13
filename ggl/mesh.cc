@@ -27,8 +27,6 @@ mesh::load(const std::string& path)
 	if (sig != ('M' | ('E' << 8) | ('S' << 16) | ('H' << 24)))
 		panic("%s: not a mesh", path.c_str());
 
-	with_color_ = a->read_uint8();
-
 	uint16_t num_verts = a->read_uint16();
 	verts_.reserve(num_verts);
 
@@ -44,9 +42,10 @@ mesh::load(const std::string& path)
 
 		vec3 pos = read_vec3();
 		vec3 normal = read_vec3();
-		vec3 color = with_color_ ? read_vec3() : vec3 { 0, 0, 0 };
+		vec3 vnormal = read_vec3();
+		vec3 color = read_vec3();
 
-		verts_.push_back({ pos, normal, color });
+		verts_.push_back({ pos, normal, vnormal, color });
 	}
 
 	uint16_t num_tris = a->read_uint16();
@@ -63,8 +62,6 @@ mesh::load(const std::string& path)
 void
 mesh::load()
 {
-	// TODO don't buffer color if with_color_ == false
-
 	struct gl_vertex {
 		gl_vertex()
 		{ }
@@ -72,11 +69,13 @@ mesh::load()
 		gl_vertex(const vertex& v)
 		: position { v.pos.x, v.pos.y, v.pos.z }
 		, normal { v.normal.x, v.normal.y, v.normal.z }
+		, vnormal { v.vnormal.x, v.vnormal.y, v.vnormal.z }
 		, color { v.color.x, v.color.y, v.color.z }
 		{ }
 
 		GLfloat position[3];
 		GLfloat normal[3];
+		GLfloat vnormal[3];
 		GLfloat color[3];
 	};
 
@@ -114,7 +113,8 @@ mesh::load()
 
 	ENABLE_ATTRIB(0, 3, position)
 	ENABLE_ATTRIB(1, 3, normal)
-	ENABLE_ATTRIB(2, 3, color)
+	ENABLE_ATTRIB(2, 3, vnormal)
+	ENABLE_ATTRIB(3, 3, color)
 
 #undef ENABLE_ATTRIB
 
