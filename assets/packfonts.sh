@@ -4,7 +4,7 @@ PACKFONT=packfont
 FONT=/usr/share/fonts/truetype/Coda-Heavy.ttf
 
 ${PACKFONT} \
-	-w 512 -h 256 \
+	-w 512 -h 512 \
 	-s 32 \
 	-g 3 \
 	-t fonts \
@@ -15,7 +15,7 @@ ${PACKFONT} \
 	x20-x7e
 
 ${PACKFONT} \
-	-w 512 -h 256 \
+	-w 512 -h 512 \
 	-s 26 \
 	-g 3 \
 	-t fonts \
@@ -26,7 +26,7 @@ ${PACKFONT} \
 	x20-x7e
 
 ${PACKFONT} \
-	-w 512 -h 256 \
+	-w 512 -h 512 \
 	-s 32 \
 	-g 2 \
 	-t fonts \
@@ -38,7 +38,7 @@ ${PACKFONT} \
 	x20-x7e
 
 ${PACKFONT} \
-	-w 512 -h 256 \
+	-w 512 -h 512 \
 	-s 68 \
 	-g 3 \
 	-t fonts \
@@ -50,7 +50,7 @@ ${PACKFONT} \
 	x41-x5a x30-x39 x20 x21
 
 ${PACKFONT} \
-	-w 512 -h 256 \
+	-w 512 -h 512 \
 	-s 68 \
 	-g 3 \
 	-t fonts \
@@ -62,7 +62,7 @@ ${PACKFONT} \
 	x41-x5a x30-x39 x20 x21
 
 ${PACKFONT} \
-	-w 512 -h 256 \
+	-w 512 -h 512 \
 	-s 68 \
 	-g 3 \
 	-t fonts \
