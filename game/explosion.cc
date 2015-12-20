@@ -17,22 +17,22 @@ explosion::explosion(const vec2f& pos, float bang)
 {
 	load_sprites();
 
-	const int num_particles = bang*rand<int>(10, 20);
+	const int num_particles = bang*rand<int>(16, 30);
 	for (size_t i = 0; i < num_particles; i++)
 		particles_.emplace_back(particle_sprite_, pos);
 
 	const int num_fireballs = bang*rand<int>(1, 3);
 	for (size_t i = 0; i < num_fireballs; i++) {
 		float a = rand<float>(0, 2.f*M_PI);
-		float d = rand<float>(8.f, 64.f);
+		float d = rand<float>(16.f, 64.f);
 		vec2f p = pos + vec2f { sinf(a), cosf(a) }*d;
 
 		const int frames = NUM_FLARE_FRAMES;
-		flares_.emplace_back(flare_sprites_, frames, p, 64, 1.015f, 32, 2);
+		flares_.emplace_back(flare_sprites_, frames, p, rand<float>(40, 64), 1.015f, rand<int>(30, 50), 2);
 	}
 
 	const int frames = NUM_RING_FRAMES;
-	flares_.emplace_back(ring_sprites_, frames, pos, 48, 1.05f, 40, 1);
+	flares_.emplace_back(ring_sprites_, frames, pos, 60, 1.05f, 30, 1);
 }
 
 void
@@ -91,7 +91,7 @@ explosion::particle::particle(const ggl::sprite *sp, const vec2f& pos)
 , dir_ { [&] { float a = rand<float>(0.f, 2.f*M_PI); return vec2f(cosf(a), sinf(a)); }() }
 , tics_ { 0 }
 , ttl_ { rand<int>(20, 50) }
-, speed_ { rand<float>(2., 3.5) }
+, speed_ { rand<float>(3.2, 5.) }
 {
 	const bezier<rgb> gradient { { 1.f, .5f, 0.f }, { 1.f, 1.f, 0.f }, { 1.f, 1.f, 1.f } };
 	color_ = gradient(rand<float>(0.f, 1.f));
@@ -117,8 +117,8 @@ explosion::particle::draw() const
 		return;
 
 	// XXX
-	const int w = 20;
-	const int h = 6;
+	const int w = 32;
+	const int h = 10;
 
 	vec2f up = vec2f { -dir_.y, dir_.x }*.5f*h;
 	vec2f right = dir_*static_cast<float>(w);
