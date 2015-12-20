@@ -47,7 +47,7 @@ lives_widget::initialize_text(int lives_left)
 	if (lives_left > 0)
 		ss << lives_left << " LEFT";
 	else
-		ss << "LAST PLAYER";
+		ss << "LAST!";
 
 	text_ = ss.str();
 }
@@ -126,7 +126,7 @@ lives_widget::draw() const
 			break;
 	}
 
-	text_pos = circle_scale*vec2f { -110, -80 };
+	text_pos = circle_scale*vec2f { -192, -130 };
 
 	ggl::render::push_matrix();
 
