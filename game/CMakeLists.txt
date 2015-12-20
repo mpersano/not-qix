@@ -52,7 +52,6 @@ set(GAME_SOURCES
 	game_app.cc
 	gesture_detector.cc
 	level.cc
-	tween.cc
 	shiny_sprite.cc
 	game.cc
 	player.cc

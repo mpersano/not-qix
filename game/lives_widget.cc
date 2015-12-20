@@ -8,6 +8,7 @@
 #include <ggl/font.h>
 #include <ggl/render.h>
 #include <ggl/util.h>
+#include <ggl/tween.h>
 
 #include "game.h"
 #include "lives_widget.h"
@@ -110,23 +111,33 @@ lives_widget::draw() const
 		text_va = ggl::vert_align::BOTTOM;
 	}
 
-	float scale;
+	float scale, alpha;
 
 	switch (state_) {
 		case state::INTRO:
-			scale = static_cast<float>(state_tics_)/INTRO_TICS;
+			{
+			auto t = static_cast<float>(state_tics_)/INTRO_TICS;
+			scale = ggl::tween::in_quadratic(t);
+			alpha = t;
+			}
 			break;
 
 		case state::OUTRO:
-			scale = 1.f - static_cast<float>(state_tics_)/OUTRO_TICS;
+			{
+			auto t = 1.f - static_cast<float>(state_tics_)/OUTRO_TICS;
+			scale = ggl::tween::in_quadratic(t);
+			alpha = t;
+			}
 			break;
 
 		case state::IDLE:
-			scale = 1;
+			scale = alpha = 1;
 			break;
 	}
 
 	text_pos = circle_scale*vec2f { -192, -130 };
+
+	ggl::render::set_color({ 1, 1, 1, alpha });
 
 	ggl::render::push_matrix();
 

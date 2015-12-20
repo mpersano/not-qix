@@ -13,7 +13,6 @@
 #include <ggl/render.h>
 #include <ggl/util.h>
 
-#include "tween.h"
 #include "game.h"
 #include "debuggfx.h"
 #include "boss.h"

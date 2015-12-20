@@ -12,9 +12,9 @@
 #include <ggl/action.h>
 #include <ggl/render.h>
 #include <ggl/util.h>
+#include <ggl/tween.h>
 
 #include "util.h"
-#include "tween.h"
 #include "level.h"
 #include "boss.h"
 #include "miniboss.h"
@@ -234,7 +234,7 @@ select_initial_offset_state::update(unsigned dpad_state)
 		to = vec2f { 0, 0 };
 	}
 
-	game_.offset = from + (to - from)*quadratic_tween(static_cast<float>(scroll_tics_)/SCROLL_TICS);
+	game_.offset = from + (to - from)*ggl::tween::in_quadratic(static_cast<float>(scroll_tics_)/SCROLL_TICS);
 }
 
 //
@@ -344,7 +344,7 @@ playing_state::update_scroll()
 			game_.offset =
 				prev_offset_ +
 				(next_offset_ - prev_offset_)*
-					quadratic_tween(static_cast<float>(scroll_tics_)/SCROLL_TICS);
+					ggl::tween::in_quadratic(static_cast<float>(scroll_tics_)/SCROLL_TICS);
 		}
 	} else {
 		static const int SCROLL_DIST = 100;

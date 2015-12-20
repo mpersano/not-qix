@@ -7,8 +7,8 @@
 #include <ggl/action.h>
 #include <ggl/render.h>
 #include <ggl/util.h>
+#include <ggl/tween.h>
 
-#include "tween.h"
 #include "game.h"
 #include "effect.h"
 #include "util.h"
@@ -250,13 +250,13 @@ percent_widget::get_base_x() const
 			return -w;
 
 		case state::INTRO:
-			return -w*(1.f - quadratic_tween(static_cast<float>(state_tics_)/INTRO_TICS));
+			return -w*(1.f - ggl::tween::in_quadratic(static_cast<float>(state_tics_)/INTRO_TICS));
 
 		case state::IDLE:
 			return 0;
 
 		case state::OUTRO:
-			return -w*quadratic_tween(static_cast<float>(state_tics_)/OUTRO_TICS);
+			return -w*ggl::tween::in_quadratic(static_cast<float>(state_tics_)/OUTRO_TICS);
 	}
 }
 
@@ -264,7 +264,7 @@ unsigned
 percent_widget::get_value() const
 {
 	if (updating_)
-		return cur_value_ + (next_value_ - cur_value_)*quadratic_tween(static_cast<float>(update_tics_)/UPDATE_TICS);
+		return cur_value_ + (next_value_ - cur_value_)*ggl::tween::in_quadratic(static_cast<float>(update_tics_)/UPDATE_TICS);
 	else
 		return cur_value_;
 }
