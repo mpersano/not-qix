@@ -8,8 +8,8 @@ ${PACKFONT} \
 	-s 32 \
 	-g 3 \
 	-t fonts \
-	-i ffffffff \
-	-o ff000000 \
+	-i ffff0000-ffffc0c0 \
+	-o ffffffff \
 	${FONT} \
 	hud-big \
 	x20-x7e
@@ -19,8 +19,8 @@ ${PACKFONT} \
 	-s 26 \
 	-g 3 \
 	-t fonts \
-	-i ffffffff \
-	-o ff000000 \
+	-i ffff0000-ffffc0c0 \
+	-o ffffffff \
 	${FONT} \
 	hud-small \
 	x20-x7e
