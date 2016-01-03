@@ -310,8 +310,6 @@ renderer::begin()
 	matrix_ = mat3::identity();
 	color_ = white;
 	matrix_stack_ = std::stack<mat3>();
-
-printf("---\n");
 }
 
 void
@@ -554,7 +552,6 @@ renderer::end()
 void
 renderer::render_quads(const texture *tex0, const texture *tex1, const primitive_info *const *sprites, size_t num_sprites)
 {
-printf("* %d quads (2 textures)\n", num_sprites);
 	gl_check(glActiveTexture(GL_TEXTURE0));
 	tex0->bind();
 
@@ -625,7 +622,6 @@ printf("* %d quads (2 textures)\n", num_sprites);
 void
 renderer::render_quads(const texture *tex, const primitive_info *const *sprites, size_t num_sprites)
 {
-printf("* %d quads (1 texture)\n", num_sprites);
 	gl_check(glActiveTexture(GL_TEXTURE0));
 	tex->bind();
 
@@ -683,7 +679,6 @@ printf("* %d quads (1 texture)\n", num_sprites);
 void
 renderer::render_quads(const primitive_info *const *sprites, size_t num_sprites)
 {
-printf("* %d quads (untextured)\n", num_sprites);
 	prog_color_->use();
 
 	auto vert_ptr = reinterpret_cast<gl_vertex_color *>(vert_buffer_.map_range(0, num_sprites*VERTS_PER_SPRITE*sizeof(gl_vertex_color), GL_MAP_WRITE_BIT));
@@ -730,7 +725,6 @@ printf("* %d quads (untextured)\n", num_sprites);
 void
 renderer::render_meshes(const primitive_info *const *meshes, size_t num_meshes)
 {
-printf("* %d meshes\n", num_meshes);
 	gl_check(glEnable(GL_CULL_FACE));
 
 	// draw outlines
