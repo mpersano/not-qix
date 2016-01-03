@@ -482,14 +482,30 @@ game::reset(const level *l)
 	tics = 0;
 }
 
+vec2f
+game::get_viewport_offset() const
+{
+	vec2f o = offset;
+
+	if (shake_tics_ > 0) {
+		float t = static_cast<float>(shake_tics_)/shake_ttl_;
+		float d = shake_intensity_*cosf(.75f*(shake_ttl_ - shake_tics_));
+		o += shake_dir_*t*d;
+	}
+
+	return o;
+}
+
 void
 game::draw() const
 {
 	// relative to grid
 
+	vec2f o = get_viewport_offset();
+
 	ggl::render::set_viewport(
-		{ { -offset.x, -offset.y },
-		  { viewport_width - offset.x, viewport_height - offset.y } });
+		{ { -o.x, -o.y },
+		  { viewport_width - o.x, viewport_height - o.y } });
 
 	draw_background();
 
@@ -713,6 +729,9 @@ game::update(unsigned dpad_state)
 	update_effects();
 
 	state_->update(dpad_state);
+
+	if (shake_tics_ > 0)
+		--shake_tics_;
 }
 
 void
@@ -849,6 +868,16 @@ void
 game::add_effect(std::unique_ptr<effect> e)
 {
 	effects_.push_back(std::move(e));
+}
+
+void
+game::start_screenshake(int duration, float intensity)
+{
+	shake_tics_ = shake_ttl_ = duration;
+	shake_intensity_ = intensity;
+
+	float a = rand<float>(0.f, 2.f*M_PI);
+	shake_dir_ = { sinf(a), cosf(a) };
 }
 
 vec2f

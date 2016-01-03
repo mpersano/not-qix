@@ -364,6 +364,7 @@ player::die()
 	}
 
 	game_.add_effect(std::unique_ptr<effect>(new explosion(get_position(), 2)));
+	game_.start_screenshake(60, 40.f);
 
 	set_state(state::EXPLODING);
 

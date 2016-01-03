@@ -58,6 +58,7 @@ public:
 
 	void add_entity(std::unique_ptr<entity> f);
 	void add_effect(std::unique_ptr<effect> e);
+	void start_screenshake(int duration, float intensity);
 
 	void fill_grid(const std::vector<vec2i>& contour);
 	void fill_grid(const vec2i& bottom_left, const vec2i& top_right);
@@ -80,6 +81,8 @@ public:
 
 	int operator()(int c, int r) const
 	{ return grid[r*grid_cols + c]; }
+
+	vec2f get_viewport_offset() const;
 
 	int viewport_width, viewport_height;
 
@@ -115,6 +118,10 @@ private:
 
 	player player_;
 	unsigned cover_percent_;
+
+	int shake_tics_, shake_ttl_;
+	float shake_intensity_;
+	vec2f shake_dir_;
 
 	std::vector<std::unique_ptr<widget>> widgets_;
 	std::vector<std::unique_ptr<effect>> effects_;
