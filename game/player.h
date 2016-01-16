@@ -37,7 +37,7 @@ public:
 private:
 	void respawn(const vec2i& pos);
 
-	void draw_trail(int start_index) const;
+	void draw_trail(int size) const;
 	void draw_head() const;
 
 	void move_slide(direction dir);

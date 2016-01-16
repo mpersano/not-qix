@@ -285,8 +285,8 @@ player::update_exploding(unsigned dpad_state)
 			set_state(state::DEATH);
 		} else {
 			if (index%2 == 0) {
-				vec2f v0 = extend_trail_[index]*CELL_SIZE;
-				vec2f v1 = index < extend_trail_.size() - 1 ? extend_trail_[index + 1]*CELL_SIZE : get_position();
+				vec2f v0 = extend_trail_[extend_trail_.size() - index]*CELL_SIZE;
+				vec2f v1 = extend_trail_[extend_trail_.size() - index - 1]*CELL_SIZE;
 				game_.add_effect(std::unique_ptr<effect>(new explosion(.5f*(v0 + v1), 1)));
 			}
 		}
@@ -384,7 +384,7 @@ player::draw() const
 	switch (state_) {
 		case state::EXTENDING:
 		case state::EXTENDING_IDLE:
-			draw_trail(0);
+			draw_trail(extend_trail_.size());
 			// FALLTHRU
 
 		case state::IDLE:
@@ -393,30 +393,29 @@ player::draw() const
 			break;
 
 		case state::EXPLODING:
-			draw_trail(state_tics_/EXPLODE_SEGMENT_TICS);
+			draw_trail(extend_trail_.size() - state_tics_/EXPLODE_SEGMENT_TICS);
 			break;
 	}
 }
 
 void
-player::draw_trail(int start_index) const
+player::draw_trail(int size) const
 {
 	static const int TRAIL_RADIUS = 6;
 
-	if (extend_trail_.empty() || start_index == extend_trail_.size())
-		return;
+	assert(size <= extend_trail_.size());
 
-	assert(start_index < extend_trail_.size());
+	if (size < 2)
+		return;
 
 	GLshort u = 0;
 
 	trail_va_.clear();
 
 	// first
-
 	{
-		auto& v0 = extend_trail_[start_index]*CELL_SIZE;
-		auto& v1 = start_index + 1 < extend_trail_.size() ? extend_trail_[start_index + 1]*CELL_SIZE : get_position();
+		auto& v0 = extend_trail_[0]*CELL_SIZE;
+		auto& v1 = extend_trail_[1]*CELL_SIZE;
 
 		vec2s d = normalized(v1 - v0);
 		vec2s n { -d.y, d.x };
@@ -430,11 +429,10 @@ player::draw_trail(int start_index) const
 	}
 
 	// middle
-
-	for (size_t i = start_index + 1; i < extend_trail_.size(); i++) {
+	for (size_t i = 1; i < size - 1; i++) {
 		auto& v0 = extend_trail_[i - 1]*CELL_SIZE;
 		auto& v1 = extend_trail_[i]*CELL_SIZE;
-		auto& v2 = i + 1 < extend_trail_.size() ? extend_trail_[i + 1]*CELL_SIZE : get_position();
+		auto& v2 = extend_trail_[i + 1]*CELL_SIZE;
 
 		vec2s ds = normalized(v1 - v0);
 		vec2s ns { -ds.y, ds.x };
@@ -455,10 +453,9 @@ player::draw_trail(int start_index) const
 	}
 
 	// last
-
 	{
-		auto& v0 = get_position();
-		auto& v1 = extend_trail_.back()*CELL_SIZE;
+		auto& v0 = extend_trail_[size - 1]*CELL_SIZE;
+		auto& v1 = extend_trail_[size - 2]*CELL_SIZE;
 
 		vec2s d = normalized(v0 - v1);
 		vec2s n { -d.y, d.x };
