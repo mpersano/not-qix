@@ -20,7 +20,9 @@ namespace {
 
 static const int INTRO_TICS = 10;
 static const int OUTRO_TICS = 10;
-static const int UPDATE_TICS = 20;
+
+static const unsigned MIN_UPDATE_TICS = 20;
+static const unsigned MAX_UPDATE_TICS = 60;
 
 class update_effect : public effect
 {
@@ -114,6 +116,7 @@ percent_widget::percent_widget(game& g)
 , frame_ { ggl::res::get_sprite("percent-frame.png") }
 , updating_ { false }
 , update_tics_ { 0 }
+, update_ttl_ { 0 }
 , hidden_ { true }
 {
 	cover_update_conn_ =
@@ -195,7 +198,7 @@ percent_widget::update()
 	}
 
 	if (updating_) {
-		if (++update_tics_ >= UPDATE_TICS) {
+		if (++update_tics_ >= update_ttl_) {
 			cur_value_ = next_value_;
 			updating_ = false;
 		}
@@ -222,6 +225,7 @@ percent_widget::on_cover_update(unsigned percent)
 					next_value_ = percent;
 					updating_ = true;
 					update_tics_ = 0;
+					update_ttl_ = MIN_UPDATE_TICS + std::max((percent - cur_value_)/10, MAX_UPDATE_TICS - MIN_UPDATE_TICS);
 				});
 
 		game_.add_effect(std::move(e));
@@ -264,9 +268,31 @@ unsigned
 percent_widget::get_value() const
 {
 	if (updating_)
-		return cur_value_ + (next_value_ - cur_value_)*ggl::tween::in_quadratic(static_cast<float>(update_tics_)/UPDATE_TICS);
+		return cur_value_ + (next_value_ - cur_value_)*ggl::tween::out_quadratic(static_cast<float>(update_tics_)/update_ttl_);
 	else
 		return cur_value_;
+}
+
+float
+percent_widget::get_text_scale() const
+{
+	if (updating_) {
+		const int transition_tics = 10;
+
+		float t;
+
+		if (update_tics_ < transition_tics) {
+			t = static_cast<float>(update_tics_)/transition_tics;
+		} else if (update_tics_ > update_ttl_ - transition_tics) {
+			t = 1.f - static_cast<float>(update_tics_ - (update_ttl_ - transition_tics))/transition_tics;
+		} else {
+			t = 1;
+		}
+
+		return 1. + t*t*(.25 + .1*sinf(.25f*update_tics_));
+	} else {
+		return 1.;
+	}
 }
 
 void
@@ -301,28 +327,37 @@ percent_widget::draw_digits() const
 	const int base_y = get_base_y();
 	const int base_x = get_base_x();
 
-	int x = get_base_x() + 12 + BIG_DIGIT_WIDTH/2;
-	draw_char(large_font_, L'0' + int_part%10, x + 2*BIG_DIGIT_WIDTH, base_y);
+	const int total_width = 90 + 23 + 2*SMALL_DIGIT_WIDTH + 16; // haha
+	const int y_center = 12; // lol
+
+	ggl::render::push_matrix();
+	ggl::render::translate(base_x + 12 + BIG_DIGIT_WIDTH/2 + .5*total_width, base_y + 32 + y_center);
+	ggl::render::scale(get_text_scale());
+
+	int x = -.5*total_width; // base_x + 12 + BIG_DIGIT_WIDTH/2;
+	draw_char(large_font_, L'0' + int_part%10, x + 2*BIG_DIGIT_WIDTH, -y_center);
 	if (int_part >= 10) {
-		draw_char(large_font_, L'0' + (int_part/10)%10, x + BIG_DIGIT_WIDTH, base_y);
+		draw_char(large_font_, L'0' + (int_part/10)%10, x + BIG_DIGIT_WIDTH, -y_center);
 		if (int_part >= 100) {
-			draw_char(large_font_, L'0' + (int_part/100)%10, x, base_y);
+			draw_char(large_font_, L'0' + (int_part/100)%10, x, -y_center);
 		}
 	}
 
 	x += 90;
-	draw_char(small_font_, L'.', x, base_y);
+	draw_char(small_font_, L'.', x, -y_center);
 
 	x += 23;
-	draw_char(small_font_, L'0' + (fract_part/10)%10, x, base_y);
-	draw_char(small_font_, L'0' + (fract_part)%10, x + SMALL_DIGIT_WIDTH, base_y);
-	draw_char(small_font_, L'%', x + 2*SMALL_DIGIT_WIDTH + 16, base_y);
+	draw_char(small_font_, L'0' + (fract_part/10)%10, x, -y_center);
+	draw_char(small_font_, L'0' + (fract_part)%10, x + SMALL_DIGIT_WIDTH, -y_center);
+	draw_char(small_font_, L'%', x + 2*SMALL_DIGIT_WIDTH + 16, -y_center);
+
+	ggl::render::pop_matrix();
 }
 
 void
 percent_widget::draw_char(const ggl::font *f, wchar_t ch, int base_x, int base_y) const
 {
 	auto *g = f->get_glyph(ch);
-	vec2f pos = vec2f { base_x, base_y + 32 + g->top - g->spr.height };
+	vec2f pos = vec2f { base_x, base_y + g->top - g->spr.height };
 	g->spr.draw(1, pos, ggl::vert_align::BOTTOM, ggl::horiz_align::CENTER);
 }

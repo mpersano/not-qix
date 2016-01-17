@@ -27,6 +27,7 @@ private:
 	int get_base_y() const;
 
 	unsigned get_value() const;
+	float get_text_scale() const;
 
 	void draw_frame() const;
 	void draw_digits() const;
@@ -40,7 +41,7 @@ private:
 	int state_tics_;
 
 	bool updating_;
-	int update_tics_;
+	int update_tics_, update_ttl_;
 
 	bool hidden_;
 
