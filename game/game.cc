@@ -458,6 +458,7 @@ game::game(int width, int height)
 , border_texture_ { ggl::res::get_texture("images/border.png") }
 , render_target_0_ { viewport_width, viewport_height }
 , render_target_1_ { viewport_width, viewport_height }
+, flash_program_ { ggl::res::get_program("screenflash") }
 {
 	widgets_.emplace_back(new percent_widget(*this));
 	widgets_.emplace_back(new lives_widget(*this));
@@ -517,6 +518,18 @@ game::draw() const
 			post_filters_[i]->draw(*source, i < num_filters - 1 ? *static_cast<const ggl::render_target *>(dest) : window);
 			std::swap(source, dest);
 		}
+	}
+
+	if (flash_tics_ > 0) {
+		ggl::enable_additive_blend _;
+
+		float t = static_cast<float>(flash_tics_)/flash_ttl_;
+
+		static const ggl::vertex_array_flat<GLshort, 2> va { { -1, -1 }, { -1, 1 }, { 1, -1 }, { 1, 1 } };
+
+		flash_program_->use();
+		flash_program_->set_uniform_f("t", t);
+		va.draw(GL_TRIANGLE_STRIP);
 	}
 }
 
@@ -780,6 +793,9 @@ game::update(unsigned dpad_state)
 
 	if (shake_tics_ > 0)
 		--shake_tics_;
+
+	if (flash_tics_ > 0)
+		--flash_tics_;
 }
 
 void
@@ -932,6 +948,12 @@ game::start_screenshake(int duration, float intensity)
 
 	float a = rand<float>(0.f, 2.f*M_PI);
 	shake_dir_ = { sinf(a), cosf(a) };
+}
+
+void
+game::start_screenflash(int duration)
+{
+	flash_tics_ = flash_ttl_ = duration;
 }
 
 vec2f

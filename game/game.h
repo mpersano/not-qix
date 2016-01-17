@@ -18,6 +18,10 @@
 #include "post_filter.h"
 #include "level.h"
 
+namespace ggl {
+class program;
+}
+
 class game;
 class foe;
 
@@ -60,7 +64,9 @@ public:
 	void add_entity(std::unique_ptr<entity> f);
 	void add_effect(std::unique_ptr<effect> e);
 	void add_post_filter(std::unique_ptr<dynamic_post_filter> f);
+
 	void start_screenshake(int duration, float intensity);
+	void start_screenflash(int duration);
 
 	void fill_grid(const std::vector<vec2i>& contour);
 	void fill_grid(const vec2i& bottom_left, const vec2i& top_right);
@@ -122,6 +128,9 @@ private:
 	int shake_tics_, shake_ttl_;
 	float shake_intensity_;
 	vec2f shake_dir_;
+
+	int flash_tics_, flash_ttl_;
+	const ggl::program *flash_program_;
 
 	std::vector<std::unique_ptr<widget>> widgets_;
 	std::vector<std::unique_ptr<effect>> effects_;

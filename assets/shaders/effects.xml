@@ -4,6 +4,11 @@
 		<frag source="shaders/transition.frag" />
 	</shader>
 
+	<shader name="screenflash">
+		<vert source="shaders/screenflash.vert" />
+		<frag source="shaders/screenflash.frag" />
+	</shader>
+
 	<shader name="passthru-filter">
 		<vert source="shaders/passthru-filter.vert" />
 		<frag source="shaders/passthru-filter.frag" />
