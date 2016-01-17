@@ -940,7 +940,7 @@ game::find_foe_pos(int radius) const
 	const int screen_cols = viewport_width/CELL_SIZE;
 	const int screen_rows = viewport_height/CELL_SIZE;
 
-	const int boss_cells = 2*radius/CELL_SIZE;
+	const int cells = 2*radius/CELL_SIZE;
 
 	const vec2i v0 = -offset/CELL_SIZE;
 	const vec2i v1 {
@@ -951,13 +951,13 @@ game::find_foe_pos(int radius) const
 
 	int index = 1;
 
-	for (int r = v0.y; r < v1.y - boss_cells; r++) {
-		for (int c = v0.x; c < v1.x - boss_cells; c++) {
+	for (int r = v0.y; r < v1.y - cells; r++) {
+		for (int c = v0.x; c < v1.x - cells; c++) {
 			bool filled = false;
 
-			for (int i = 0; i < boss_cells; i++) {
+			for (int i = 0; i < cells; i++) {
 				auto *begin = &grid[(r + i)*grid_cols + c];
-				auto *end = begin + boss_cells;
+				auto *end = begin + cells;
 
 				if (std::find(begin, end, 1) != end) {
 					filled = true;
@@ -967,7 +967,7 @@ game::find_foe_pos(int radius) const
 
 			if (!filled) {
 				if (rand(0, index) == 0)
-					pos = vec2f { c, r }*CELL_SIZE + vec2f { boss::RADIUS, boss::RADIUS };
+					pos = vec2f { c, r }*CELL_SIZE + vec2f { radius, radius };
 
 				++index;
 			}
