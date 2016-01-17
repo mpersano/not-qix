@@ -3,4 +3,14 @@
 		<vert source="shaders/transition.vert" />
 		<frag source="shaders/transition.frag" />
 	</shader>
+
+	<shader name="passthru-filter">
+		<vert source="shaders/passthru-filter.vert" />
+		<frag source="shaders/passthru-filter.frag" />
+	</shader>
+
+	<shader name="ripple-filter">
+		<vert source="shaders/ripple-filter.vert" />
+		<frag source="shaders/ripple-filter.frag" />
+	</shader>
 </shaders>

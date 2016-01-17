@@ -29,7 +29,7 @@ game_app::game_app()
 { }
 
 void
-game_app::init(unsigned viewport_width, unsigned viewport_height)
+game_app::init(int viewport_width, int viewport_height)
 {
 	update_t_ = 0;
 

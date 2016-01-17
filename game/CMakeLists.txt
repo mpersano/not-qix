@@ -54,6 +54,7 @@ set(GAME_SOURCES
 	level.cc
 	shiny_sprite.cc
 	game.cc
+	post_filter.cc
 	player.cc
 	script_interface.cc
 	effect.cc

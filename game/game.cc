@@ -12,6 +12,7 @@
 #include <ggl/action.h>
 #include <ggl/render.h>
 #include <ggl/util.h>
+#include <ggl/window.h>
 #include <ggl/tween.h>
 
 #include "util.h"
@@ -455,6 +456,7 @@ game::game(int width, int height)
 , viewport_height { height }
 , player_ { *this }
 , border_texture_ { ggl::res::get_texture("images/border.png") }
+, render_target_ { viewport_width, viewport_height }
 {
 	widgets_.emplace_back(new percent_widget(*this));
 	widgets_.emplace_back(new lives_widget(*this));
@@ -498,6 +500,20 @@ game::get_viewport_offset() const
 
 void
 game::draw() const
+{
+	render_target_.bind();
+	draw_scene();
+
+#if 0
+	passthru_filter_.draw(render_target_, ggl::window());
+#else
+	ripple_filter_.set_params(30, .5f*vec2f(viewport_width, viewport_height), (tics *2)%500);
+	ripple_filter_.draw(render_target_, ggl::window());
+#endif
+}
+
+void
+game::draw_scene() const
 {
 	// relative to grid
 

@@ -1,8 +1,8 @@
 #pragma once
 
+#include <ggl/gl.h>
 #include <ggl/panic.h>
 
-#if 1
 #define gl_check(expr) \
 	[&] { \
 		expr; \
@@ -19,7 +19,3 @@
 			panic("%s:%d: GL error: %x", __FILE__, __LINE__, e); \
 		return r; \
 	}()
-#else
-#define gl_check(expr) expr
-#define gl_check_r(expr) expr
-#endif

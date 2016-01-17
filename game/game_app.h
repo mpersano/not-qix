@@ -12,19 +12,19 @@ class game_app : public ggl::app
 public:
 	game_app();
 
-	void init(unsigned viewport_width, unsigned viewport_height) override;
+	void init(int viewport_width, int viewport_height) override;
 	void update_and_render(float dt) override;
 
-	unsigned get_scene_width() const
+	int get_scene_width() const
 	{ return scene_width_; }
 
-	unsigned get_scene_height() const
+	int get_scene_height() const
 	{ return scene_height_; }
 
-	unsigned get_viewport_width() const
+	int get_viewport_width() const
 	{ return viewport_width_; }
 
-	unsigned get_viewport_height() const
+	int get_viewport_height() const
 	{ return viewport_height_; }
 
 	void start_in_game();
@@ -41,6 +41,6 @@ private:
 
 	float update_t_;
 
-	unsigned viewport_width_, viewport_height_;
-	unsigned scene_width_, scene_height_;
+	int viewport_width_, viewport_height_;
+	int scene_width_, scene_height_;
 };

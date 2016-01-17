@@ -4,9 +4,8 @@
 
 namespace ggl {
 
-framebuffer::framebuffer(unsigned width, unsigned height)
-: width_ { width }
-, height_ { height }
+framebuffer::framebuffer(int width, int height)
+: render_target { width, height }
 {
 	// initialize texture
 
@@ -42,6 +41,7 @@ framebuffer::~framebuffer()
 void
 framebuffer::bind() const
 {
+	gl_check(glViewport(0, 0, width_, height_));
 	gl_check(glBindFramebuffer(GL_FRAMEBUFFER, fbo_id_));
 }
 

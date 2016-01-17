@@ -9,11 +9,13 @@
 #include <ggl/noncopyable.h>
 #include <ggl/vec2.h>
 #include <ggl/vertex_array.h>
+#include <ggl/framebuffer.h>
 
 #include "widget.h"
 #include "effect.h"
 #include "entity.h"
 #include "player.h"
+#include "post_filter.h"
 #include "level.h"
 
 class game;
@@ -102,6 +104,7 @@ public:
 private:
 	void set_state(std::unique_ptr<game_state> next_state);
 
+	void draw_scene() const;
 	void draw_background() const;
 
 	void update_hud();
@@ -136,4 +139,9 @@ private:
 	ggl::event<cover_update_event_handler> cover_update_event_;
 	ggl::event<start_event_handler> start_event_;
 	ggl::event<stop_event_handler> stop_event_;
+
+	ggl::framebuffer render_target_;
+
+	passthru_filter passthru_filter_;
+	ripple_filter ripple_filter_;
 };
