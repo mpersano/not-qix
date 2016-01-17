@@ -456,7 +456,8 @@ game::game(int width, int height)
 , viewport_height { height }
 , player_ { *this }
 , border_texture_ { ggl::res::get_texture("images/border.png") }
-, render_target_ { viewport_width, viewport_height }
+, render_target_0_ { viewport_width, viewport_height }
+, render_target_1_ { viewport_width, viewport_height }
 {
 	widgets_.emplace_back(new percent_widget(*this));
 	widgets_.emplace_back(new lives_widget(*this));
@@ -501,15 +502,22 @@ game::get_viewport_offset() const
 void
 game::draw() const
 {
-	render_target_.bind();
+	render_target_0_.bind();
 	draw_scene();
 
-#if 0
-	passthru_filter_.draw(render_target_, ggl::window());
-#else
-	ripple_filter_.set_params(30, .5f*vec2f(viewport_width, viewport_height), (tics *2)%500);
-	ripple_filter_.draw(render_target_, ggl::window());
-#endif
+	if (post_filters_.empty()) {
+		passthru_filter_.draw(render_target_0_, ggl::window());
+	} else {
+		const ggl::framebuffer *source = &render_target_0_, *dest = &render_target_1_;
+		ggl::window window;
+
+		const unsigned num_filters = post_filters_.size();
+
+		for (unsigned i = 0; i < num_filters; i++) {
+			post_filters_[i]->draw(*source, i < num_filters - 1 ? *static_cast<const ggl::render_target *>(dest) : window);
+			std::swap(source, dest);
+		}
+	}
 }
 
 void
@@ -740,9 +748,33 @@ game::update(unsigned dpad_state)
 {
 	++tics;
 
-	update_entities();
-	update_hud();
-	update_effects();
+	// entities
+	for (auto it = std::begin(entities); it != std::end(entities); ) {
+		if (!(*it)->update())
+			it = entities.erase(it);
+		else
+			++it;
+	}
+
+	// hud
+	for (auto& w : widgets_)
+		w->update();
+
+	// effects
+	for (auto it = std::begin(effects_); it != std::end(effects_); ) {
+		if (!(*it)->update())
+			it = effects_.erase(it);
+		else
+			++it;
+	}
+
+	// post-filters
+	for (auto it = std::begin(post_filters_); it != std::end(post_filters_); ) {
+		if (!(*it)->update())
+			it = post_filters_.erase(it);
+		else
+			++it;
+	}
 
 	state_->update(dpad_state);
 
@@ -887,6 +919,12 @@ game::add_effect(std::unique_ptr<effect> e)
 }
 
 void
+game::add_post_filter(std::unique_ptr<dynamic_post_filter> f)
+{
+	post_filters_.push_back(std::move(f));
+}
+
+void
 game::start_screenshake(int duration, float intensity)
 {
 	shake_tics_ = shake_ttl_ = duration;
@@ -1002,20 +1040,6 @@ game::draw_player() const
 	player_.draw();
 }
 
-void
-game::update_entities()
-{
-	auto it = std::begin(entities);
-
-	while (it != std::end(entities)) {
-		if (!(*it)->update())
-			it = entities.erase(it);
-		else
-			++it;
-	}
-
-}
-
 player&
 game::get_player()
 {
@@ -1032,26 +1056,6 @@ bool
 game::update_player(unsigned dpad_state)
 {
 	return player_.update(dpad_state);
-}
-
-void
-game::update_hud()
-{
-	for (auto& w : widgets_)
-		w->update();
-}
-
-void
-game::update_effects()
-{
-	auto it = std::begin(effects_);
-
-	while (it != std::end(effects_)) {
-		if (!(*it)->update())
-			it = effects_.erase(it);
-		else
-			++it;
-	}
 }
 
 ggl::connectable_event<game::cover_update_event_handler>&

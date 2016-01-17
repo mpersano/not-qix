@@ -54,12 +54,12 @@ public:
 	void reset_player(const vec2i& pos);
 
 	bool update_player(unsigned dpad_state);
-	void update_entities();
 
 	void draw_player() const;
 
 	void add_entity(std::unique_ptr<entity> f);
 	void add_effect(std::unique_ptr<effect> e);
+	void add_post_filter(std::unique_ptr<dynamic_post_filter> f);
 	void start_screenshake(int duration, float intensity);
 
 	void fill_grid(const std::vector<vec2i>& contour);
@@ -107,9 +107,6 @@ private:
 	void draw_scene() const;
 	void draw_background() const;
 
-	void update_hud();
-	void update_effects();
-
 	void update_border();
 	void update_background();
 	void update_cover_percent();
@@ -128,6 +125,7 @@ private:
 
 	std::vector<std::unique_ptr<widget>> widgets_;
 	std::vector<std::unique_ptr<effect>> effects_;
+	std::vector<std::unique_ptr<dynamic_post_filter>> post_filters_;
 
 	ggl::vertex_array_texcoord<GLshort, 2, GLfloat, 2> background_filled_va_;
 	ggl::vertex_array_texcoord<GLshort, 2, GLfloat, 2> background_unfilled_va_;
@@ -140,8 +138,7 @@ private:
 	ggl::event<start_event_handler> start_event_;
 	ggl::event<stop_event_handler> stop_event_;
 
-	ggl::framebuffer render_target_;
+	ggl::framebuffer render_target_0_, render_target_1_;
 
 	passthru_filter passthru_filter_;
-	ripple_filter ripple_filter_;
 };

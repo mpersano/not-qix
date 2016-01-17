@@ -4,6 +4,7 @@ uniform vec2 resolution;
 uniform vec2 center;
 uniform float radius;
 uniform float width;
+uniform float scale;
 
 const float PI = 3.14159265;
 
@@ -21,7 +22,7 @@ void main(void)
 		offs = vec2(0., 0.);
 	} else {
 		float d = cos((radius - r)*PI/width + .5*PI);
-		offs = -d*.005*normalize(p - center);
+		offs = -d*scale*normalize(p - center);
 	}
 
 	out_color = texture2D(source_buffer, frag_texcoord + offs);

@@ -12,6 +12,7 @@
 #include "game.h"
 #include "powerup.h"
 #include "explosion.h"
+#include "post_filter.h"
 #include "player.h"
 
 namespace {
@@ -365,6 +366,7 @@ player::die()
 
 	game_.add_effect(std::unique_ptr<effect>(new explosion(get_position(), 2)));
 	game_.start_screenshake(60, 40.f);
+	game_.add_post_filter(std::unique_ptr<dynamic_post_filter>(new ripple_filter(60., get_position() + game_.offset, 2.f, 300.f)));
 
 	set_state(state::EXPLODING);
 
