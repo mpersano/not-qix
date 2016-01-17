@@ -4,6 +4,7 @@
 
 #include "game.h"
 #include "debuggfx.h"
+#include "post_filter.h"
 #include "explosion.h"
 #include "miniboss.h"
 
@@ -44,7 +45,9 @@ miniboss::update()
 		for (int c = p0.x; c <= p1.x; c++) {
 			if (game_.grid[r*game_.grid_cols + c]) {
 				printf("killed!\n");
-				game_.add_effect(std::unique_ptr<effect>(new explosion(pos_, 2)));
+				game_.add_effect(std::unique_ptr<effect>(new explosion(pos_, 1)));
+				game_.add_post_filter(std::unique_ptr<dynamic_post_filter>(new ripple_filter(30., pos_ + game_.offset, 3.f, 100.f)));
+				game_.start_screenshake(30, 20.f);
 				return false;
 			}
 		}

@@ -288,7 +288,7 @@ player::update_exploding(unsigned dpad_state)
 			if (index%2 == 0) {
 				vec2f v0 = extend_trail_[extend_trail_.size() - index]*CELL_SIZE;
 				vec2f v1 = extend_trail_[extend_trail_.size() - index - 1]*CELL_SIZE;
-				game_.add_effect(std::unique_ptr<effect>(new explosion(.5f*(v0 + v1), 1)));
+				game_.add_effect(std::unique_ptr<effect>(new explosion(.5f*(v0 + v1), 0)));
 			}
 		}
 	}
@@ -364,7 +364,7 @@ player::die()
 		a += da;
 	}
 
-	game_.add_effect(std::unique_ptr<effect>(new explosion(get_position(), 2)));
+	game_.add_effect(std::unique_ptr<effect>(new explosion(get_position(), 1)));
 	game_.start_screenshake(60, 40.f);
 	game_.add_post_filter(std::unique_ptr<dynamic_post_filter>(new ripple_filter(60., get_position() + game_.offset, 2.f, 300.f)));
 

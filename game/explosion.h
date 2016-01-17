@@ -12,7 +12,7 @@ class sprite;
 class explosion : public effect
 {
 public:
-	explosion(const vec2f& pos, float bang);
+	explosion(const vec2f& pos, int bang);
 
 	void draw() const override;
 

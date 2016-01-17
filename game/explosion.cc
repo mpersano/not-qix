@@ -1,3 +1,5 @@
+#include <cassert>
+
 #include <ggl/gl.h>
 #include <ggl/sprite.h>
 #include <ggl/render.h>
@@ -11,17 +13,29 @@ namespace {
 
 const int TTL = 30;
 
+static const struct explosion_info {
+	int min_particles, max_particles;
+	int min_fireballs, max_fireballs;
+} explosion_infos[] = {
+	{ 16, 30, 1, 3 },
+	{ 70, 70, 5, 5 },
+};
+
 } // (anonymous namespace)
 
-explosion::explosion(const vec2f& pos, float bang)
+explosion::explosion(const vec2f& pos, int bang)
 {
+	assert(bang >= 0 && bang < sizeof explosion_infos/sizeof *explosion_infos);
+
 	load_sprites();
 
-	const int num_particles = bang*rand<int>(16, 30);
+	const auto& info = explosion_infos[bang];
+
+	const int num_particles = rand<int>(info.min_particles, info.max_particles);
 	for (size_t i = 0; i < num_particles; i++)
 		particles_.emplace_back(particle_sprite_, pos);
 
-	const int num_fireballs = bang*rand<int>(1, 3);
+	const int num_fireballs = rand<int>(info.min_fireballs, info.max_fireballs);
 	for (size_t i = 0; i < num_fireballs; i++) {
 		float a = rand<float>(0, 2.f*M_PI);
 		float d = rand<float>(16.f, 64.f);
@@ -90,8 +104,8 @@ explosion::particle::particle(const ggl::sprite *sp, const vec2f& pos)
 , pos_ { pos }
 , dir_ { [&] { float a = rand<float>(0.f, 2.f*M_PI); return vec2f(cosf(a), sinf(a)); }() }
 , tics_ { 0 }
-, ttl_ { rand<int>(20, 50) }
-, speed_ { rand<float>(3.2, 5.) }
+, ttl_ { rand<int>(30, 50) }
+, speed_ { rand<float>(3.2, 7.) }
 {
 	const bezier<rgb> gradient { { 1.f, .5f, 0.f }, { 1.f, 1.f, 0.f }, { 1.f, 1.f, 1.f } };
 	color_ = gradient(rand<float>(0.f, 1.f));
