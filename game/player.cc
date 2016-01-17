@@ -366,8 +366,8 @@ player::die()
 
 	game_.add_effect(std::unique_ptr<effect>(new explosion(get_position(), 1)));
 	game_.start_screenshake(60, 40.f);
-	game_.add_post_filter(std::unique_ptr<dynamic_post_filter>(new ripple_filter(60., get_position() + game_.offset, 2.f, 300.f)));
-	game_.start_screenflash(15);
+	game_.add_post_filter(std::unique_ptr<dynamic_post_filter>(new ripple_filter(60., get_position() + game_.offset, 3.f, 200.f)));
+	game_.start_screenflash(20);
 
 	set_state(state::EXPLODING);
 

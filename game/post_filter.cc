@@ -62,7 +62,7 @@ ripple_filter::draw(const ggl::framebuffer& source, const ggl::render_target& de
 	program_->set_uniform_f("width", width_);
 	program_->set_uniform_f("center", center_.x, center_.y);
 	program_->set_uniform_f("radius", radius_);
-	program_->set_uniform_f("scale", .01f*(1.f - static_cast<float>(tics_)/ttl_));
+	program_->set_uniform_f("scale", .02f*(1.f - static_cast<float>(tics_)/ttl_));
 
 	dest.bind();
 	source.bind_texture();
