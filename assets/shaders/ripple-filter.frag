@@ -25,5 +25,5 @@ void main(void)
 		offs = -d*scale*normalize(p - center);
 	}
 
-	out_color = texture2D(source_buffer, frag_texcoord + offs);
+	out_color = texture(source_buffer, frag_texcoord + offs);
 }
