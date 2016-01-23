@@ -108,7 +108,7 @@ update_effect::draw() const
 
 percent_widget::percent_widget(game& g)
 : widget { g }
-, position_top_ { true }
+, position_ { position::LEFT }
 , cur_value_ { 0 }
 , next_value_ { 0 }
 , large_font_ { ggl::res::get_font("fonts/hud-big.spr") }
@@ -166,15 +166,17 @@ percent_widget::update()
 			if (hidden_) {
 				set_state(state::OUTRO);
 			} else {
-				int player_y = game_.get_player_screen_position().y;
+				auto player_pos = game_.get_player_screen_position();
 
-				if (position_top_) {
-					if (player_y > .7*game_.viewport_height) {
-						set_state(state::OUTRO);
-					}
-				} else {
-					if (player_y < .3*game_.viewport_height) {
-						set_state(state::OUTRO);
+				if (player_pos.y > game_.viewport_height - frame_->height) {
+					bool change_position = false;
+
+					if (position_ == position::LEFT) {
+						if (player_pos.x < frame_->width)
+							set_state(state::OUTRO);
+					} else {
+						if (player_pos.x > game_.viewport_width - frame_->width)
+							set_state(state::OUTRO);
 					}
 				}
 			}
@@ -183,7 +185,8 @@ percent_widget::update()
 		case state::OUTRO:
 			if (++state_tics_ >= OUTRO_TICS) {
 				if (!hidden_) {
-					position_top_ = !position_top_;
+					auto player_x = game_.get_player_screen_position().x;
+					position_ = player_x < game_.viewport_width/2 ? position::RIGHT : position::LEFT;
 					set_state(state::INTRO);
 				} else {
 					set_state(state::HIDDEN);
@@ -238,30 +241,39 @@ percent_widget::on_cover_update(unsigned percent)
 int
 percent_widget::get_base_y() const
 {
-	if (position_top_)
-		return game_.viewport_height - frame_->height;
-	else
-		return 0;
+	return game_.viewport_height - frame_->height;
 }
 
 int
 percent_widget::get_base_x() const
 {
-	const int w = frame_->width;
+	const int frame_width = frame_->width;
+
+	float t;
 
 	switch (state_) {
 		case state::HIDDEN:
-			return -w;
+			t = 1;
+			break;
 
 		case state::INTRO:
-			return -w*(1.f - ggl::tween::in_quadratic(static_cast<float>(state_tics_)/INTRO_TICS));
+			t = 1.f - ggl::tween::in_quadratic(static_cast<float>(state_tics_)/INTRO_TICS);
+			break;
 
 		case state::IDLE:
-			return 0;
+			t = 0;
+			break;
 
 		case state::OUTRO:
-			return -w*ggl::tween::in_quadratic(static_cast<float>(state_tics_)/OUTRO_TICS);
+		default:
+			t = ggl::tween::in_quadratic(static_cast<float>(state_tics_)/INTRO_TICS);
+			break;
 	}
+
+	if (position_ == position::LEFT)
+		return -t*frame_width;
+	else
+		return game_.viewport_width + frame_width*(t - 1);
 }
 
 unsigned

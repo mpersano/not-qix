@@ -33,7 +33,7 @@ private:
 	void draw_digits() const;
 	void draw_char(const ggl::font *f, wchar_t ch, int base_x, int base_y) const;
 
-	bool position_top_;
+	enum position { LEFT, RIGHT } position_;
 	unsigned cur_value_, next_value_;
 
 	enum state { HIDDEN, INTRO, IDLE, OUTRO } state_;
