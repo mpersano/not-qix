@@ -10,6 +10,7 @@
 #include <ggl/vec2.h>
 #include <ggl/vertex_array.h>
 #include <ggl/framebuffer.h>
+#include <ggl/dpad_button.h>
 
 #include "widget.h"
 #include "effect.h"
@@ -42,10 +43,10 @@ protected:
 class game : private ggl::noncopyable
 {
 public:
-	game(int width, int height);
+	game(int width, int height, bool virtual_dpad);
 
 	void reset(const level *l);
-	void update(unsigned dpad_state);
+	void update();
 	void draw() const;
 
 	unsigned get_cover_percent() const;
@@ -108,6 +109,9 @@ public:
 	int tics;
 
 private:
+	void on_dpad_button_down(ggl::dpad_button button);
+	void on_dpad_button_up(ggl::dpad_button button);
+
 	void set_state(std::unique_ptr<game_state> next_state);
 
 	void draw_scene() const;
@@ -121,6 +125,8 @@ private:
 	void add_foes();
 
 	const foe *cur_boss_;
+
+	unsigned dpad_state_;
 
 	player player_;
 	unsigned cover_percent_;
@@ -150,4 +156,7 @@ private:
 	ggl::framebuffer render_target_0_, render_target_1_;
 
 	passthru_filter passthru_filter_;
+
+	ggl::event_connection_ptr dpad_button_down_conn_;
+	ggl::event_connection_ptr dpad_button_up_conn_;
 };

@@ -114,23 +114,41 @@ core::handle_input(struct android_app *app, AInputEvent *event)
 int32_t
 core::handle_input(AInputEvent *event)
 {
-	switch (AInputEvent_getType(event)) {
+	int32_t event_type = AInputEvent_getType(event);
+
+	switch (event_type) {
 		case AINPUT_EVENT_TYPE_MOTION:
 			{
-			const int x = static_cast<int>(AMotionEvent_getX(event, 0));
-			const int y = static_cast<int>(AMotionEvent_getY(event, 0));
+			int32_t action = AMotionEvent_getAction(event);
 
-			switch (AMotionEvent_getAction(event)) {
+			int32_t flag = action & AMOTION_EVENT_ACTION_MASK;
+			int32_t index = (action & AMOTION_EVENT_ACTION_POINTER_INDEX_MASK) >> AMOTION_EVENT_ACTION_POINTER_INDEX_SHIFT;
+
+			const char *event_type = nullptr;
+
+			switch (flag) {
 				case AMOTION_EVENT_ACTION_DOWN:
-					pointer_down_event_.notify(x, y);
+					pointer_down_event_.notify(AMotionEvent_getPointerId(event, 0), AMotionEvent_getX(event, 0), AMotionEvent_getY(event, 0));
+					return 1;
+
+				case AMOTION_EVENT_ACTION_POINTER_DOWN:
+					pointer_down_event_.notify(AMotionEvent_getPointerId(event, index), AMotionEvent_getX(event, index), AMotionEvent_getY(event, index));
+					return 1;
+
+				case AMOTION_EVENT_ACTION_POINTER_UP:
+					pointer_up_event_.notify(AMotionEvent_getPointerId(event, index));
 					return 1;
 
 				case AMOTION_EVENT_ACTION_UP:
-					pointer_up_event_.notify(x, y);
+					pointer_up_event_.notify(AMotionEvent_getPointerId(event, 0));
 					return 1;
 
 				case AMOTION_EVENT_ACTION_MOVE:
-					pointer_motion_event_.notify(x, y);
+					{
+						int32_t pointer_count = AMotionEvent_getPointerCount(event);
+						for (int32_t i = 0; i < pointer_count; i++)
+							pointer_motion_event_.notify(AMotionEvent_getPointerId(event, i), AMotionEvent_getX(event, i), AMotionEvent_getY(event, i));
+					}
 					return 1;
 			}
 			}

@@ -11,8 +11,6 @@ draw_circle(const vec2f& center, float radius, float width)
 	float a = 0;
 	float da = 2.*M_PI/NUM_SEGMENTS;
 
-	ggl::render::set_color(ggl::rgba { 1, 1, 1, .5 });
-
 	for (int i = 0; i < NUM_SEGMENTS; i++) {
 		const float s0 = sinf(a);
 		const float c0 = cosf(a);

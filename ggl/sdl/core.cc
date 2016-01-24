@@ -84,17 +84,17 @@ core::poll_events()
 
 			case SDL_MOUSEBUTTONDOWN:
 				if (event.button.button == SDL_BUTTON_LEFT)
-					pointer_down_event_.notify(event.button.x, event.button.y);
+					pointer_down_event_.notify(0, event.button.x, event.button.y);
 				break;
 
 			case SDL_MOUSEBUTTONUP:
 				if (event.button.button == SDL_BUTTON_LEFT)
-					pointer_up_event_.notify(event.button.x, event.button.y);
+					pointer_up_event_.notify(0);
 				break;
 
 			case SDL_MOUSEMOTION:
 				if (event.motion.state & SDL_BUTTON_LMASK)
-					pointer_motion_event_.notify(event.motion.x, event.motion.y);
+					pointer_motion_event_.notify(0, event.motion.x, event.motion.y);
 				break;
 		}
 	}

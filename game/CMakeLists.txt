@@ -50,7 +50,6 @@ endif()
 set(GAME_SOURCES
 	main.cc
 	game_app.cc
-	gesture_detector.cc
 	level.cc
 	shiny_sprite.cc
 	game.cc
@@ -72,7 +71,8 @@ set(GAME_SOURCES
 	transition_state.cc
 	widget.cc
 	lives_widget.cc
-	percent_widget.cc)
+	percent_widget.cc
+	dpad_widget.cc)
 
 set(ASSET_DIR "${CMAKE_BINARY_DIR}/assets/assets")
 

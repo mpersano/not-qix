@@ -44,6 +44,8 @@ private:
 	EGLContext context_;
 
 	int width_, height_;
+
+	std::vector<int32_t> active_pointers_;
 };
 
 } }

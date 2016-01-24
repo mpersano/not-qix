@@ -21,6 +21,7 @@
 #include "miniboss.h"
 #include "percent_widget.h"
 #include "lives_widget.h"
+#include "dpad_widget.h"
 #include "game.h"
 
 namespace {
@@ -451,17 +452,44 @@ game_state::game_state(game& g)
 : game_ { g }
 { }
 
-game::game(int width, int height)
+game::game(int width, int height, bool virtual_dpad)
 : viewport_width { width }
 , viewport_height { height }
+, dpad_state_ { 0 }
 , player_ { *this }
 , border_texture_ { ggl::res::get_texture("images/border.png") }
+, flash_program_ { ggl::res::get_program("screenflash") }
 , render_target_0_ { viewport_width, viewport_height }
 , render_target_1_ { viewport_width, viewport_height }
-, flash_program_ { ggl::res::get_program("screenflash") }
 {
 	widgets_.emplace_back(new percent_widget(*this));
 	widgets_.emplace_back(new lives_widget(*this));
+
+	using namespace std::placeholders;
+
+	if (virtual_dpad) {
+		std::unique_ptr<dpad_widget> dpad(new dpad_widget(*this));
+
+		dpad_button_down_conn_ =
+			dpad->get_dpad_button_down_event().connect(
+					std::bind(&game::on_dpad_button_down, this, _1));
+
+		dpad_button_up_conn_ =
+			dpad->get_dpad_button_up_event().connect(
+					std::bind(&game::on_dpad_button_up, this, _1));
+
+		widgets_.push_back(std::move(dpad));
+	} else {
+		auto core = ggl::g_core;
+
+		dpad_button_down_conn_ =
+			core->get_dpad_button_down_event().connect(
+					std::bind(&game::on_dpad_button_down, this, _1));
+
+		dpad_button_up_conn_ =
+			core->get_dpad_button_up_event().connect(
+					std::bind(&game::on_dpad_button_up, this, _1));
+	}
 }
 
 void
@@ -757,7 +785,7 @@ game::draw_background() const
 }
 
 void
-game::update(unsigned dpad_state)
+game::update()
 {
 	++tics;
 
@@ -789,7 +817,7 @@ game::update(unsigned dpad_state)
 			++it;
 	}
 
-	state_->update(dpad_state);
+	state_->update(dpad_state_);
 
 	if (shake_tics_ > 0)
 		--shake_tics_;
@@ -1096,4 +1124,16 @@ ggl::connectable_event<game::stop_event_handler>&
 game::get_stop_event()
 {
 	return stop_event_;
+}
+
+void
+game::on_dpad_button_down(ggl::dpad_button button)
+{
+	dpad_state_ |= (1u << static_cast<int>(button));
+}
+
+void
+game::on_dpad_button_up(ggl::dpad_button button)
+{
+	dpad_state_ &= ~(1u << static_cast<int>(button));
 }
