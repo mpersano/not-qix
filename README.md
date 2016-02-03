@@ -10,6 +10,14 @@ Building for linux
     cmake -DCMAKE_BUILD_TYPE=Debug ..
     make
 
+Building for windows
+--------------------
+
+    mkdir build
+    cd build
+    cmake -DCMAKE_TOOLCHAIN_FILE=../cmake/mingw-w64.toolchain.cmake ..
+    make
+
 Building for android
 --------------------
 
@@ -29,4 +37,4 @@ To build the APK:
     mkdir src
     ant debug
 
-The `android update` step only needs to be done once. The argument for `--target` should be the id of an Android target with at least API level 14 (`android list target` may be useful).
+The `android update` step only needs to be done once. The argument for `--target` should be the id of an Android target with at least API level 19 (`android list target` may be useful).
