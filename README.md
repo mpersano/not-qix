@@ -13,6 +13,8 @@ Building for linux
 Building for windows
 --------------------
 
+See [this](https://gist.github.com/mpersano/14d2227462ebbfee4b92) for instructions on cross-compiling the prerequisites.
+
     mkdir build
     cd build
     cmake -DCMAKE_TOOLCHAIN_FILE=../cmake/mingw-w64.toolchain.cmake ..
