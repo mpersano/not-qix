@@ -13,7 +13,7 @@ Building for linux
 Building for windows
 --------------------
 
-See [this](https://gist.github.com/mpersano/14d2227462ebbfee4b92) for instructions on cross-compiling the prerequisites.
+See [this](https://gist.github.com/mpersano/14d2227462ebbfee4b92) for instructions on cross-compiling dependent libraries.
 
     mkdir build
     cd build
@@ -22,6 +22,14 @@ See [this](https://gist.github.com/mpersano/14d2227462ebbfee4b92) for instructio
 
 Building for android
 --------------------
+
+After checking out:
+
+    cd android
+    android update project -p . --target 2
+    mkdir src
+
+The argument for `--target` should be the id of an Android target with at least API level 19 (`android list target` may be useful).
 
 To build the native library:
 
@@ -35,8 +43,4 @@ To build the native library:
 To build the APK:
 
     cd android
-    android update project -p . --target 2
-    mkdir src
     ant debug
-
-The `android update` step only needs to be done once. The argument for `--target` should be the id of an Android target with at least API level 19 (`android list target` may be useful).
