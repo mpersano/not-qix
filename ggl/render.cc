@@ -222,7 +222,7 @@ renderer::init_perspective_proj()
 	perspective_proj_ = { f/aspect, 0, 0, 0,
 			      0, f, 0, 0,
 			      0, 1, (Z_FAR + Z_NEAR)/(Z_NEAR - Z_FAR), -1,
-			      0, 0, (2.*Z_FAR*Z_NEAR)/(Z_NEAR - Z_FAR), 0 };
+			      0, 0, (2.f*Z_FAR*Z_NEAR)/(Z_NEAR - Z_FAR), 0 };
 
 	prog_mesh_->use();
 	prog_mesh_->set_uniform_mat4("proj_matrix", &perspective_proj_[0]);
