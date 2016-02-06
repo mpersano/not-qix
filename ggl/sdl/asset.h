@@ -1,6 +1,7 @@
 #include <cstdio>
 
 #include <string>
+#include <physfs.h>
 
 #include <ggl/asset.h>
 
@@ -16,7 +17,7 @@ public:
 	size_t read(void *buf, size_t size) override;
 
 private:
-	FILE *stream_;
+	PHYSFS_file *file_;
 	off_t size_;
 };
 

@@ -12,10 +12,12 @@ if (ANDROID)
 else()
 	find_package(SDL REQUIRED)
 	find_package(GLEW REQUIRED)
+	find_package(PhysFS REQUIRED)
 
 	include_directories(
 		${SDL_INCLUDE_DIR}
-		${GLEW_INCLUDE_DIR})
+		${GLEW_INCLUDE_DIR}
+		${PhysFS_INCLUDE_DIR})
 endif()
 
 set(GGL_SOURCES

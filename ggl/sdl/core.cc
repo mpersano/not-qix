@@ -11,6 +11,7 @@
 
 #include <SDL.h>
 #include <GL/glew.h>
+#include <physfs.h>
 
 namespace ggl { namespace sdl {
 
@@ -34,10 +35,17 @@ core::core(app& a, int width, int height, const char *caption, bool fullscreen)
 
 	if (GLenum rv = glewInit())
 		panic("glewInit: %s", glewGetErrorString(rv));
+
+	if (!PHYSFS_init(nullptr))
+		panic("PHYSFS_init: %s", PHYSFS_getLastError());
+
+	PHYSFS_mount(".", nullptr, 1);
+	PHYSFS_mount("assets.zip", nullptr, 1);
 }
 
 core::~core()
 {
+	PHYSFS_deinit();
 	SDL_Quit();
 }
 

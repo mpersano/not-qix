@@ -36,15 +36,18 @@ else()
 	find_package(SDL REQUIRED)
 	find_package(GLEW REQUIRED)
 	find_package(OpenGL REQUIRED)
+	find_package(PhysFS REQUIRED)
 
 	include_directories(
 		${SDL_INCLUDE_DIR}
-		${GLEW_INCLUDE_DIR})
+		${GLEW_INCLUDE_DIR}
+		${PhysFS_INCLUDE_DIR})
 
 	list(APPEND GAME_LIBRARIES
 		${SDL_LIBRARY}
 		${GLEW_LIBRARY}
-		${OPENGL_LIBRARIES})
+		${OPENGL_LIBRARIES}
+		${PhysFS_LIBRARY})
 endif()
 
 set(GAME_SOURCES
@@ -77,27 +80,31 @@ set(GAME_SOURCES
 set(ASSET_DIR "${CMAKE_BINARY_DIR}/assets/assets")
 
 if (ANDROID)
-	set(DEST_ASSET_DIR "${CMAKE_SOURCE_DIR}/android/assets")
-else()
-	set(DEST_ASSET_DIR "${CMAKE_CURRENT_BINARY_DIR}/data")
-endif()
+	set(DEST_ASSETS "${CMAKE_SOURCE_DIR}/android/assets")
 
-add_custom_command(
-	OUTPUT ${DEST_ASSET_DIR}
-	COMMAND ln -s ${ASSET_DIR} ${DEST_ASSET_DIR}
-	DEPENDS ${ASSET_DIR})
+	add_custom_command(
+		OUTPUT ${DEST_ASSETS}
+		COMMAND ln -s ${ASSET_DIR} "${CMAKE_SOURCE_DIR}/android/assets"
+		DEPENDS ${ASSET_DIR})
 
-if (ANDROID)
 	add_library(
 		game SHARED
 		${GAME_SOURCES}
 		"${ANDROID_NDK}/sources/android/native_app_glue/android_native_app_glue.c"
-		${DEST_ASSET_DIR})
+		${DEST_ASSETS})
 else()
+	set(DEST_ASSETS "${CMAKE_CURRENT_BINARY_DIR}/assets.zip")
+
+	add_custom_command(
+		OUTPUT ${DEST_ASSETS}
+		COMMAND zip -r ${DEST_ASSETS} .
+		DEPENDS ${ASSET_DIR}
+		WORKING_DIRECTORY ${ASSET_DIR})
+
 	add_executable(
 		game
 		${GAME_SOURCES}
-		${DEST_ASSET_DIR})
+		${DEST_ASSETS})
 endif()
 
 target_link_libraries(game ${GAME_LIBRARIES})

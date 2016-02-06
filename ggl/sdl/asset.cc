@@ -9,27 +9,23 @@
 namespace ggl { namespace sdl {
 
 asset::asset(const std::string& path)
-: stream_(fopen(path.c_str(), "rb"))
+: file_(PHYSFS_openRead(path.c_str()))
 {
-	if (!stream_)
-		panic("failed to open `%s': %s", path.c_str(), strerror(errno));
+	if (!file_)
+		panic("failed to open `%s': %s", path.c_str(), PHYSFS_getLastError());
 
-	struct stat st;
-	if (fstat(fileno(stream_), &st) != 0)
-		panic("fstat failed: %s", strerror(errno));
-
-	size_ = st.st_size;
+	size_ = PHYSFS_fileLength(file_);
 }
 
 asset::~asset()
 {
-	fclose(stream_);
+	PHYSFS_close(file_);
 }
 
 size_t
 asset::read(void *buf, size_t size)
 {
-	return ::fread(buf, 1, size, stream_);
+	return PHYSFS_read(file_, buf, 1, size);
 }
 
 off_t
