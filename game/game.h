@@ -70,9 +70,6 @@ public:
 	void start_screenshake(int duration, float intensity);
 	void start_screenflash(int duration);
 
-	void start_music();
-	void stop_music();
-
 	void fill_grid(const std::vector<vec2i>& contour);
 	void fill_grid(const vec2i& bottom_left, const vec2i& top_right);
 

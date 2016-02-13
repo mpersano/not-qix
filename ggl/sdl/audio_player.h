@@ -27,7 +27,8 @@ public:
 
 	void update() override;
 
-	void set_gain(float g);
+	void set_gain(float g) override;
+	void fade_out(int ttl) override;
 
 private:
 	static size_t read(void *ptr, size_t size, size_t nmemb, void *datasource);
@@ -64,6 +65,8 @@ private:
 
 	float gain_;
 	bool playing_;
+	bool fading_out_;
+	int fade_out_tics_, fade_out_ttl_;
 };
 
 } }

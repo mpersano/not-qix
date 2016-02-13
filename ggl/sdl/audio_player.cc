@@ -6,6 +6,7 @@ namespace ggl { namespace oal {
 
 audio_player::audio_player()
 : playing_ { false }
+, gain_ { 1.f }
 {
 	alGenSources(1, &source_);
 }
@@ -21,6 +22,14 @@ audio_player::set_gain(float g)
 {
         gain_ = g;
         alSourcef(source_, AL_GAIN, gain_);
+}
+
+void
+audio_player::fade_out(int ttl)
+{
+	fading_out_ = true;
+	fade_out_ttl_ = ttl;
+	fade_out_tics_ = 0;
 }
 
 size_t
@@ -124,6 +133,16 @@ audio_player::update()
 		auto *p = get_buffer(id);
 		if (p->load(&ogg_stream_) > 0)
 			p->queue(source_, format_, rate_);
+	}
+
+	if (state == AL_PLAYING && fading_out_) {
+		if (++fade_out_tics_ >= fade_out_ttl_) {
+			stop();
+			fading_out_ = false;
+		} else {
+			const float t = static_cast<float>(fade_out_tics_)/fade_out_ttl_;
+			alSourcef(source_, AL_GAIN, gain_*(1.f - t));
+		}
 	}
 
 	if (state != AL_PLAYING) {

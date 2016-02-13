@@ -518,18 +518,6 @@ game::reset(const level *l)
 	music_player_->open("music/music.ogg");
 }
 
-void
-game::start_music()
-{
-	music_player_->start();
-}
-
-void
-game::stop_music()
-{
-	music_player_->stop();
-}
-
 vec2f
 game::get_viewport_offset() const
 {
@@ -1087,7 +1075,7 @@ game::enter_playing_state(const vec2i& bottom_left, const vec2i& top_right)
 
 	start_event_.notify();
 
-	start_music();
+	music_player_->start();
 }
 
 void
@@ -1096,6 +1084,8 @@ game::enter_game_over_state()
 	state_ = std::unique_ptr<game_state>(new game_over_state { *this });
 
 	stop_event_.notify();
+
+	music_player_->fade_out(2*60);
 }
 
 void

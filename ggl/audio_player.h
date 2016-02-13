@@ -17,6 +17,9 @@ public:
 	virtual void stop() = 0;
 
 	virtual void update() = 0;
+
+	virtual void set_gain(float g) = 0;
+	virtual void fade_out(int ttl) = 0;
 };
 
 }
