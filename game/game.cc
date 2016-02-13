@@ -14,6 +14,7 @@
 #include <ggl/util.h>
 #include <ggl/window.h>
 #include <ggl/tween.h>
+#include <ggl/audio_player.h>
 
 #include "util.h"
 #include "level.h"
@@ -461,6 +462,7 @@ game::game(int width, int height, bool virtual_dpad)
 , flash_program_ { ggl::res::get_program("screenflash") }
 , render_target_0_ { viewport_width, viewport_height }
 , render_target_1_ { viewport_width, viewport_height }
+, music_player_ { std::move(ggl::g_core->get_audio_player()) }
 {
 	widgets_.emplace_back(new percent_widget(*this));
 	widgets_.emplace_back(new lives_widget(*this));
@@ -512,6 +514,20 @@ game::reset(const level *l)
 	enter_select_initial_area_state();
 
 	tics = 0;
+
+	music_player_->open("music/music.ogg");
+}
+
+void
+game::start_music()
+{
+	music_player_->start();
+}
+
+void
+game::stop_music()
+{
+	music_player_->stop();
 }
 
 vec2f
@@ -824,6 +840,8 @@ game::update()
 
 	if (flash_tics_ > 0)
 		--flash_tics_;
+
+	music_player_->update();
 }
 
 void
@@ -1068,6 +1086,8 @@ game::enter_playing_state(const vec2i& bottom_left, const vec2i& top_right)
 	state_ = std::unique_ptr<game_state>(new playing_state { *this });
 
 	start_event_.notify();
+
+	start_music();
 }
 
 void

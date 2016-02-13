@@ -11,6 +11,7 @@
 #include <ggl/vertex_array.h>
 #include <ggl/framebuffer.h>
 #include <ggl/dpad_button.h>
+#include <ggl/audio_player.h>
 
 #include "widget.h"
 #include "effect.h"
@@ -68,6 +69,9 @@ public:
 
 	void start_screenshake(int duration, float intensity);
 	void start_screenflash(int duration);
+
+	void start_music();
+	void stop_music();
 
 	void fill_grid(const std::vector<vec2i>& contour);
 	void fill_grid(const vec2i& bottom_left, const vec2i& top_right);
@@ -159,4 +163,6 @@ private:
 
 	ggl::event_connection_ptr dpad_button_down_conn_;
 	ggl::event_connection_ptr dpad_button_up_conn_;
+
+	std::unique_ptr<ggl::audio_player> music_player_;
 };

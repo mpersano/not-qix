@@ -1,5 +1,5 @@
 find_package(ZLIB REQUIRED)
-include_directories(${ZLIB_INCLUDE_DIRS})
+include_directories(${ZLIB_INCLUDE_DIR})
 
 set(PNG_SOURCES
 	png.c

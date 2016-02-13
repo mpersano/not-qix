@@ -2,7 +2,7 @@ set(ASSET_DIR "${CMAKE_CURRENT_BINARY_DIR}/assets")
 
 # scripts/images/animations/shaders/data
 
-foreach(NAME scripts images animations shaders data)
+foreach(NAME scripts images animations shaders data music)
 	add_custom_command(
 		OUTPUT ${ASSET_DIR}/${NAME}
 		COMMAND mkdir -p ${ASSET_DIR}

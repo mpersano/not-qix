@@ -6,7 +6,7 @@
 
 in_game_state::in_game_state(game_app& app)
 : app_state { app }
-, game_ { static_cast<int>(app_.get_scene_width()), static_cast<int>(app_.get_scene_height()), true } // UGH
+, game_ { static_cast<int>(app_.get_scene_width()), static_cast<int>(app_.get_scene_height()), false } // UGH
 {
 	game_.reset(g_levels[0].get());
 }

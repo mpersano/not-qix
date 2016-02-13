@@ -37,17 +37,27 @@ else()
 	find_package(GLEW REQUIRED)
 	find_package(OpenGL REQUIRED)
 	find_package(PhysFS REQUIRED)
+	find_package(OpenAL REQUIRED)
+	find_package(OggVorbis REQUIRED)
 
 	include_directories(
 		${SDL_INCLUDE_DIR}
 		${GLEW_INCLUDE_DIR}
-		${PhysFS_INCLUDE_DIR})
+		${OPENGL_INCLUDE_DIR}
+		${PhysFS_INCLUDE_DIR}
+		${OPENAL_INCLUDE_DIR}
+		${VORBIS_INCLUDE_DIR}
+		${OGG_INCLUDE_DIR})
 
 	list(APPEND GAME_LIBRARIES
 		${SDL_LIBRARY}
 		${GLEW_LIBRARY}
 		${OPENGL_LIBRARIES}
-		${PhysFS_LIBRARY})
+		${PhysFS_LIBRARY}
+		${OPENAL_LIBRARY}
+		${VORBIS_LIBRARY}
+		${OGG_LIBRARY}
+		${VORBISFILE_LIBRARY})
 endif()
 
 set(GAME_SOURCES

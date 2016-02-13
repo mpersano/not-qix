@@ -1,5 +1,8 @@
 #include <ggl/core.h>
 
+#include <AL/alc.h>
+#include <AL/al.h>
+
 namespace ggl { namespace sdl {
 
 class core : public ggl::core
@@ -18,6 +21,8 @@ public:
 
 	std::unique_ptr<ggl::asset> get_asset(const std::string& path) const override;
 
+	std::unique_ptr<ggl::audio_player> get_audio_player() const override;
+
 	float now() const override;
 
 private:
@@ -27,6 +32,9 @@ private:
 	void on_key_up(int keysym);
 
 	int width_, height_;
+
+	ALCdevice *al_device_;
+	ALCcontext *al_context_;
 };
 
 } }

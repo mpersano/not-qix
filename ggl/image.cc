@@ -5,6 +5,7 @@
 #include <png.h>
 
 #include <ggl/panic.h>
+#include <ggl/log.h>
 #include <ggl/asset.h>
 #include <ggl/core.h>
 #include <ggl/image.h>
@@ -75,7 +76,7 @@ image::image(const std::string& path)
 {
 	auto asset = g_core->get_asset(path);
 
-	fprintf(stderr, "loading %s...\n", path.c_str());
+	log_info("loading %s", path.c_str());
 
 	png_structp png_ptr;
 

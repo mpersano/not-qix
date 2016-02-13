@@ -29,3 +29,18 @@ draw_circle(const vec2f& center, float radius, float width)
 		a += da;
 	}
 }
+
+void
+draw_line(const vec2f& from, const vec2f& to, float width)
+{
+	vec2f d = normalized(to - from);
+	vec2f n { -d.y, d.x };
+
+	const vec2f p0 = from + n*.5f*width;
+	const vec2f p1 = from - n*.5f*width;
+
+	const vec2f p2 = from + n*.5f*width;
+	const vec2f p3 = from - n*.5f*width;
+
+	ggl::render::draw(ggl::quad { p0, p1, p2, p3 }, 30.f);
+}

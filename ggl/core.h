@@ -10,6 +10,7 @@
 namespace ggl {
 
 class asset;
+class audio_player;
 
 class core : private noncopyable
 {
@@ -23,6 +24,8 @@ public:
 	virtual int get_viewport_height() const = 0;
 
 	virtual std::unique_ptr<asset> get_asset(const std::string& path) const = 0;
+
+	virtual std::unique_ptr<audio_player> get_audio_player() const = 0;
 
 	virtual float now() const = 0;
 

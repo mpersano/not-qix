@@ -3,6 +3,7 @@
 
 #include <ggl/sdl/asset.h>
 #include <ggl/sdl/core.h>
+#include <ggl/sdl/audio_player.h>
 
 #include <cstdio>
 #include <cstdarg>
@@ -20,6 +21,8 @@ core::core(app& a, int width, int height, const char *caption, bool fullscreen)
 , width_ { width }
 , height_ { height }
 {
+	// SDL
+
 	if (SDL_Init(SDL_INIT_VIDEO) < 0)
 		panic("SDL_Init: %s", SDL_GetError());
 
@@ -33,8 +36,23 @@ core::core(app& a, int width, int height, const char *caption, bool fullscreen)
 
 	SDL_WM_SetCaption(caption, NULL);
 
+	// GLEW
+
 	if (GLenum rv = glewInit())
 		panic("glewInit: %s", glewGetErrorString(rv));
+
+	// OpenAL
+
+	if (!(al_device_ = alcOpenDevice(nullptr)))
+		panic("alcOpenDevice failed");
+
+	if (!(al_context_ = alcCreateContext(al_device_, nullptr)))
+		panic("alcCreateContext failed");
+
+	alcMakeContextCurrent(al_context_);
+	alGetError();
+
+	// PhysFS
 
 	if (!PHYSFS_init(nullptr))
 		panic("PHYSFS_init: %s", PHYSFS_getLastError());
@@ -45,7 +63,18 @@ core::core(app& a, int width, int height, const char *caption, bool fullscreen)
 
 core::~core()
 {
+	// OpenAL
+
+	alcMakeContextCurrent(nullptr);
+	alcDestroyContext(al_context_);
+	alcCloseDevice(al_device_);
+
+	// PhysFS
+
 	PHYSFS_deinit();
+
+	// SDL
+
 	SDL_Quit();
 }
 
@@ -174,6 +203,12 @@ std::unique_ptr<ggl::asset>
 core::get_asset(const std::string& path) const
 {
 	return std::unique_ptr<ggl::asset>(new asset(path));
+}
+
+std::unique_ptr<ggl::audio_player>
+core::get_audio_player() const
+{
+	return std::unique_ptr<ggl::audio_player>(new ggl::oal::audio_player());
 }
 
 float

@@ -13,11 +13,16 @@ else()
 	find_package(SDL REQUIRED)
 	find_package(GLEW REQUIRED)
 	find_package(PhysFS REQUIRED)
+	find_package(OpenAL REQUIRED)
+	find_package(OggVorbis REQUIRED)
 
 	include_directories(
 		${SDL_INCLUDE_DIR}
 		${GLEW_INCLUDE_DIR}
-		${PhysFS_INCLUDE_DIR})
+		${PhysFS_INCLUDE_DIR}
+		${OPENAL_INCLUDE_DIR}
+		${VORBIS_INCLUDE_DIR}
+		${OGG_INCLUDE_DIR})
 endif()
 
 set(GGL_SOURCES
@@ -51,7 +56,8 @@ if (ANDROID)
 else()
 	list(APPEND GGL_SOURCES
 		sdl/asset.cc
-		sdl/core.cc)
+		sdl/core.cc
+		sdl/audio_player.cc)
 endif()
 
 add_library(ggl ${GGL_SOURCES})
